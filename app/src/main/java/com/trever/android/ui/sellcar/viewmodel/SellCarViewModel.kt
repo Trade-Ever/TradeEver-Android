@@ -22,7 +22,9 @@ data class SellCarUiState(
     val displacement: String = "", // 배기량 추가
     val horsepower: String = "", // 마력 추가
     val imageUris: List<Uri> = emptyList(), // 이미지 URI 리스트 추가
-    val color: String = "" // 색상 추가
+    val color: String = "", // 색상 추가
+    val selectedOptions: List<String> = emptyList(), // 선택 옵션 리스트 추가
+    val description: String = "" // 상세 설명 추가
 )
 
 open class SellCarViewModel : ViewModel() {
@@ -91,6 +93,14 @@ open class SellCarViewModel : ViewModel() {
 
     open fun updateColor(color: String) {
         _uiState.update { it.copy(color = color) }
+    }
+
+    open fun updateSelectedOptions(options: List<String>) {
+        _uiState.update { it.copy(selectedOptions = options) }
+    }
+
+    open fun updateDescription(description: String) {
+        _uiState.update { it.copy(description = description) }
     }
 
     // TODO: Implement other ViewModel logic for selling a car

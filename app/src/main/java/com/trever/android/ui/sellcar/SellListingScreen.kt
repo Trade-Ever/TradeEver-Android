@@ -30,7 +30,8 @@ enum class CurrentScreen {
     YearInput,
     MileageAndType,
     Details,
-    Visuals // 새 화면 상태 추가
+    Visuals,
+    Options // 새 화면 상태 추가
 }
 
 @Composable
@@ -127,7 +128,7 @@ fun SellListingScreen() {
                         currentScreen = CurrentScreen.MileageAndType
                     },
                     onNextClicked = {
-                        sellCarViewModel.updateCurrentStep(8) // Visuals 화면은 8단계
+                        sellCarViewModel.updateCurrentStep(8)
                         currentScreen = CurrentScreen.Visuals
                     }
                 )
@@ -136,12 +137,25 @@ fun SellListingScreen() {
                 SellCarVisualsScreen(
                     sellCarViewModel = sellCarViewModel,
                     onNavigateBack = {
-                        sellCarViewModel.updateCurrentStep(7) // 이전 화면은 7단계
+                        sellCarViewModel.updateCurrentStep(7)
                         currentScreen = CurrentScreen.Details
                     },
                     onNextClicked = {
+                        sellCarViewModel.updateCurrentStep(9) // Options 화면은 9단계
+                        currentScreen = CurrentScreen.Options
+                    }
+                )
+            }
+            CurrentScreen.Options -> {
+                SellCarOptionsScreen(
+                    sellCarViewModel = sellCarViewModel,
+                    onNavigateBack = {
+                        sellCarViewModel.updateCurrentStep(8) // 이전 화면은 8단계
+                        currentScreen = CurrentScreen.Visuals
+                    },
+                    onNextClicked = {
                         // TODO: 다음 화면 로직 (예: 최종 확인 페이지)
-                        Log.d("SellListingScreen", "Next from VisualsScreen")
+                        Log.d("SellListingScreen", "Next from OptionsScreen")
                     }
                 )
             }
