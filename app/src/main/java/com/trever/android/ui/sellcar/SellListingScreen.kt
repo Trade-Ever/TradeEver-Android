@@ -1,4 +1,4 @@
-package com.trever.android.ui.sell
+package com.trever.android.ui.sellcar
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,10 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-import com.trever.android.ui.sellcar.SellCarMileageAndTypeScreen
-import com.trever.android.ui.sellcar.SellCarModelPromptScreen
-import com.trever.android.ui.sellcar.SellCarPlateNumberScreen
-import com.trever.android.ui.sellcar.SellCarYearScreen
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 
 

@@ -1,4 +1,4 @@
-package com.trever.android.ui.sell
+package com.trever.android.ui.buy
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

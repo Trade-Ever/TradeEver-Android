@@ -15,8 +15,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.trever.android.ui.auction.AuctionDetailScreen
 import com.trever.android.ui.auction.AuctionListScreen
-import com.trever.android.ui.sell.SellDetailScreen
-import com.trever.android.ui.sell.SellListingScreen
+import com.trever.android.ui.buy.SellDetailScreen
+import com.trever.android.ui.sellcar.SellListingScreen
 
 private const val ROUTE_AUCTION_LIST = "auction/list"
 const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
