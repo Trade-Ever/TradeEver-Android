@@ -29,7 +29,8 @@ enum class CurrentScreen {
     ModelPrompt,
     YearInput,
     MileageAndType,
-    Details // 새 화면 상태 추가
+    Details,
+    Visuals // 새 화면 상태 추가
 }
 
 @Composable
@@ -44,7 +45,6 @@ fun SellListingScreen() {
                     sellCarViewModel = sellCarViewModel,
                     onNavigateBack = {
                         Log.d("SellListingScreen", "Back from PlateNumberScreen")
-                        // 여기서의 뒤로가기는 탭의 최상위이므로 별도 처리 필요 없음
                     },
                     onNextClicked = {
                         sellCarViewModel.updateCurrentStep(2)
@@ -114,7 +114,7 @@ fun SellListingScreen() {
                         currentScreen = CurrentScreen.YearInput
                     },
                     onNextClicked = {
-                        sellCarViewModel.updateCurrentStep(7) // Details 화면은 7단계
+                        sellCarViewModel.updateCurrentStep(7)
                         currentScreen = CurrentScreen.Details
                     }
                 )
@@ -123,13 +123,25 @@ fun SellListingScreen() {
                 SellCarDetailsScreen(
                     sellCarViewModel = sellCarViewModel,
                     onNavigateBack = {
-                        sellCarViewModel.updateCurrentStep(6) // 이전 화면은 6단계
+                        sellCarViewModel.updateCurrentStep(6)
                         currentScreen = CurrentScreen.MileageAndType
                     },
                     onNextClicked = {
-                        // TODO: 다음 화면 로직
-                        sellCarViewModel.updateCurrentStep(8)
-                        Log.d("SellListingScreen", "Next from DetailsScreen")
+                        sellCarViewModel.updateCurrentStep(8) // Visuals 화면은 8단계
+                        currentScreen = CurrentScreen.Visuals
+                    }
+                )
+            }
+            CurrentScreen.Visuals -> {
+                SellCarVisualsScreen(
+                    sellCarViewModel = sellCarViewModel,
+                    onNavigateBack = {
+                        sellCarViewModel.updateCurrentStep(7) // 이전 화면은 7단계
+                        currentScreen = CurrentScreen.Details
+                    },
+                    onNextClicked = {
+                        // TODO: 다음 화면 로직 (예: 최종 확인 페이지)
+                        Log.d("SellListingScreen", "Next from VisualsScreen")
                     }
                 )
             }

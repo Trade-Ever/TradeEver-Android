@@ -1,5 +1,6 @@
 package com.trever.android.ui.sellcar.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,9 @@ data class SellCarUiState(
     val fuelType: String = "", // 연료 타입 추가
     val transmissionType: String = "", // 변속기 타입 추가
     val displacement: String = "", // 배기량 추가
-    val horsepower: String = "" // 마력 추가
+    val horsepower: String = "", // 마력 추가
+    val imageUris: List<Uri> = emptyList(), // 이미지 URI 리스트 추가
+    val color: String = "" // 색상 추가
 )
 
 open class SellCarViewModel : ViewModel() {
@@ -68,6 +71,26 @@ open class SellCarViewModel : ViewModel() {
 
     open fun updateHorsepower(hp: String) {
         _uiState.update { it.copy(horsepower = hp) }
+    }
+
+    open fun addImageUris(uris: List<Uri>) {
+        _uiState.update { currentState ->
+            val currentUris = currentState.imageUris.toMutableList()
+            currentUris.addAll(uris)
+            currentState.copy(imageUris = currentUris.take(5)) // 최대 5장 제한
+        }
+    }
+
+    open fun removeImageUri(uri: Uri) {
+        _uiState.update { currentState ->
+            val currentUris = currentState.imageUris.toMutableList()
+            currentUris.remove(uri)
+            currentState.copy(imageUris = currentUris)
+        }
+    }
+
+    open fun updateColor(color: String) {
+        _uiState.update { it.copy(color = color) }
     }
 
     // TODO: Implement other ViewModel logic for selling a car
