@@ -41,6 +41,21 @@ android {
 
 dependencies {
 
+    implementation("androidx.compose.material:material-icons-core:1.6.8")
+    implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("androidx.compose.material3:material3:1.3.2")
+
+    // Navigation-Compose
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // Activity Compose
+    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
