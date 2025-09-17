@@ -98,4 +98,149 @@ fun SellCarYearScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            ... (147줄 남음)
+            Text(
+                text = "연식을 입력해주세요",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 연식 선택기
+            YearPicker(
+                years = yearRange,
+                initialYear = uiState.selectedYear,
+                onYearSelected = { year ->
+                    sellCarViewModel.updateSelectedYear(year)
+                }
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 다음 버튼
+            Button(
+                onClick = onNextClicked,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB))
+            ) {
+                Text("다음", fontSize = 18.sp, color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun YearPicker(
+    modifier: Modifier = Modifier,
+    years: List<Int>,
+    initialYear: Int,
+    onYearSelected: (Int) -> Unit
+) {
+    var selectedYear by remember { mutableStateOf(initialYear) }
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = years.indexOf(initialYear)
+    )
+    val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+
+    // LazyColumn
+    LazyColumn(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(240.dp),
+        state = listState,
+        flingBehavior = flingBehavior,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(vertical = 60.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items(years) { year ->
+            val isSelected = year == selectedYear
+            Text(
+                text = "$year",
+                fontSize = if (isSelected) 36.sp else 24.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (isSelected) Color.Black else Color.Gray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .alpha(if (isSelected) 1f else 0.7f)
+                    .clickable {
+                        selectedYear = year
+                        onYearSelected(year)
+                    },
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+
+    // 중앙 하이라이트 로직
+    val density = LocalDensity.current
+    var firstLaunch by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        // 1️⃣ 첫 레이아웃 완료 대기
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.isNotEmpty() }
+            .first { it }
+
+        // 2️⃣ 초기 선택값
+        selectedYear = initialYear
+        onYearSelected(initialYear)
+
+        // 3️⃣ 중앙 정렬 계산
+        val index = years.indexOf(initialYear).coerceIn(0, years.lastIndex)
+        val layoutInfo = listState.layoutInfo
+        val visibleItems = layoutInfo.visibleItemsInfo
+        if (visibleItems.isNotEmpty()) {
+            val itemHeight = visibleItems.first().size
+            val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+            val paddingTopPx = with(density) { 60.dp.roundToPx() } // contentPadding.vertical / 2
+            val spacingPx = with(density) { 8.dp.roundToPx() }      // verticalArrangement.spacedBy
+
+            val offset =
+                index * (itemHeight + spacingPx) - viewportHeight / 2 + itemHeight / 2 + paddingTopPx
+            listState.scrollToItem(0, offset.coerceAtLeast(0))
+        }
+
+        // 4️⃣ 스크롤 시 중앙 아이템 업데이트
+        snapshotFlow { listState.layoutInfo }
+            .collect { layout ->
+                if (firstLaunch) {
+                    firstLaunch = false
+                    return@collect
+                }
+
+                val viewportCenter = (layout.viewportStartOffset + layout.viewportEndOffset) / 2
+                val centerItem = layout.visibleItemsInfo.minByOrNull { item ->
+                    kotlin.math.abs(item.offset + item.size / 2 - viewportCenter)
+                }
+                centerItem?.let { info ->
+                    val year = years.getOrNull(info.index)
+                    if (year != null && year != selectedYear) {
+                        selectedYear = year
+                        onYearSelected(year)
+                    }
+                }
+            }
+    }
+}
+
+@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
+@Composable
+fun SellCarYearScreenPreview() {
+    YourAppTheme { // 실제 테마로 교체 필요
+        val previewViewModel = SellCarViewModel()
+        previewViewModel.updateCurrentStep(5) // 이 화면은 5단계로 가정
+        previewViewModel.updateSelectedModel("현대 아반떼 SN7") // 더미 모델 설정
+        previewViewModel.updateSelectedYear(2023) // 초기 선택 연도 설정
+
+        SellCarYearScreen(
+            sellCarViewModel = previewViewModel,
+            onNavigateBack = {},
+            onNextClicked = {}
+        )
+    }
+}
