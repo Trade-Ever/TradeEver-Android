@@ -1,4 +1,4 @@
-package com.trever.android.ui.sell
+package com.trever.android.ui.sellcar
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement

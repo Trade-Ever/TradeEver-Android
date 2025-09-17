@@ -15,8 +15,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.trever.android.ui.auction.AuctionDetailScreen
 import com.trever.android.ui.auction.AuctionListScreen
-import com.trever.android.ui.sell.SellDetailScreen
-import com.trever.android.ui.sell.SellListingScreen
+import com.trever.android.ui.buy.BuyDetailScreen
+import com.trever.android.ui.sellcar.SellListingScreen
 
 private const val ROUTE_AUCTION_LIST = "auction/list"
 const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
@@ -31,8 +31,8 @@ fun AppNavHost(
         startDestination = MainTab.Buy.route,
         modifier = modifier
     ) {
-        composable(MainTab.Buy.route)  { SellListingScreen() }
-        composable(MainTab.Sell.route) { SellDetailScreen() }
+        composable(MainTab.Buy.route)  { BuyDetailScreen() }
+        composable(MainTab.Sell.route) { SellListingScreen() }
 
         // ✅ 경매 탭을 중첩 그래프로 구성
         navigation(
@@ -58,7 +58,7 @@ fun AppNavHost(
             }
         }
 
-        composable(MainTab.My.route) { SellDetailScreen() }
+        composable(MainTab.My.route) { BuyDetailScreen() }
     }
 }
 /** 나중에 각 탭의 실제 화면으로 교체하면 됩니다. */
