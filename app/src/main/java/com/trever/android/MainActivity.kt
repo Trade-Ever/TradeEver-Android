@@ -11,22 +11,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.trever.android.ui.theme.TreverTheme
+import androidx.core.view.WindowCompat
+import com.trever.android.ui.navigation.TreverApp
+import com.trever.android.ui.theme.AppTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            TreverTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContent { AppTheme(dynamicColor = false) {
+            TreverApp()
+        } }
     }
 }
 
@@ -38,10 +34,3 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TreverTheme {
-        Greeting("Android")
-    }
-}
