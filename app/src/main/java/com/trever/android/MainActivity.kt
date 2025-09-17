@@ -27,129 +27,21 @@ import com.trever.android.ui.sellcar.SellCarModelPromptScreen
 import com.trever.android.ui.sellcar.SellCarPlateNumberScreen
 import com.trever.android.ui.sellcar.SellCarYearScreen
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
-import com.trever.android.ui.theme.TreverTheme
+import androidx.core.view.WindowCompat
+import com.trever.android.ui.navigation.TreverApp
+import com.trever.android.ui.theme.AppTheme
 
-// 화면 상태를 정의하는 enum
-enum class CurrentScreen {
-    PlateNumber,
-    InfoCheck,
-    ModelPrompt,
-    YearInput,
-    MileageAndType
-    // TODO: 이후 화면들도 추가 예정
-}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         enableEdgeToEdge()
-        setContent {
-            TreverTheme {
-                val sellCarViewModel: SellCarViewModel = viewModel()
-                var currentScreen by remember { mutableStateOf(CurrentScreen.PlateNumber) }
-
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    when (currentScreen) {
-                        CurrentScreen.PlateNumber -> {
-                            SellCarPlateNumberScreen(
-                                sellCarViewModel = sellCarViewModel,
-                                onNavigateBack = {
-                                    Log.d("MainActivity", "Back from PlateNumberScreen")
-                                    finish()
-                                },
-                                onNextClicked = {
-                                    sellCarViewModel.updateCurrentStep(2)
-                                    currentScreen = CurrentScreen.InfoCheck
-                                }
-                            )
-                        }
-                        CurrentScreen.InfoCheck -> {
-                            // SellCarInfoCheckScreen 호출 임시 주석 처리
-                            // SellCarInfoCheckScreen(
-                            //     sellCarViewModel = sellCarViewModel,
-                            //     onNavigateBack = { 
-                            //         sellCarViewModel.updateCurrentStep(1)
-                            //         currentScreen = CurrentScreen.PlateNumber
-                            //     },
-                            //     onNextClicked = {
-                            //         sellCarViewModel.updateCurrentStep(3)
-                            //         currentScreen = CurrentScreen.ModelPrompt
-                            //     }
-                            // )
-
-                            // 임시 화면 구성
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(innerPadding)
-                                    .padding(16.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text("임시 InfoCheck 화면입니다.")
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Button(onClick = {
-                                    sellCarViewModel.updateCurrentStep(1)
-                                    currentScreen = CurrentScreen.PlateNumber
-                                }) {
-                                    Text("이전 화면으로 (PlateNumber)")
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = {
-                                    sellCarViewModel.updateCurrentStep(3)
-                                    currentScreen = CurrentScreen.ModelPrompt
-                                }) {
-                                    Text("다음 화면으로 (ModelPrompt)")
-                                }
-                            }
-                        }
-                        CurrentScreen.ModelPrompt -> {
-                            SellCarModelPromptScreen(
-                                sellCarViewModel = sellCarViewModel,
-                                onNavigateBack = {
-                                    sellCarViewModel.updateCurrentStep(2)
-                                    currentScreen = CurrentScreen.InfoCheck // 임시 화면으로 돌아감
-                                },
-                                onPromptClicked = { 
-                                    sellCarViewModel.updateSelectedModel("현대 아반떼 SN7 (더미)")
-                                    sellCarViewModel.updateCurrentStep(5) 
-                                    currentScreen = CurrentScreen.YearInput
-                                }
-                            )
-                        }
-                        CurrentScreen.YearInput -> {
-                            SellCarYearScreen(
-                                sellCarViewModel = sellCarViewModel,
-                                onNavigateBack = {
-                                    sellCarViewModel.updateCurrentStep(3)
-                                    currentScreen = CurrentScreen.ModelPrompt
-                                },
-                                onNextClicked = {
-                                    sellCarViewModel.updateCurrentStep(6)
-                                    currentScreen = CurrentScreen.MileageAndType
-                                }
-                            )
-                        }
-                        CurrentScreen.MileageAndType -> {
-                            SellCarMileageAndTypeScreen(
-                                sellCarViewModel = sellCarViewModel,
-                                onNavigateBack = {
-                                    sellCarViewModel.updateCurrentStep(5)
-                                    currentScreen = CurrentScreen.YearInput
-                                },
-                                onNextClicked = {
-                                    sellCarViewModel.updateCurrentStep(7)
-                                    Log.d("MainActivity", "Next from MileageAndType. Mileage: ${sellCarViewModel.uiState.value.mileage}, Type: ${sellCarViewModel.uiState.value.selectedCarType}")
-                                    // TODO: 다음 화면 로직 (예: AccidentHistory)
-                                    // currentScreen = CurrentScreen.AccidentHistory // 예시
-                                }
-                            )
-                        }
-                        // TODO: 다른 화면 케이스 추가
-                    }
-                }
-            }
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContent { AppTheme(dynamicColor = false) {
+            TreverApp()
+        } }
     }
 }
 
@@ -159,12 +51,4 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         text = "Hello $name!",
         modifier = modifier
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TreverTheme {
-        Greeting("Android")
-    }
 }
