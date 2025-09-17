@@ -40,6 +40,9 @@ android {
 }
 
 dependencies {
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+//    implementation("androidx.compose.material:material-icons-extended:<최신_버전>")
+    implementation("androidx.compose.material:material-icons-extended")
 
     implementation("androidx.compose.material:material-icons-core:1.6.8")
     implementation("androidx.compose.material:material-icons-extended")
