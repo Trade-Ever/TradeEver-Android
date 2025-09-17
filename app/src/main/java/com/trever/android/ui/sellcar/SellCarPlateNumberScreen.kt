@@ -46,7 +46,7 @@ fun SellCarPlateNumberScreen(
         containerColor = Color.White, // Scaffold 전체 배경을 흰색으로 설정
         topBar = {
             TopAppBar(
-                title = { }, // 제목 추가
+                title = { Text("입력 - 차량 번호") }, // 제목 추가
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -68,7 +68,6 @@ fun SellCarPlateNumberScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
-                // .background(Color.White), // Scaffold에서 배경색을 설정했으므로 이 줄은 생략 가능
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CustomProgressBar(totalSteps = 6, currentStep = uiState.currentStep)
@@ -156,7 +155,7 @@ fun CustomProgressBar(
                     .weight(1f)
                     .height(8.dp)
                     .background(
-                        color = if (i <= currentStep) activeColor else inactiveColor,
+                        color = if (i == currentStep) activeColor else inactiveColor, // 수정된 부분
                         shape = RoundedCornerShape(4.dp)
                     )
             )
@@ -176,7 +175,7 @@ fun YourAppTheme(darkTheme: Boolean = false, content: @Composable () -> Unit) {
     )
 }
 
-@Preview(showBackground = true, device = "spec:width=360dp,height=640dp,dpi=480")
+@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
 @Composable
 fun SellCarPlateNumberScreenPreview() {
     // !! 중요 !!
@@ -184,7 +183,9 @@ fun SellCarPlateNumberScreenPreview() {
     // (예: com.trever.android.ui.theme.TreverAppTheme 또는 프로젝트에 정의된 다른 테마)
     // 해당 테마 파일에서 Composable 함수를 import하여 사용해야 합니다.
     YourAppTheme {
-        val sellCarViewModel = remember { SellCarViewModel() } // 실제 ViewModel 사용
+        val sellCarViewModel = remember { SellCarViewModel() }
+        // Preview에서 특정 단계를 보려면 ViewModel의 currentStep을 직접 설정
+        // 예: sellCarViewModel.updateCurrentStep(1)
         SellCarPlateNumberScreen(
             sellCarViewModel = sellCarViewModel,
             onNavigateBack = {},
