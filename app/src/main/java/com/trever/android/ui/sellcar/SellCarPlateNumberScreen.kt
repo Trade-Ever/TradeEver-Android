@@ -47,7 +47,7 @@ fun SellCarPlateNumberScreen(
         containerColor = cs.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("차량 번호 입력") }, // 제목 추가
+                title = { }, // 제목 추가
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

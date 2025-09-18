@@ -44,7 +44,7 @@ fun SellCarDetailsScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text("차량 상세정보 입력") }, // 제목 추가
+                title = { }, // 제목 추가
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
