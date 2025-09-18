@@ -38,7 +38,7 @@ fun SellCarDetailsScreen(
     var displacement by remember { mutableStateOf(uiState.displacement) }
     var horsepower by remember { mutableStateOf(uiState.horsepower) }
 
-    val purpleColor = Color(0xFF6A11CB)
+    val purpleColor = Color(0xFF9F72FF)
 
     Scaffold(
         containerColor = Color.White,
