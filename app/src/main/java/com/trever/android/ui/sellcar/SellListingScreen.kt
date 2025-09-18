@@ -31,7 +31,9 @@ enum class CurrentScreen {
     MileageAndType,
     Details,
     Visuals,
-    Options // 새 화면 상태 추가
+    Options,
+    AccidentHistory,
+    Price // 새 화면 상태 추가
 }
 
 @Composable
@@ -141,7 +143,7 @@ fun SellListingScreen() {
                         currentScreen = CurrentScreen.Details
                     },
                     onNextClicked = {
-                        sellCarViewModel.updateCurrentStep(9) // Options 화면은 9단계
+                        sellCarViewModel.updateCurrentStep(9)
                         currentScreen = CurrentScreen.Options
                     }
                 )
@@ -150,12 +152,40 @@ fun SellListingScreen() {
                 SellCarOptionsScreen(
                     sellCarViewModel = sellCarViewModel,
                     onNavigateBack = {
-                        sellCarViewModel.updateCurrentStep(8) // 이전 화면은 8단계
+                        sellCarViewModel.updateCurrentStep(8)
                         currentScreen = CurrentScreen.Visuals
                     },
                     onNextClicked = {
-                        // TODO: 다음 화면 로직 (예: 최종 확인 페이지)
-                        Log.d("SellListingScreen", "Next from OptionsScreen")
+                        sellCarViewModel.updateCurrentStep(10)
+                        currentScreen = CurrentScreen.AccidentHistory
+                    }
+                )
+            }
+            CurrentScreen.AccidentHistory -> {
+                SellCarAccidentHistoryScreen(
+                    sellCarViewModel = sellCarViewModel,
+                    onNavigateBack = {
+                        sellCarViewModel.updateCurrentStep(9)
+                        currentScreen = CurrentScreen.Options
+                    },
+                    onNextClicked = {
+                        sellCarViewModel.updateCurrentStep(11) // Price 화면은 11단계
+                        currentScreen = CurrentScreen.Price
+                    }
+                )
+            }
+            CurrentScreen.Price -> {
+                SellCarPriceScreen(
+                    sellCarViewModel = sellCarViewModel,
+                    onNavigateBack = {
+                        sellCarViewModel.updateCurrentStep(10) // 이전 화면은 10단계
+                        currentScreen = CurrentScreen.AccidentHistory
+                    },
+                    onRegisterClicked = {
+                        // TODO: 모든 데이터를 최종 취합하여 서버로 전송하는 로직
+                        Log.d("SellListingScreen", "Register button clicked. Final data: ${sellCarViewModel.uiState.value}")
+                        // 등록 완료 후 첫 화면으로 돌아가기 (예시)
+                        currentScreen = CurrentScreen.PlateNumber 
                     }
                 )
             }
