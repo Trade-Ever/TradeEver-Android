@@ -36,7 +36,7 @@ fun SellCarModelPromptScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text("차량 모델") }, // 화면 제목
+                title = { }, // 화면 제목
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -61,7 +61,7 @@ fun SellCarModelPromptScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 진행 상태 표시기 (ViewModel의 currentStep 사용, 이 화면은 2단계여야 함)
-            CustomProgressBar(totalSteps = 6, currentStep = uiState.currentStep)
+            CustomProgressBar(totalSteps = 7, currentStep = 2)
 
             Spacer(modifier = Modifier.height(48.dp))
 
