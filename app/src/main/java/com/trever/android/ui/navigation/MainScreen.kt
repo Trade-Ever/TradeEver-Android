@@ -53,7 +53,7 @@ fun MainScreen(
                 )
             }
 
-            // 탭: 마이 (임시로 구매 화면 재사용 중이면 그대로)
+            // 탭: 마이 (임시로 구매 화면 재사용 중이면 그대로) **** 여기 메인 마이페잊!!!!!!!!!!!
             composable(MainTab.My.route) {
                 BuyListScreen()
             }
