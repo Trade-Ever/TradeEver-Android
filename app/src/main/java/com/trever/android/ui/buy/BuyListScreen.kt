@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun SellDetailScreen() {
+fun BuyListScreen() {
     Box(
 
         modifier = Modifier
