@@ -28,6 +28,9 @@ fun SellCarAccidentHistoryScreen(
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     var accidentDetails by remember { mutableStateOf(uiState.accidentDetails) }
+    val purpleColor = Color(0xFF9F72FF)
+//    0xFF9F72FF
+//    0xFF6A11CB
 
     // 사고 이력 '없음'을 선택하면, 상세 내용을 초기화
     LaunchedEffect(uiState.hasAccidentHistory) {
@@ -40,7 +43,7 @@ fun SellCarAccidentHistoryScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text("사고 이력 입력") },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -57,7 +60,7 @@ fun SellCarAccidentHistoryScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 10, currentStep = uiState.currentStep) // 10단계로 가정
+            CustomProgressBar(totalSteps = 7, currentStep = 6) // 7단계 중 6단계
 
             Column(
                 modifier = Modifier
@@ -78,7 +81,7 @@ fun SellCarAccidentHistoryScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) Color(0xFF9F72FF) else Color.White,
+                                containerColor = if (isSelected) purpleColor else Color.White,
                                 contentColor = if (isSelected) Color.White else Color.Black
                             ),
                             border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null
@@ -88,11 +91,10 @@ fun SellCarAccidentHistoryScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-
                 // 사고 정보 입력 (애니메이션과 함께 표시/숨김)
                 AnimatedVisibility(visible = uiState.hasAccidentHistory == true) {
                     Column {
+                        Spacer(modifier = Modifier.height(32.dp))
                         Text("사고 정보에 대해 입력해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
@@ -104,8 +106,10 @@ fun SellCarAccidentHistoryScreen(
                             placeholder = { Text("사고 정보에 대해 입력해주세요") },
                             shape = RoundedCornerShape(8.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF6200EE),
-                                unfocusedBorderColor = Color.LightGray
+                                focusedBorderColor = purpleColor,
+                                unfocusedBorderColor = if(accidentDetails.isNotEmpty()) purpleColor else Color.LightGray,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White
                             ),
                             enabled = uiState.hasAccidentHistory == true
                         )
@@ -128,9 +132,12 @@ fun SellCarAccidentHistoryScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE)),
-                // 사고이력 선택을 해야 다음 버튼 활성화
-                enabled = uiState.hasAccidentHistory != null
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = purpleColor,
+                    disabledContainerColor = Color.LightGray
+                ),
+                // 사고 '없음'을 선택했거나, '있음' 선택 후 내용을 입력해야 활성화
+                enabled = uiState.hasAccidentHistory == false || (uiState.hasAccidentHistory == true && accidentDetails.isNotBlank())
             ) {
                 Text("다음", fontSize = 18.sp, color = Color.White)
             }
@@ -143,7 +150,7 @@ fun SellCarAccidentHistoryScreen(
 fun SellCarAccidentHistoryScreenPreview() {
     MaterialTheme {
         val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(10)
+        previewViewModel.updateCurrentStep(6)
         previewViewModel.updateHasAccidentHistory(true) // '있음' 선택된 상태 미리보기
         SellCarAccidentHistoryScreen(
             sellCarViewModel = previewViewModel,
@@ -158,7 +165,7 @@ fun SellCarAccidentHistoryScreenPreview() {
 fun SellCarAccidentHistoryScreenNoAccidentPreview() {
     MaterialTheme {
         val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(10)
+        previewViewModel.updateCurrentStep(6)
         previewViewModel.updateHasAccidentHistory(false) // '없음' 선택된 상태 미리보기
         SellCarAccidentHistoryScreen(
             sellCarViewModel = previewViewModel,
