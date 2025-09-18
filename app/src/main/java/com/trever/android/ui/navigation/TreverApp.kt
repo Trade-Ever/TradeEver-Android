@@ -33,62 +33,63 @@ import com.trever.android.ui.theme.primaryLight
 @Composable
 fun TreverApp() {
     val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = backStackEntry?.destination   // ✅ 현재 destination 자체
-
-    val isAuctionDetail = currentDestination
-        ?.hierarchy
-        ?.any { it.route == ROUTE_AUCTION_DETAIL } == true
-
-    val hideBottomBarRoutes = setOf(ROUTE_AUCTION_DETAIL)
-    val showBottomBar = currentDestination?.route !in hideBottomBarRoutes  // ✅ route 직접 비교
-
-    val cs = MaterialTheme.colorScheme
-
-    Scaffold(
-
-        bottomBar = {
-            if (showBottomBar) {
-                NavigationBar(containerColor = Color.White) {
-                    MainTabs.forEach { tab ->
-                        // ✅ hierarchy 에 tab.route 가 포함되면 선택 상태
-                        val selected = currentDestination
-                            ?.hierarchy
-                            ?.any { it.route == tab.route } == true
-
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(tab.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
-                                val iconRes = if (selected) tab.iconResSelected else tab.iconResUnselected
-                                Icon(painterResource(iconRes), contentDescription = tab.label)
-                            },
-                            label = { Text(tab.label) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = cs.primary,
-                                selectedTextColor = cs.primary,
-                                unselectedIconColor = cs.bottomBarUnselected,
-                                unselectedTextColor = cs.bottomBarUnselected,
-                                indicatorColor = Color.Transparent
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    ) { padding ->
-        val top = if (isAuctionDetail) 0.dp else padding.calculateTopPadding()
-        val bottom = if (showBottomBar) padding.calculateBottomPadding() else 0.dp
-
-        AppNavHost(
-            navController = navController,
-            modifier = Modifier.padding(top = top, bottom = bottom)
-        )
-    }
+    // 바텀바를 여기서 관리하지 않음! (MainScreen 내부로 이동)
+    AppNavHost(navController = navController)
+//    val navController = rememberNavController()
+//    val backStackEntry by navController.currentBackStackEntryAsState()
+//    val currentDestination = backStackEntry?.destination
+//    val cs = MaterialTheme.colorScheme
+//
+//    // ★ 바텀바 숨김 대상: 상세 + 입찰내역
+//    val hideBottomBar = currentDestination
+//        ?.hierarchy
+//        ?.any { dest ->
+//            dest.route == ROUTE_AUCTION_DETAIL || dest.route == ROUTE_BID_HISTORY
+//        } == true
+//
+//    Scaffold(
+//        // 시스템 인셋은 각 화면에서 직접 처리하도록 0으로
+//        contentWindowInsets = WindowInsets(0),
+//        bottomBar = {
+//            if (!hideBottomBar) {
+//                NavigationBar(containerColor = Color.White) {
+//                    MainTabs.forEach { tab ->
+//                        val selected = currentDestination
+//                            ?.hierarchy
+//                            ?.any { it.route == tab.route } == true
+//
+//                        NavigationBarItem(
+//                            selected = selected,
+//                            onClick = {
+//                                navController.navigate(tab.route) {
+//                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+//                                    launchSingleTop = true
+//                                    restoreState = true
+//                                }
+//                            },
+//                            icon = {
+//                                val iconRes = if (selected) tab.iconResSelected else tab.iconResUnselected
+//                                Icon(painterResource(iconRes), contentDescription = tab.label)
+//                            },
+//                            label = { Text(tab.label) },
+//                            colors = NavigationBarItemDefaults.colors(
+//                                selectedIconColor = cs.primary,
+//                                selectedTextColor = cs.primary,
+//                                unselectedIconColor = cs.bottomBarUnselected,
+//                                unselectedTextColor = cs.bottomBarUnselected,
+//                                indicatorColor = Color.Transparent
+//                            )
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    ) { padding ->
+//        // bottomBar가 있을 때만 그 높이만큼만 패딩 적용
+//        val bottom = if (!hideBottomBar) padding.calculateBottomPadding() else 0.dp
+//        AppNavHost(
+//            navController = navController,
+//            modifier = Modifier.padding(bottom = bottom)
+//        )
+//    }
 }

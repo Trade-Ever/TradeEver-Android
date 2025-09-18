@@ -20,9 +20,42 @@ val ColorScheme.bottomBarUnselected: Color
     @Composable
     get() = if (isSystemInDarkTheme()) Grey_300_Dark else Grey_300
 
+
+
+
+val ColorScheme.G_300: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Grey_300_Dark else Grey_300
+
+val ColorScheme.Green: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Color(0xFF00C364) else Color(0xFF00D07A)
+
+val ColorScheme.G_200: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Grey_200_Dark else Grey_200
+
 val ColorScheme.backgroundColor : Color
     @Composable
     get() = if (isSystemInDarkTheme()) Grey_400 else Color.White
+
+val ColorScheme.noticeContainer: Color
+    @Composable get() = if (isSystemInDarkTheme())
+        Color(0xFF201A2E)  // 다크: 퍼플톤 딥 배경
+    else
+        Color(0xFFF7F3FF)  // 라이트: 지금 쓰던 배경
+
+val ColorScheme.noticeOutline: Color
+    @Composable get() = if (isSystemInDarkTheme())
+        Color(0xFF3A3152)  // 다크: 보더
+    else
+        Color(0xFFE7DFFF)  // 라이트: 지금 쓰던 보더
+
+val ColorScheme.G_100: Color
+    @Composable get() = if (isSystemInDarkTheme())
+        Grey_100_Dark // 다크: 보더
+    else
+        Grey_100 // 라이트: 지금 쓰던 보더
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,

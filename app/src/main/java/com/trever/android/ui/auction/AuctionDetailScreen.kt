@@ -2,6 +2,7 @@ package com.trever.android.ui.auction
 
 
 import android.R.attr.translationY
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +19,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
@@ -27,6 +30,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -34,8 +39,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -44,12 +52,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import com.trever.android.ui.auction.IconStepButton
+import com.trever.android.ui.auction.SectionHeader
 import com.trever.android.ui.components.AuctionBadge
+import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.G_200
+import com.trever.android.ui.theme.G_300
+import com.trever.android.ui.theme.Green
 import com.trever.android.ui.theme.Red_1
 import com.trever.android.ui.theme.Red_2
 import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.bottomBarUnselected
+import com.trever.android.ui.theme.noticeContainer
+import com.trever.android.ui.theme.noticeOutline
 import kotlinx.coroutines.launch
 
 // 배경 확장 컬러 사용 (이미 네가 정의한 확장)
@@ -57,13 +74,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AuctionDetailScreen(
+    carId: String,                            // ← 추가
     item: AuctionDetailUi = demoDetail(),
     onBack: () -> Unit = {},
     onLike: () -> Unit = {},
-    onBid: () -> Unit = {}
+    onBid: () -> Unit = {},
+    onShowBidHistory: (String) -> Unit = {}   // ← 추가
 ) {
     val cs = MaterialTheme.colorScheme
-    val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    var bottomBarHeightPx by remember { mutableStateOf(0) }
+    val bottomBarHeightDp = with(LocalDensity.current) { bottomBarHeightPx.toDp() }
+    var showBidSheet by remember { mutableStateOf(false) }
 
     // 화면 전체
     Box(
@@ -72,79 +94,370 @@ fun AuctionDetailScreen(
             .background(cs.backgroundColor)
     ) {
         // 스크롤 영역
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                bottom = 96.dp + navBottom   // ✅ 바텀바 높이 + 시스템 하단 인셋
-            ),
+        Box(Modifier.then(if (showBidSheet) Modifier.blur(12.dp) else Modifier)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    bottom = bottomBarHeightDp
+                // 여유 8dp
+                ),
 
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
 
-            // 1) 이미지 영역 (간단 슬라이드 도트 포함)
-            item {
-                ImageHeader(
-                    images = item.images,
-                    onBack = onBack
-                )
-            }
-
-            // 2) 타이틀 + 가격 + 좋아요 카운트 + 남은시간 배지
-            item {
-                TitleSection(
-                    title = item.title,
-                    subTitle = item.subTitle,
-                    priceWon = item.priceWon,
-                    likeCount = item.likeCount,
-
-                )
-            }
-
-
-            item {
-                SpecColumnOrdered(
-                    specs = item.specs,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-
-            // 4) 설명/주의 배지 박스
-            if (item.notice.isNotBlank()) {
+                // 1) 이미지 영역 (간단 슬라이드 도트 포함)
                 item {
-                    NoticeCard(text = item.notice)
+                    ImageHeader(
+                        images = item.images,
+                        onBack = onBack
+                    )
                 }
-            }
 
-            // 5) 입찰 내역
-            if (item.bids.isNotEmpty()) {
+                // 2) 타이틀 + 가격 + 좋아요 카운트 + 남은시간 배지
                 item {
-                    SectionHeader(title = "입찰 내역", actionText = "더보기", onAction = { /* TODO */ })
-                }
-                items(item.bids) { bid ->
-                    BidRow(bid)
-                }
-            }
+                    TitleSection(
+                        title = item.title,
+                        subTitle = item.subTitle,
+                        priceWon = item.priceWon,
+                        likeCount = item.likeCount,
 
-            // 6) 판매자 정보
-            item {
-                SectionHeader(title = "판매자 정보")
-            }
-            item {
-                SellerCard(seller = item.seller)
+                        )
+                }
+
+
+                item {
+                    SpecColumnOrdered(
+                        specs = item.specs,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+
+                // 4) 설명/주의 배지 박스
+                if (item.notice.isNotBlank()) {
+                    item {
+                        NoticeCard(text = item.notice)
+                    }
+                }
+
+                // 5) 입찰 내역
+                if (item.bids.isNotEmpty()) {
+                    item {
+                        BidSection(
+                            bids = item.bids,
+                            onMore = { onShowBidHistory(carId) }
+                        )
+                    }
+                }
+
+                // 6) 판매자 정보
+                item { SellerSection(seller = item.seller) }
             }
         }
-
         // 하단 고정 바
         BottomActionBar(
             currentPrice = item.priceWonText,
             startPriceText = item.startPriceText,
             remainText = item.remainText,
-            onBid = onBid,
+            topBidderName = item.bids.firstOrNull()?.name,      // 상위 입찰자
+            topBidderAvatarUrl = item.bids.firstOrNull()?.avatarUrl,
+            onBid = { showBidSheet = true },
             modifier = Modifier.align(Alignment.BottomCenter)
+                .onSizeChanged { bottomBarHeightPx = it.height }
+        )
+        // 모달 바텀시트
+        if (showBidSheet) {
+            PlaceBidSheet(
+                currentTopPrice = item.priceWon,               // Long
+                onConfirm = { newBidWon ->
+                    // TODO: 서버 호출 등 처리
+                    showBidSheet = false
+                },
+                onDismiss = { showBidSheet = false }
+            )
+        }
+    }
+}
+
+@Composable
+private fun BidAmountRow(
+    valueMan: String,
+    onValueChange: (String) -> Unit,
+    onMinus: () -> Unit,
+    onPlus: () -> Unit,
+) {
+    val cs = MaterialTheme.colorScheme
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 입력 박스 (가운데 정렬)
+        BasicTextField(
+            value = valueMan,
+            onValueChange = { s ->
+                val t = s.filter { it.isDigit() }.take(6)
+                onValueChange(t)
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = MaterialTheme.typography.titleMedium.copy(
+                color = cs.onSurface,
+                textAlign = TextAlign.End
+            ),
+            modifier = Modifier
+                .weight(1f)              // ★ 핵심: 남은 폭 전부 차지
+                .height(44.dp),
+            decorationBox = { inner ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(cs.backgroundColor)               // 배경
+                        .border(1.dp, cs.outline.copy(0.15f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    if (valueMan.isEmpty()) {
+                        Text("0", color = cs.onSurfaceVariant) // 플레이스홀더
+                    } else inner()
+                }
+            }
+        )
+
+        Spacer(Modifier.width(10.dp))
+        Text("만원", color = cs.onSurface, style = MaterialTheme.typography.titleMedium)
+
+        Spacer(Modifier.width(20.dp))
+
+        IconStepButton(onClick = onMinus, iconRes = com.trever.android.R.drawable.remove) // ▸ 마이너스 아이콘
+        Spacer(Modifier.width(8.dp))
+        IconStepButton(onClick = onPlus,  iconRes = com.trever.android.R.drawable.add)
+    }
+}
+
+@Composable
+private fun IconStepButton(
+    onClick: () -> Unit,
+    iconRes: Int,
+
+
+) {
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = cs.G_100,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        modifier = Modifier.size(36.dp)
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+
+            )
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlaceBidSheet(
+    currentTopPrice: Long,
+    onConfirm: (Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+    val green = Color(0xFF00C364)
+
+    // ▼ 단일 소스 상태 (만원 단위)
+    var addMan by remember { mutableStateOf(1) }
+    val proposedBid = currentTopPrice + (addMan.coerceAtLeast(0)) * 10_000L
+    val canBid = addMan >= 1
+
+    // ▼ 표시/계산용 파생 값
+    val safeAddMan = addMan.coerceAtLeast(1)
+    val newBid = currentTopPrice + safeAddMan * 10_000L
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        containerColor = cs.backgroundColor,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            // 현재가 / 계산된 입찰가
+            Text(
+                text = "시작가 ${formatKoreanWon(currentTopPrice)}",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 14.sp,
+                color = cs.G_200
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = "현재가 ${formatKoreanWon(currentTopPrice)}",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 18.sp,
+                color = cs.G_300
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                formatKoreanWon(newBid),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                color = green
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // ====== 직접 입력 + 스테퍼 ======
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BidAmountRow(
+                    valueMan = addMan.toString(),
+                    onValueChange = { s ->
+                        // 숫자만 허용 + 최대 6자리
+                        addMan = s.filter(Char::isDigit).take(6).toIntOrNull() ?: 0
+                    },
+                    onMinus = { addMan = (addMan - 1).coerceAtLeast(0) },
+                    onPlus  = { addMan = (addMan + 1).coerceAtMost(999_999) }
+                )
+            }
+            // ==============================
+
+            Spacer(Modifier.height(16.dp))
+
+            AppFilledButton(
+                text = "상위 입찰",
+                onClick = { onConfirm(proposedBid) },
+                enabled = canBid,                           // ★ 1만원 미만이면 false
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            )
+
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+
+@Composable
+private fun StepperField(
+    value: Int,
+    onValueChange: (Int) -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+    val boxShape = RoundedCornerShape(12.dp)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(boxShape)
+            .border(1.dp, cs.outlineVariant, boxShape)
+
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 중앙 숫자
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
+        Text("만원", color = cs.onSurfaceVariant)
+
+        Spacer(Modifier.weight(1f))
+
+        // - 버튼
+        SmallCircleButton(
+
+            onClick = { onValueChange((value - 1).coerceAtLeast(1)) },
+            icon = com.trever.android.R.drawable.remove
+        )
+        Spacer(Modifier.width(8.dp))
+        // + 버튼
+        SmallCircleButton(
+            onClick = { onValueChange(value + 1) },
+            icon = com.trever.android.R.drawable.add
         )
     }
 }
 
+@Composable
+fun AppFilledButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    height: Dp = 50.dp,
+    shape: RoundedCornerShape = RoundedCornerShape(14.dp),
+    @DrawableRes leadingIconRes: Int? = null,
+    @DrawableRes trailingIconRes: Int? = null,
+    iconSize: Dp = 18.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp)
+) {
+    val cs = MaterialTheme.colorScheme
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(height),
+        shape = shape,
+        contentPadding = contentPadding,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = cs.primary,              // ✅ 항상 primary
+            contentColor = cs.backgroundColor,
+            disabledContainerColor = cs.G_300,     // ✅ 비활성화 배경
+            disabledContentColor = cs.backgroundColor
+        )
+    ) {
+        if (leadingIconRes != null) {
+            Icon(painterResource(leadingIconRes), null, Modifier.size(iconSize))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+        )
+        if (trailingIconRes != null) {
+            Spacer(Modifier.width(8.dp))
+            Icon(painterResource(trailingIconRes), null, Modifier.size(iconSize))
+        }
+    }
+}
+@Composable
+private fun SmallCircleButton(
+    onClick: () -> Unit,
+    icon: Int
+) {
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = cs.G_100,
+        tonalElevation = 1.dp,
+        shadowElevation = 2.dp
+    ) {
+        Box(
+            modifier = Modifier.size(36.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = cs.onSurfaceVariant
+            )
+        }
+    }
+}
 /* ------------------------------------ */
 /* ---------- 구성 요소들 ------------- */
 /* ------------------------------------ */
@@ -213,6 +526,40 @@ private fun ImageHeader(
         )
     }
 }
+
+@Composable
+private fun BidSection(
+    bids: List<BidUi>,
+    onMore: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val cs = MaterialTheme.colorScheme
+
+    val sectionBg = cs.G_100
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(sectionBg)
+            .padding(vertical = 12.dp)
+    ) {
+        Column {
+            SectionHeader(
+                title = "입찰 내역",
+                actionText = "더보기",
+                onAction = onMore,
+                actionIconRes = com.trever.android.R.drawable.arrow_right_1  // ⬅️ 네 리소스 이름에 맞춰 변경
+            )
+            Spacer(Modifier.height(8.dp))
+            bids.forEach { bid ->
+                BidRowPill(
+                    bid = bid,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
+        }
+    }
+}
 @Composable
 private fun TitleSection(
     title: String,
@@ -220,10 +567,12 @@ private fun TitleSection(
     priceWon: Long,
     likeCount: Int,
 ) {
+    val cs = MaterialTheme.colorScheme
     Column(Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = title,
+                color = cs.onSurface,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                 modifier = Modifier.weight(1f)
             )
@@ -270,16 +619,23 @@ private fun NoticeCard(text: String) {
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF7F3FF))
-            .border(1.dp, Color(0xFFE7DFFF), RoundedCornerShape(12.dp))
+            .background(cs.noticeContainer)
+            .border(1.dp,cs.noticeOutline, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
-        Text(text = text)
+        Text(text = text, color = cs.onSurface)
     }
 }
 
 @Composable
-private fun SectionHeader(title: String, actionText: String? = null, onAction: (() -> Unit)? = null) {
+private fun SectionHeader(
+    title: String,
+    actionText: String? = null,
+    onAction: (() -> Unit)? = null,
+    actionIconRes: Int? = null,
+    actionTint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    trailing: (@Composable (() -> Unit))? = null       // ✅ 추가
+) {
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -288,177 +644,197 @@ private fun SectionHeader(title: String, actionText: String? = null, onAction: (
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.weight(1f))
-        if (actionText != null && onAction != null) {
-            Text(
-                actionText,
-                color = Color(0xFF818B99),
-                modifier = Modifier.clickable { onAction() }
-            )
-        }
-    }
-}
 
-@Composable
-private fun BidRow(bid: BidUi) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 프로필 원형
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Grey_100),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(bid.name.take(1))
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(bid.name, fontWeight = FontWeight.Medium)
-            Text(bid.timeText, color = Grey_400, style = MaterialTheme.typography.labelSmall)
-        }
-        Spacer(Modifier.width(12.dp))
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFEFFBF4))
-                .padding(horizontal = 10.dp, vertical = 6.dp)
-        ) {
-            Text(bid.amountText, color = Color(0xFF00A85A), fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun SellerCard(seller: SellerUi) {
-    Column(
-        Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .border(1.dp, Color(0xFFF1F3F5), RoundedCornerShape(12.dp))
-            .padding(12.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Grey_100),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(seller.name.take(1))
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(seller.name, fontWeight = FontWeight.Medium)
-                Text("거래 ${seller.count}회 · 응답률 ${seller.response}%", color = Grey_400, style = MaterialTheme.typography.labelSmall)
+        when {
+            trailing != null -> trailing()              // ✅ 아바타 등 임의의 우측 콘텐츠
+            actionText != null && onAction != null -> {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .clickable { onAction() }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(actionText, color = actionTint, style = MaterialTheme.typography.labelLarge)
+                    if (actionIconRes != null) {
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            painter = painterResource(id = actionIconRes),
+                            contentDescription = null,
+                            tint = actionTint,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
         }
-        Spacer(Modifier.height(12.dp))
-        Row {
-            InfoCell("판매자 ID", seller.id)
-            Spacer(Modifier.width(12.dp))
-            InfoCell("주소", seller.addr)
-        }
-        Spacer(Modifier.height(8.dp))
-        Row {
-            InfoCell("등록일", seller.regDate)
-            Spacer(Modifier.width(12.dp))
-            InfoCell("유효기간", seller.validDate)
-        }
     }
 }
 
-@Composable
-private fun InfoCell(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier) {
-        Text(label, color = Grey_400, style = MaterialTheme.typography.labelSmall)
-        Text(value, fontWeight = FontWeight.Medium)
-    }
-}
 
 @Composable
-private fun BottomActionBar(
-    currentPrice: String,
-    startPriceText: String,
-    remainText: String,
-    onBid: () -> Unit,
+private fun SellerSection(
+    seller: SellerUi,
     modifier: Modifier = Modifier
 ) {
+    val cs = MaterialTheme.colorScheme
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-
+            .background(cs.backgroundColor)           // ✅ 섹션 회색 배경
+            .padding(vertical = 12.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(Color(0xFFFFF0F0))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(remainText, color = Red_1, style = MaterialTheme.typography.labelSmall)
+        Column {
+            // 헤더(제목 + 우측 아바타)
+            SectionHeader(
+                title = "판매자 정보",
+                trailing = {
+                    if (!seller.avatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = seller.avatarUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(Grey_100),
+                            contentAlignment = Alignment.Center
+                        ) { Text(seller.name.take(1)) }
                     }
-                    Spacer(Modifier.width(8.dp))
-                    Text(startPriceText, color = Grey_400, style = MaterialTheme.typography.labelSmall)
                 }
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = currentPrice,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
-            }
-            Spacer(Modifier.width(16.dp))
-            // 여기에 입찰 버튼 추가하면 됨
+            )
+            Spacer(Modifier.height(8.dp))
+
+            // 카드
+
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val keyW = 72.dp
+                    KeyValueLine(key = "판매자 ID", value = seller.id,       keyWidth = keyW)
+                    KeyValueLine(key = "주소",     value = seller.addr,     keyWidth = keyW)
+                    Spacer(Modifier.height(4.dp))
+                    KeyValueLine(key = "등록일",   value = seller.regDate,  keyWidth = keyW)
+                    KeyValueLine(key = "수정일",   value = seller.validDate, keyWidth = keyW)
+                }
+
         }
     }
 }
+
 
 @Composable
-private fun SpecOneLine(
-    specs: List<Pair<String, String>>,
+private fun BottomActionBar(
+    currentPrice: String,          // "1억 2,500만원"
+    startPriceText: String,        // "시작가 1억 500만원"
+    remainText: String,            // "1시간 15분"
+    topBidderName: String?,        // 상위 입찰자 이름
+    topBidderAvatarUrl: String? = null,
+    onBid: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 원하는 표시 순서
-    val order = listOf("연료", "변속기", "배기량(cc)", "마력", "색상", "기타 정보", "사고 이력", "사고 설명")
+    val cs = MaterialTheme.colorScheme
+    val green = Color(0xFF00C364)
 
-    // 넘어온 스펙을 맵으로
-    val map = remember(specs) { specs.toMap() }
 
-    // 존재하는 항목만 "키: 값" 문자열로 생성
-    val parts = remember(map) {
-        order.mapNotNull { key ->
-            map[key]?.takeIf { it.isNotBlank() }?.let { "$key: $it" }
-        }
-    }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
 
-    // 한 줄 + 가로 스크롤(길면 스크롤해서 보이게)
-    Text(
-        text = parts.joinToString(" · "),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-        maxLines = 1,
-        overflow = TextOverflow.Clip, // 스크롤을 쓰므로 Ellipsis 대신 Clip
+        color = cs.backgroundColor,
+        contentColor = cs.onSurface,
+        tonalElevation = 2.dp,
+        shadowElevation = 12.dp
+    ) {
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-    )
+            .background(cs.backgroundColor)
+            .navigationBarsPadding()
+
+            .padding(16.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+            // 상단 칩 (상위 입찰자 + 남은시간)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFFFEFEF))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 아바타
+                if (!topBidderAvatarUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = topBidderAvatarUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(28.dp).clip(CircleShape)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.size(28.dp).clip(CircleShape).background(Grey_100),
+                        contentAlignment = Alignment.Center
+                    ) { Text((topBidderName ?: "-").take(1)) }
+                }
+
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("상위 입찰자", style = MaterialTheme.typography.labelSmall, color = cs.onSurface.copy(0.6f))
+                    Text(topBidderName ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                }
+
+                Icon(
+                    painter = painterResource(id = com.trever.android.R.drawable.gavel_1),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    remainText,
+                    color = Red_1,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
+                )
+            }
+
+            // 현재가/버튼 영역
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = currentPrice,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                        color = cs.Green
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(startPriceText, color = Grey_400, style = MaterialTheme.typography.labelLarge)
+                }
+
+                AppFilledButton(
+                    text = "상위 입찰",
+                    onClick = onBid,
+                    modifier = Modifier.height(50.dp).widthIn(min = 140.dp),
+                       // <- onPrimary 권장
+                )
+            }
+        }
+    }}
 }
+
 @Composable
 private fun KeyValueLine(
     key: String,
@@ -523,8 +899,13 @@ data class AuctionDetailUi(
     val seller: SellerUi
 )
 
-data class BidUi(val name: String, val amountText: String, val timeText: String)
-data class SellerUi(val name: String, val id: String, val addr: String, val regDate: String, val validDate: String, val count: Int, val response: Int)
+data class BidUi(
+    val name: String,
+    val amountText: String,
+    val timeText: String,
+    val avatarUrl: String? = null,   // ⬅️ 추가
+)
+data class SellerUi(val name: String, val id: String, val addr: String, val regDate: String, val validDate: String, val count: Int, val response: Int,val avatarUrl: String? = null)
 
 /* 샘플 */
 private fun demoDetail() = AuctionDetailUi(
@@ -563,9 +944,9 @@ private fun demoDetail() = AuctionDetailUi(
             "\n" +
             "열선 핸들, 열선 시트(1열 및 2열), 통풍 시트(1열)가 탑재되어 쾌적한 주행이 가능한 차량입니다 .",
     bids = listOf(
-        BidUi("홍길동", "1억 2,500만원", "1분 전"),
-        BidUi("오광운", "1억 2,000만원", "10분 전"),
-        BidUi("최상근", "1억 1,000만원", "20분 전"),
+        BidUi("홍길동", "1억 2,500만원", "2025-09-15 18:15"),
+        BidUi("오광운", "1억 2,000만원", "2025-09-15 18:15"),
+        BidUi("최상근", "1억 1,000만원", "2025-09-15 18:15"),
     ),
     seller = SellerUi(
         name = "김판매",
@@ -645,6 +1026,80 @@ private fun FullScreenImageViewer(
         }
     }
 }
+
+@Composable
+private fun BidRowPill(
+    bid: BidUi,
+    modifier: Modifier = Modifier,
+) {
+    val cs = MaterialTheme.colorScheme
+    val green = Color(0xFF00C364) // 앱에서 쓰는 초록과 맞춤
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = cs.backgroundColor,
+        tonalElevation = 1.dp,      // 다크/라이트 모두 자연스러운 톤
+        shadowElevation = 3.dp      // 은은한 그림자
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { /* TODO: 클릭 액션 */ }
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+                ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 아바타 (이미지 있으면 이미지, 없으면 이니셜)
+            if (!bid.avatarUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = bid.avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(Grey_100),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = bid.name.take(1),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = cs.onSurface
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = bid.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = cs.onSurface
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = bid.timeText,                    // ex) "2025-09-15 18:15"
+                    style = MaterialTheme.typography.labelSmall,
+                    color = cs.G_300             // 다크/라이트 대응
+                )
+            }
+
+            // 금액 (초록, 볼드)
+            Text(
+                text = bid.amountText,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = cs.Green
+            )
+        }
+    }
+}
+
 @Composable
 private fun PagerDotsIndicator(
     total: Int,
@@ -743,5 +1198,6 @@ private fun clampOffset(offset: Offset, container: IntSize, scale: Float): Offse
         y = offset.y.coerceIn(-maxY, maxY)
     )
 }
+
 
 
