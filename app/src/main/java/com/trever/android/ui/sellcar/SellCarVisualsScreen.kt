@@ -45,10 +45,20 @@ fun SellCarVisualsScreen(
     val uiState by sellCarViewModel.uiState.collectAsState()
     var color by remember { mutableStateOf(uiState.color) }
 
+    // 이미지 선택 요청을 명시적으로 정의
+    val pickImagesRequest = remember {
+        PickVisualMediaRequest.Builder()
+            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            .build()
+    }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(5),
         onResult = { uris ->
-            sellCarViewModel.addImageUris(uris)
+            // 사용자가 이미지를 선택한 경우에만 상태 업데이트
+            if (uris.isNotEmpty()) {
+                sellCarViewModel.addImageUris(uris)
+            }
         }
     )
     val purpleColor = Color(0xFF6A11CB)
@@ -57,7 +67,7 @@ fun SellCarVisualsScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { },
+                title = { }, // 제목 추가
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -74,7 +84,7 @@ fun SellCarVisualsScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 7, currentStep = 4) // 전체 7단계 중 4단계로 가정
+            CustomProgressBar(totalSteps = 7, currentStep = 4)
 
             Column(
                 modifier = Modifier
@@ -88,9 +98,7 @@ fun SellCarVisualsScreen(
 
                 // 이미지 업로드 영역
                 ImageUploadBox {
-                    imagePickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                    imagePickerLauncher.launch(pickImagesRequest)
                 }
 
                 // 선택된 이미지 리스트
