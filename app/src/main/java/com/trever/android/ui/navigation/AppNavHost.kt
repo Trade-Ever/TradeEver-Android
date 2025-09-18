@@ -16,13 +16,15 @@ import androidx.navigation.navArgument
 import com.trever.android.ui.auction.AuctionDetailScreen
 import com.trever.android.ui.auction.AuctionListScreen
 import com.trever.android.ui.auction.BidHistoryScreen
-import com.trever.android.ui.buy.BuyDetailScreen
+
 import com.trever.android.ui.sellcar.SellListingScreen
 
 const val ROUTE_AUCTION_LIST = "auction/list"
 const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
 
 const val ROUTE_BID_HISTORY = "auction/bid-history/{carId}"
+
+const val ROUTE_SELL_FLOW = "sell/flow"
 
 @Composable
 fun AppNavHost(
@@ -79,61 +81,10 @@ fun AppNavHost(
             )
         }
 
+        composable(ROUTE_SELL_FLOW) {
+            SellListingScreen() // 내부에서 단계별 화면 전환
+        }
+
 
     }
 }
-
-//@Composable
-//fun AppNavHost(
-//    navController: NavHostController,
-//    modifier: Modifier = Modifier
-//) {
-//    NavHost(
-//        navController = navController,
-//        startDestination = MainTab.Buy.route,
-//        modifier = modifier
-//    ) {
-//        composable(MainTab.Buy.route)  { BuyDetailScreen() }
-//        composable(MainTab.Sell.route) { SellListingScreen() }
-//
-//        // ✅ 경매 탭을 중첩 그래프로 구성
-//        navigation(
-//            startDestination = ROUTE_AUCTION_LIST,
-//            route = MainTab.Auction.route
-//        ) {
-//            composable(ROUTE_AUCTION_LIST) {
-//                AuctionListScreen(
-//                    onItemClick = { carId ->
-//                        navController.navigate("auction/detail/$carId")
-//                    }
-//                )
-//            }
-//            composable(
-//                ROUTE_AUCTION_DETAIL,
-//                arguments = listOf(navArgument("carId") { type = NavType.StringType })
-//            ) { backStackEntry ->
-//                val carId = backStackEntry.arguments?.getString("carId") ?: ""
-//                AuctionDetailScreen(
-//                    carId = carId, // ← 파라미터 추가 (아래 3번 참고)
-//                    onBack = { navController.popBackStack() },
-//                    onShowBidHistory = { id ->
-//                        navController.navigate("auction/bid-history/$id")
-//                    }
-//                )
-//            }
-//        }
-//
-//        composable(
-//            route = ROUTE_BID_HISTORY,
-//            arguments = listOf(navArgument("carId") { type = NavType.StringType })
-//        ) { backStackEntry ->
-//            val carId = backStackEntry.arguments?.getString("carId") ?: ""
-//            BidHistoryScreen(
-//                carId = carId,
-//                onBack = { navController.popBackStack() }
-//            )
-//        }
-//
-//        composable(MainTab.My.route) { BuyDetailScreen() }
-//    }
-//}

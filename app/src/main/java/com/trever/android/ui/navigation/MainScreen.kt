@@ -12,7 +12,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.trever.android.ui.auction.AuctionListScreen
-import com.trever.android.ui.buy.BuyDetailScreen
+import com.trever.android.ui.buy.BuyListScreen
+import com.trever.android.ui.sellcar.SellEntryScreen
+
 import com.trever.android.ui.sellcar.SellListingScreen
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.bottomBarUnselected
@@ -34,12 +36,12 @@ fun MainScreen(
         ) {
             // 탭: 구매
             composable(MainTab.Buy.route) {
-                BuyDetailScreen()
+                BuyListScreen()
             }
 
             // 탭: 판매
             composable(MainTab.Sell.route) {
-                SellListingScreen()
+                SellEntryScreen(parentNavController = parentNavController)
             }
 
             // 탭: 경매(리스트만) — 상세는 최상위(AppNavHost)에서!
@@ -53,7 +55,7 @@ fun MainScreen(
 
             // 탭: 마이 (임시로 구매 화면 재사용 중이면 그대로)
             composable(MainTab.My.route) {
-                BuyDetailScreen()
+                BuyListScreen()
             }
         }
     }
