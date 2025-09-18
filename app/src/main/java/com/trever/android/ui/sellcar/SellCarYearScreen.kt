@@ -1,8 +1,12 @@
 package com.trever.android.ui.sellcar
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,15 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import kotlinx.coroutines.flow.first
 import java.util.Calendar
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 
 // import com.trever.android.ui.theme.YourAppTheme // 실제 테마로 교체 필요
 
@@ -35,7 +39,7 @@ fun SellCarYearScreen(
     val uiState by sellCarViewModel.uiState.collectAsState()
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     // 연식 범위: 현재 연도부터 30년 전까지 (예시)
-    val yearRange = (currentYear downTo currentYear - 30).toList()
+    val yearRange = (currentYear + 2 downTo currentYear - 30).toList()
 
     Scaffold(
         containerColor = Color.White,
@@ -104,10 +108,9 @@ fun SellCarYearScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 연식 선택기
-            YearPicker( // 높이를 제한하여 일부 항목만 보이도록 함
-                modifier = Modifier.height(180.dp), // 5개 항목 정도 보이도록 높이 조절
+            YearPicker(
                 years = yearRange,
-                selectedYear = uiState.selectedYear,
+                initialYear = uiState.selectedYear,
                 onYearSelected = { year ->
                     sellCarViewModel.updateSelectedYear(year)
                 }
@@ -134,72 +137,94 @@ fun SellCarYearScreen(
 fun YearPicker(
     modifier: Modifier = Modifier,
     years: List<Int>,
-    selectedYear: Int,
+    initialYear: Int,
     onYearSelected: (Int) -> Unit
 ) {
-    val listState = rememberLazyListState()
-    val centralItemOffset = years.indexOf(selectedYear) - 2 // 선택된 연도가 중앙에서 3번째 오도록 (0-indexed)
+    var selectedYear by remember { mutableStateOf(initialYear) }
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = years.indexOf(initialYear)
+    )
+    val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    // 초기 스크롤 위치 설정 (선택된 연도가 중앙에 오도록)
-    LaunchedEffect(selectedYear, years) {
-        val targetIndex = years.indexOf(selectedYear)
-        if (targetIndex != -1) {
-            // 중앙에 오도록 스크롤, 아이템이 최소 5개는 있어야 중앙 정렬 의미가 있음
-            val scrollIndex = (targetIndex - 2).coerceAtLeast(0)
-            listState.scrollToItem(scrollIndex)
-        }
-    }
-
-    // 스크롤 중 중앙 아이템 감지 및 업데이트 (선택 사항 - 스크롤 멈췄을때만 업데이트로 변경 가능)
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .map { visibleItems ->
-                if (visibleItems.isEmpty()) return@map selectedYear // 비어있으면 기존 값
-                // 중앙에 가장 가까운 아이템 찾기 (개선된 로직 필요)
-                // 여기서는 간단하게 첫번째 보이는 아이템 +2 (중앙으로 가정)
-                val firstVisibleIndex = listState.firstVisibleItemIndex
-                val centralVisibleIndex = firstVisibleIndex + (listState.layoutInfo.visibleItemsInfo.size / 2)
-                years.getOrElse(centralVisibleIndex) { selectedYear }
-            }
-            .distinctUntilChanged()
-            .collect { year ->
-                 // 스크롤 중 실시간 업데이트보다는, 스크롤 멈췄을 때 업데이트가 사용자 경험에 더 좋을 수 있음
-                 // onYearSelected(year) // 이 부분은 사용자가 스크롤을 멈췄을때 호출하는게 더 좋습니다.
-            }
-    }
-    // 사용자가 스크롤을 멈췄을 때 중앙 연도 업데이트
-    LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress && listState.layoutInfo.visibleItemsInfo.isNotEmpty()) {
-            val visibleItems = listState.layoutInfo.visibleItemsInfo
-            val viewportHeight = listState.layoutInfo.viewportSize.height
-            val centerLine = viewportHeight / 2
-
-            val centralItem = visibleItems.minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - centerLine) }
-            centralItem?.index?.let {
-                onYearSelected(years[it])
-            }
-        }
-    }
-
+    // LazyColumn
     LazyColumn(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(240.dp),
         state = listState,
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        contentPadding = PaddingValues(vertical = 60.dp) // 위아래로 여백을 주어 중앙 아이템이 잘 보이도록 함
+        flingBehavior = flingBehavior,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(vertical = 60.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        items(years.size) { index ->
-            val year = years[index]
-            val isSelected = (year == selectedYear)
+        items(years) { year ->
+            val isSelected = year == selectedYear
             Text(
-                text = year.toString(),
+                text = "$year",
                 fontSize = if (isSelected) 36.sp else 24.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 color = if (isSelected) Color.Black else Color.Gray,
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
                     .alpha(if (isSelected) 1f else 0.7f)
+                    .clickable {
+                        selectedYear = year
+                        onYearSelected(year)
+                    },
+                textAlign = TextAlign.Center
             )
         }
+    }
+
+    // 중앙 하이라이트 로직
+    val density = LocalDensity.current
+    var firstLaunch by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        // 1️⃣ 첫 레이아웃 완료 대기
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.isNotEmpty() }
+            .first { it }
+
+        // 2️⃣ 초기 선택값
+        selectedYear = initialYear
+        onYearSelected(initialYear)
+
+        // 3️⃣ 중앙 정렬 계산
+        val index = years.indexOf(initialYear).coerceIn(0, years.lastIndex)
+        val layoutInfo = listState.layoutInfo
+        val visibleItems = layoutInfo.visibleItemsInfo
+        if (visibleItems.isNotEmpty()) {
+            val itemHeight = visibleItems.first().size
+            val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+            val paddingTopPx = with(density) { 60.dp.roundToPx() } // contentPadding.vertical / 2
+            val spacingPx = with(density) { 8.dp.roundToPx() }      // verticalArrangement.spacedBy
+
+            val offset =
+                index * (itemHeight + spacingPx) - viewportHeight / 2 + itemHeight / 2 + paddingTopPx
+            listState.scrollToItem(0, offset.coerceAtLeast(0))
+        }
+
+        // 4️⃣ 스크롤 시 중앙 아이템 업데이트
+        snapshotFlow { listState.layoutInfo }
+            .collect { layout ->
+                if (firstLaunch) {
+                    firstLaunch = false
+                    return@collect
+                }
+
+                val viewportCenter = (layout.viewportStartOffset + layout.viewportEndOffset) / 2
+                val centerItem = layout.visibleItemsInfo.minByOrNull { item ->
+                    kotlin.math.abs(item.offset + item.size / 2 - viewportCenter)
+                }
+                centerItem?.let { info ->
+                    val year = years.getOrNull(info.index)
+                    if (year != null && year != selectedYear) {
+                        selectedYear = year
+                        onYearSelected(year)
+                    }
+                }
+            }
     }
 }
 
