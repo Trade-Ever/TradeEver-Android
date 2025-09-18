@@ -24,6 +24,7 @@ import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 
 // 화면 상태를 정의하는 enum
 enum class CurrentScreen {
+    Start, // 시작 화면 추가
     PlateNumber,
     InfoCheck,
     ModelPrompt,
@@ -33,21 +34,39 @@ enum class CurrentScreen {
     Visuals,
     Options,
     AccidentHistory,
-    Price // 새 화면 상태 추가
+    Price
 }
 
 @Composable
 fun SellListingScreen() {
     val sellCarViewModel: SellCarViewModel = viewModel()
-    var currentScreen by remember { mutableStateOf(CurrentScreen.PlateNumber) }
+    var currentScreen by remember { mutableStateOf(CurrentScreen.Start) } // 초기 화면을 Start로 변경
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (currentScreen) {
+            CurrentScreen.Start -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Sell Car 메인 페이지 (임시)")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { 
+                        sellCarViewModel.updateCurrentStep(1)
+                        currentScreen = CurrentScreen.PlateNumber 
+                    }) {
+                        Text("내 차량 번호 입력으로 넘어가기")
+                    }
+                }
+            }
             CurrentScreen.PlateNumber -> {
                 SellCarPlateNumberScreen(
                     sellCarViewModel = sellCarViewModel,
                     onNavigateBack = {
-                        Log.d("SellListingScreen", "Back from PlateNumberScreen")
+                        currentScreen = CurrentScreen.Start // 뒤로가면 Start 화면으로
                     },
                     onNextClicked = {
                         sellCarViewModel.updateCurrentStep(2)
@@ -169,7 +188,7 @@ fun SellListingScreen() {
                         currentScreen = CurrentScreen.Options
                     },
                     onNextClicked = {
-                        sellCarViewModel.updateCurrentStep(11) // Price 화면은 11단계
+                        sellCarViewModel.updateCurrentStep(11)
                         currentScreen = CurrentScreen.Price
                     }
                 )
@@ -178,14 +197,12 @@ fun SellListingScreen() {
                 SellCarPriceScreen(
                     sellCarViewModel = sellCarViewModel,
                     onNavigateBack = {
-                        sellCarViewModel.updateCurrentStep(10) // 이전 화면은 10단계
+                        sellCarViewModel.updateCurrentStep(10)
                         currentScreen = CurrentScreen.AccidentHistory
                     },
                     onRegisterClicked = {
-                        // TODO: 모든 데이터를 최종 취합하여 서버로 전송하는 로직
                         Log.d("SellListingScreen", "Register button clicked. Final data: ${sellCarViewModel.uiState.value}")
-                        // 등록 완료 후 첫 화면으로 돌아가기 (예시)
-                        currentScreen = CurrentScreen.PlateNumber 
+                        currentScreen = CurrentScreen.Start // 등록 완료 후 Start 화면으로
                     }
                 )
             }
