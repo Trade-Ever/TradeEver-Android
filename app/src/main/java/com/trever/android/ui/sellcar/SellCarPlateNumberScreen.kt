@@ -18,8 +18,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.trever.android.ui.auction.AppFilledButton
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // ViewModel import
 import com.trever.android.ui.sellcar.viewmodel.SellCarUiState // UiState import
+import com.trever.android.ui.theme.backgroundColor
 
 // !! 중요 !!
 // 실제 앱의 테마를 import 해야 합니다. 아래는 예시이며, 실제 경로로 수정해주세요.
@@ -32,6 +34,7 @@ fun SellCarPlateNumberScreen(
     onNavigateBack: () -> Unit,
     onNextClicked: () -> Unit,
 ) {
+    val cs = MaterialTheme.colorScheme
     val uiState by sellCarViewModel.uiState.collectAsState()
     var carNumber by remember { mutableStateOf(uiState.carNumber) } // 초기값은 ViewModel에서 가져옴
 
@@ -43,7 +46,7 @@ fun SellCarPlateNumberScreen(
     }
 
     Scaffold(
-        containerColor = Color.White, // Scaffold 전체 배경을 흰색으로 설정
+        containerColor = cs.backgroundColor, // Scaffold 전체 배경을 흰색으로 설정
         topBar = {
             TopAppBar(
                 title = { Text("입력 - 차량 번호") }, // 제목 추가
@@ -56,8 +59,8 @@ fun SellCarPlateNumberScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White, // TopAppBar 배경도 흰색으로 설정
-                    titleContentColor = Color.Black, // 제목 색상
+                    containerColor = cs.backgroundColor, // TopAppBar 배경도 흰색으로 설정
+                    titleContentColor = cs.onSurface, // 제목 색상
                     navigationIconContentColor = Color.Black // 아이콘 색상
                 )
             )
@@ -115,21 +118,33 @@ fun SellCarPlateNumberScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
+            AppFilledButton(
+                text = "다음",
                 onClick = {
-                    sellCarViewModel.updateCarNumber(carNumber) // 다음 버튼 클릭 시 최종값 ViewModel에 저장
+                    sellCarViewModel.updateCarNumber(carNumber)
                     onNextClicked()
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6A11CB) // 보라색 계열
-                )
-            ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
-            }
+                    .fillMaxWidth(),
+                height = 56.dp,
+                enabled = carNumber.isNotBlank()   // 입력 검증 쓰면 좋음(선택)
+            )
+
+//            Button(
+//                onClick = {
+//                    sellCarViewModel.updateCarNumber(carNumber) // 다음 버튼 클릭 시 최종값 ViewModel에 저장
+//                    onNextClicked()
+//                },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(56.dp),
+//                shape = RoundedCornerShape(8.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color(0xFF6A11CB) // 보라색 계열
+//                )
+//            ) {
+//                Text("다음", fontSize = 18.sp, color = Color.White)
+//            }
         }
     }
 }
