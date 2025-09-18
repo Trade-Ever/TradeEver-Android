@@ -38,13 +38,13 @@ fun SellCarDetailsScreen(
     var displacement by remember { mutableStateOf(uiState.displacement) }
     var horsepower by remember { mutableStateOf(uiState.horsepower) }
 
-    val purpleColor = Color(0xFF9F72FF)
+    val purpleColor = Color(0xFF6A11CB) // 진한 보라색으로 변경
 
     Scaffold(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { },
+                title = { Text("차량 상세정보 입력") }, // 제목 추가
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -192,6 +192,8 @@ fun SellCarDetailsScreen(
 
 @Composable
 fun SelectableButtonGroup(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
+    val lightPurpleColor = Color(0xFF9F72FF) // 연한 보라색 정의
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -203,7 +205,7 @@ fun SelectableButtonGroup(options: List<String>, selectedOption: String, onOptio
                 modifier = Modifier.weight(1f), // 항상 weight(1f)를 적용하여 모든 버튼이 균등한 너비를 갖도록 함
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) Color(0xFF6A11CB) else Color.White,
+                    containerColor = if (isSelected) lightPurpleColor else Color.White, // 선택 시 연한 보라색으로 변경
                     contentColor = if (isSelected) Color.White else Color.Black
                 ),
                 border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null,

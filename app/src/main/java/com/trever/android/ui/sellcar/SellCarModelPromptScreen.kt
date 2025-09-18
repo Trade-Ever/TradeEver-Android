@@ -104,19 +104,19 @@ fun SellCarModelPromptScreen(
     }
 }
 
-@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
-@Composable
-fun SellCarModelPromptScreenPreview() {
-    // YourAppTheme를 실제 앱의 테마로 교체하세요.
-    // 예: com.trever.android.ui.theme.TreverAppTheme { ... }
-    YourAppTheme { // 임시 YourAppTheme 사용 (실제 테마로 교체 필요)
-        val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(2) // 이 화면은 2단계
-
-        SellCarModelPromptScreen(
-            sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
-            onPromptClicked = {}
-        )
-    }
-}
+//@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
+//@Composable
+//fun SellCarModelPromptScreenPreview() {
+//    // YourAppTheme를 실제 앱의 테마로 교체하세요.
+//    // 예: com.trever.android.ui.theme.TreverAppTheme { ... }
+//    YourAppTheme { // 임시 YourAppTheme 사용 (실제 테마로 교체 필요)
+//        val previewViewModel = SellCarViewModel()
+//        previewViewModel.updateCurrentStep(2) // 이 화면은 2단계
+//
+//        SellCarModelPromptScreen(
+//            sellCarViewModel = previewViewModel,
+//            onNavigateBack = {},
+//            onPromptClicked = {}
+//        )
+//    }
+//}

@@ -160,6 +160,7 @@ fun OptionsBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val purpleColor = Color(0xFF6A11CB)
+    val lightPurpleColor = Color(0xFF9F72FF) // 연보라색
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -186,7 +187,7 @@ fun OptionsBottomSheet(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(50), // 알약 모양
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) purpleColor else Color.White,
+                                containerColor = if (isSelected) lightPurpleColor else Color.White, // 연보라색으로 수정
                                 contentColor = if (isSelected) Color.White else Color.Black
                             ),
                             border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null

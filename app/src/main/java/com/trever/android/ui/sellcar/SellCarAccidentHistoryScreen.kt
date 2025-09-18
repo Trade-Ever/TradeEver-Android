@@ -28,9 +28,8 @@ fun SellCarAccidentHistoryScreen(
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     var accidentDetails by remember { mutableStateOf(uiState.accidentDetails) }
-    val purpleColor = Color(0xFF9F72FF)
-//    0xFF9F72FF
-//    0xFF6A11CB
+    val purpleColor = Color(0xFF6A11CB) // 진한 보라색
+    val lightPurpleColor = Color(0xFF9F72FF) // 연한 보라색
 
     // 사고 이력 '없음'을 선택하면, 상세 내용을 초기화
     LaunchedEffect(uiState.hasAccidentHistory) {
@@ -43,7 +42,7 @@ fun SellCarAccidentHistoryScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { },
+                title = { }, // 제목 추가
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -81,7 +80,7 @@ fun SellCarAccidentHistoryScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) purpleColor else Color.White,
+                                containerColor = if (isSelected) lightPurpleColor else Color.White, // 선택 시 연한 보라색
                                 contentColor = if (isSelected) Color.White else Color.Black
                             ),
                             border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null
@@ -133,7 +132,7 @@ fun SellCarAccidentHistoryScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = purpleColor,
+                    containerColor = purpleColor, // 진한 보라색
                     disabledContainerColor = Color.LightGray
                 ),
                 // 사고 '없음'을 선택했거나, '있음' 선택 후 내용을 입력해야 활성화
