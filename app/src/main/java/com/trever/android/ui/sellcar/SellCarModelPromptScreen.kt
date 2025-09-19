@@ -16,29 +16,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+// import androidx.compose.ui.text.style.TextAlign // 현재 사용되지 않음
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
-// import com.trever.android.ui.theme.YourAppTheme // 실제 테마로 교체 필요
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellCarModelPromptScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
-    onPromptClicked: () -> Unit // "모델을 선택해주세요" 클릭 시 동작
+    onSystemBack: () -> Unit,    // ArrowBack 아이콘용
+    onStepBack: () -> Unit,      // 하단 "이전" 버튼용
+    onNextClicked: () -> Unit    // "모델 선택" Surface 클릭 또는 하단 "다음" 버튼용
+    // (기존 onPromptClicked를 onNextClicked로 변경 또는 통합)
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
+    val purpleColor = Color(0xFF6A11CB) // 다음 버튼 색상용
 
     Scaffold(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { }, // 화면 제목
+                title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onSystemBack) { // onSystemBack 사용
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로 가기"
@@ -60,12 +62,10 @@ fun SellCarModelPromptScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 진행 상태 표시기 (ViewModel의 currentStep 사용, 이 화면은 2단계여야 함)
-            CustomProgressBar(totalSteps = 7, currentStep = 2)
+            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) // ViewModel의 현재 스텝 사용
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 안내 텍스트
             Text(
                 text = "차량 모델을 입력해주세요",
                 fontSize = 18.sp,
@@ -75,48 +75,87 @@ fun SellCarModelPromptScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // "모델을 선택해주세요" 클릭 가능한 영역 (버튼처럼 동작)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable { onPromptClicked() }, // 클릭 시 다음 단계로 이동
+                    .clickable { onNextClicked() }, // 클릭 시 다음 단계로 이동 (하단 버튼과 동일 액션)
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
-                color = Color.White // 배경색
+                color = Color.White
             ) {
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 16.dp), // 내부 패딩
-                    contentAlignment = Alignment.CenterStart // 텍스트를 왼쪽에 정렬
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
+                    // 실제 선택된 모델명을 표시하도록 ViewModel의 상태를 사용
                     Text(
-                        text = "모델을 선택해주세요",
-                        fontSize = 16.sp, // 플레이스홀더 텍스트 크기
-                        color = Color.Gray // 플레이스홀더 텍스트 색상
+                        text = if (uiState.selectedModel.isNullOrBlank()) "모델을 선택해주세요" else uiState.selectedModel!!,
+                        fontSize = 16.sp,
+                        color = if (uiState.selectedModel.isNullOrBlank()) Color.Gray else Color.Black
                     )
                 }
             }
 
-            // 키보드 영역은 실제 구현에서는 시스템 키보드가 올라오므로 별도 UI 구성 불필요
-            // Spacer(modifier = Modifier.weight(1f)) // 하단 버튼이 있다면 사용
+            Spacer(modifier = Modifier.weight(1f)) // 버튼들을 하단에 위치시키기 위한 Spacer
+
+            // ▼▼▼ 이전/다음 버튼 추가 ▼▼▼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = onNextClicked, // "모델 선택" Surface 클릭과 동일한 액션
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    // "다음" 버튼 활성화 조건: ViewModel에서 모델이 선택되었는지 확인
+                    enabled = !uiState.selectedModel.isNullOrBlank(),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+            // ▲▲▲ 이전/다음 버튼 추가 ▲▲▲
         }
     }
 }
 
+// Preview 수정: 두 가지 콜백을 받도록
 //@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
 //@Composable
 //fun SellCarModelPromptScreenPreview() {
-//    // YourAppTheme를 실제 앱의 테마로 교체하세요.
-//    // 예: com.trever.android.ui.theme.TreverAppTheme { ... }
-//    YourAppTheme { // 임시 YourAppTheme 사용 (실제 테마로 교체 필요)
+//    MaterialTheme { // 실제 앱 테마로 교체 권장
 //        val previewViewModel = SellCarViewModel()
 //        previewViewModel.updateCurrentStep(2) // 이 화면은 2단계
+//        // previewViewModel.updateSelectedModel("현대 아반떼 (미리보기)") // 미리보기에 모델명 표시 예시
 //
 //        SellCarModelPromptScreen(
 //            sellCarViewModel = previewViewModel,
-//            onNavigateBack = {},
-//            onPromptClicked = {}
+//            onSystemBack = {},
+//            onStepBack = {},
+//            onNextClicked = {}
 //        )
 //    }
 //}
+

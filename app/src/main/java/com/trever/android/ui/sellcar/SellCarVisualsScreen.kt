@@ -39,7 +39,8 @@ import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 @Composable
 fun SellCarVisualsScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
+    onSystemBack: () -> Unit, // 시스템 뒤로가기 (ArrowBack 아이콘용)
+    onStepBack: () -> Unit,   // 단계별 이전 (하단 "이전" 버튼용)
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
@@ -69,7 +70,7 @@ fun SellCarVisualsScreen(
             TopAppBar(
                 title = { }, // 제목 추가
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -159,22 +160,42 @@ fun SellCarVisualsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    sellCarViewModel.updateColor(color)
-                    onNextClicked()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = purpleColor,
-                    disabledContainerColor = Color.LightGray
-                ),
-                enabled = uiState.imageUris.isNotEmpty() && color.isNotBlank()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp) // 버튼 사이 간격
             ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack, // 파라미터로 받은 onNavigateBack 사용
+                    modifier = Modifier.weight(1f).height(56.dp), // 높이 추가
+                    shape = RoundedCornerShape(8.dp), // 기존 "다음" 버튼과 동일한 모양
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black // 텍스트 색상
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray), // 테두리
+                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
+                ) {
+                    Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = {
+                        sellCarViewModel.updateColor(color)
+                        onNextClicked()
+                    },
+                    modifier = Modifier.weight(1f).height(56.dp), // 기존 modifier에서 fillMaxWidth() 제거, weight 사용
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    enabled = uiState.imageUris.isNotEmpty() && color.isNotBlank(),
+                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
+                ) {
+                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold) // fontWeight 추가
+                }
             }
         }
     }
@@ -232,17 +253,17 @@ fun ImageUploadBox(onClick: () -> Unit) {
         }
     }
 }
-
-@Preview(showBackground = true, device = "spec:width=360dp,height=800dp,dpi=480")
-@Composable
-fun SellCarVisualsScreenPreview() {
-    MaterialTheme {
-        val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(4)
-        SellCarVisualsScreen(
-            sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
-            onNextClicked = {}
-        )
-    }
-}
+//
+//@Preview(showBackground = true, device = "spec:width=360dp,height=800dp,dpi=480")
+//@Composable
+//fun SellCarVisualsScreenPreview() {
+//    MaterialTheme {
+//        val previewViewModel = SellCarViewModel()
+//        previewViewModel.updateCurrentStep(4)
+//        SellCarVisualsScreen(
+//            sellCarViewModel = previewViewModel,
+//            onNavigateBack = {},
+//            onNextClicked = {}
+//        )
+//    }
+//}

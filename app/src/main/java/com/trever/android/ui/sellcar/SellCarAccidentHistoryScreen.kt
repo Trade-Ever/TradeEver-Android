@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,18 +25,25 @@ import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 @Composable
 fun SellCarAccidentHistoryScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
+    onSystemBack: () -> Unit,    // ArrowBack 아이콘용
+    onStepBack: () -> Unit,      // 하단 "이전" 버튼용
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     var accidentDetails by remember { mutableStateOf(uiState.accidentDetails) }
-    val purpleColor = Color(0xFF6A11CB) // 진한 보라색
-    val lightPurpleColor = Color(0xFF9F72FF) // 연한 보라색
+    val purpleColor = Color(0xFF6A11CB)
+    val lightPurpleColor = Color(0xFF9F72FF)
 
-    // 사고 이력 '없음'을 선택하면, 상세 내용을 초기화
     LaunchedEffect(uiState.hasAccidentHistory) {
         if (uiState.hasAccidentHistory == false) {
             accidentDetails = ""
+        }
+    }
+
+    // ViewModel의 accidentDetails가 변경되면 로컬 상태도 업데이트
+    LaunchedEffect(uiState.accidentDetails) {
+        if (accidentDetails != uiState.accidentDetails) {
+            accidentDetails = uiState.accidentDetails
         }
     }
 
@@ -42,9 +51,9 @@ fun SellCarAccidentHistoryScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { }, // 제목 추가
+                title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onSystemBack) { // onSystemBack 사용
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -59,7 +68,10 @@ fun SellCarAccidentHistoryScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 7, currentStep = 6) // 7단계 중 6단계
+            // CustomProgressBar는 uiState.currentStep 또는 고정값 중 원래 의도대로 사용
+            // 여기서는 원본처럼 6으로 두겠습니다.
+            // ViewModel 연동 시에는 uiState.currentStep 사용 권장.
+            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) // ViewModel 값 사용 권장
 
             Column(
                 modifier = Modifier
@@ -68,7 +80,6 @@ fun SellCarAccidentHistoryScreen(
             ) {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 사고이력 선택
                 Text("사고이력을 선택해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -80,7 +91,7 @@ fun SellCarAccidentHistoryScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) lightPurpleColor else Color.White, // 선택 시 연한 보라색
+                                containerColor = if (isSelected) lightPurpleColor else Color.White,
                                 contentColor = if (isSelected) Color.White else Color.Black
                             ),
                             border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null
@@ -90,7 +101,6 @@ fun SellCarAccidentHistoryScreen(
                     }
                 }
 
-                // 사고 정보 입력 (애니메이션과 함께 표시/숨김)
                 AnimatedVisibility(visible = uiState.hasAccidentHistory == true) {
                     Column {
                         Spacer(modifier = Modifier.height(32.dp))
@@ -114,32 +124,53 @@ fun SellCarAccidentHistoryScreen(
                         )
                     }
                 }
-            }
+            } // 스크롤 Column 끝
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    if (uiState.hasAccidentHistory == true) {
-                        sellCarViewModel.updateAccidentDetails(accidentDetails)
-                    } else {
-                        sellCarViewModel.updateAccidentDetails("") // 사고 '없음'이면 상세내용 비움
-                    }
-                    onNextClicked()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = purpleColor, // 진한 보라색
-                    disabledContainerColor = Color.LightGray
-                ),
-                // 사고 '없음'을 선택했거나, '있음' 선택 후 내용을 입력해야 활성화
-                enabled = uiState.hasAccidentHistory == false || (uiState.hasAccidentHistory == true && accidentDetails.isNotBlank())
+            // ▼▼▼ 이전/다음 버튼으로 수정 ▼▼▼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = {
+                        if (uiState.hasAccidentHistory == true) {
+                            sellCarViewModel.updateAccidentDetails(accidentDetails)
+                        } else {
+                            sellCarViewModel.updateAccidentDetails("")
+                        }
+                        onNextClicked()
+                    },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    enabled = uiState.hasAccidentHistory == false || (uiState.hasAccidentHistory == true && accidentDetails.isNotBlank()),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
+            // ▲▲▲ 이전/다음 버튼으로 수정 ▲▲▲
         }
     }
 }
@@ -148,12 +179,15 @@ fun SellCarAccidentHistoryScreen(
 @Composable
 fun SellCarAccidentHistoryScreenPreview() {
     MaterialTheme {
-        val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(6)
-        previewViewModel.updateHasAccidentHistory(true) // '있음' 선택된 상태 미리보기
+        val previewViewModel = remember { SellCarViewModel() }
+        // previewViewModel.updateCurrentStep(6) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
+        previewViewModel.updateHasAccidentHistory(true)
+        // previewViewModel.updateAccidentDetails("사고 상세 내용 미리보기")
+
         SellCarAccidentHistoryScreen(
             sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
+            onSystemBack = {},    // onNavigateBack 대신 onSystemBack
+            onStepBack = {},      // onStepBack 추가
             onNextClicked = {}
         )
     }
@@ -163,13 +197,16 @@ fun SellCarAccidentHistoryScreenPreview() {
 @Composable
 fun SellCarAccidentHistoryScreenNoAccidentPreview() {
     MaterialTheme {
-        val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(6)
-        previewViewModel.updateHasAccidentHistory(false) // '없음' 선택된 상태 미리보기
+        val previewViewModel = remember { SellCarViewModel() }
+        // previewViewModel.updateCurrentStep(6)
+        previewViewModel.updateHasAccidentHistory(false)
+
         SellCarAccidentHistoryScreen(
             sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
+            onSystemBack = {},
+            onStepBack = {},
             onNextClicked = {}
         )
     }
 }
+

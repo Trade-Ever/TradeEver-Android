@@ -13,6 +13,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +32,9 @@ import java.util.Calendar
 @Composable
 fun SellCarMileageAndTypeScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
+    // onNavigateBack을 onSystemBack과 onStepBack으로 분리
+    onSystemBack: () -> Unit,
+    onStepBack: () -> Unit,
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
@@ -47,7 +51,8 @@ fun SellCarMileageAndTypeScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    // IconButton의 onClick을 onSystemBack으로 변경
+                    IconButton(onClick = onSystemBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로 가기"
@@ -71,7 +76,11 @@ fun SellCarMileageAndTypeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                CustomProgressBar(totalSteps = 7, currentStep = 2)
+                // CustomProgressBar의 currentStep은 uiState.currentStep 또는 고정값 중
+                // 원래 코드의 의도대로 설정합니다. 여기서는 원본처럼 2로 두겠습니다.
+                // ViewModel과 연동 시에는 sellCarViewModel.uiState.collectAsState().value.currentStep 사용 권장
+                CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep)
+
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -83,7 +92,6 @@ fun SellCarMileageAndTypeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 연식 입력 필드
                 Text("연식을 입력해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
@@ -105,7 +113,6 @@ fun SellCarMileageAndTypeScreen(
                     )
                 )
 
-                // 차종 선택 (애니메이션 적용)
                 AnimatedVisibility(
                     visible = year.length == 4,
                     enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
@@ -137,7 +144,6 @@ fun SellCarMileageAndTypeScreen(
                     }
                 }
 
-                // 주행거리 입력 (애니메이션 적용)
                 AnimatedVisibility(
                     visible = uiState.selectedCarType.isNotEmpty(),
                     enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
@@ -166,24 +172,50 @@ fun SellCarMileageAndTypeScreen(
                         )
                     }
                 }
-            }
+            } // 스크롤 Column 끝
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 다음 버튼 (활성화/비활성화 상태만 관리)
-            Button(
-                onClick = {
-                    sellCarViewModel.updateSelectedYear(year.toIntOrNull() ?: Calendar.getInstance().get(Calendar.YEAR))
-                    sellCarViewModel.updateMileage(mileage)
-                    onNextClicked()
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = purpleColor),
-                enabled = year.length == 4 && uiState.selectedCarType.isNotBlank() && mileage.isNotBlank()
+            // ▼▼▼ 이전/다음 버튼으로 수정 ▼▼▼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = {
+                        sellCarViewModel.updateSelectedYear(year.toIntOrNull() ?: Calendar.getInstance().get(Calendar.YEAR))
+                        sellCarViewModel.updateMileage(mileage)
+                        onNextClicked()
+                    },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    enabled = year.length == 4 && uiState.selectedCarType.isNotBlank() && mileage.isNotBlank(),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
+            // ▲▲▲ 이전/다음 버튼으로 수정 ▲▲▲
         }
 
         if (showBottomSheet) {
@@ -199,6 +231,8 @@ fun SellCarMileageAndTypeScreen(
     }
 }
 
+// CarTypeBottomSheet, DisplayInfoField 함수는 원본 코드를 그대로 사용합니다.
+// (여기에 해당 함수들의 코드가 위치한다고 가정)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarTypeBottomSheet(
@@ -210,7 +244,7 @@ fun CarTypeBottomSheet(
     var tempSelectedType by remember { mutableStateOf(initialSelectedType) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-
+    val purpleColor = Color(0xFF6A11CB)
     val selectedColor = Color(0xFF9F72FF)
 
     ModalBottomSheet(
@@ -233,7 +267,7 @@ fun CarTypeBottomSheet(
                         Button(
                             onClick = { tempSelectedType = type },
                             modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(50.dp),
+                            shape = RoundedCornerShape(50.dp), // 알약 모양
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isSelected) selectedColor else Color.White,
                                 contentColor = if (isSelected) Color.White else Color.Black
@@ -245,7 +279,7 @@ fun CarTypeBottomSheet(
                     }
                     if (rowItems.size < 4) {
                         for (i in 0 until (4 - rowItems.size)) {
-                            Spacer(modifier = Modifier.weight(1f))
+                            Spacer(modifier = Modifier.weight(1f).height(48.dp)) // 버튼과 동일한 높이
                         }
                     }
                 }
@@ -259,10 +293,10 @@ fun CarTypeBottomSheet(
                         scope.launch { sheetState.hide() }.invokeOnCompletion { if (!sheetState.isVisible) onDismiss() }
                     },
                     modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color(0xFF6A11CB))
+                    shape = RoundedCornerShape(8.dp), // 하단 버튼 모양 일관성
+                    border = BorderStroke(1.dp, purpleColor)
                 ) {
-                    Text("취소", color = Color(0xFF6A11CB))
+                    Text("취소", color = purpleColor)
                 }
                 Button(
                     onClick = {
@@ -271,8 +305,8 @@ fun CarTypeBottomSheet(
                         }
                     },
                     modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB))
+                    shape = RoundedCornerShape(8.dp), // 하단 버튼 모양 일관성
+                    colors = ButtonDefaults.buttonColors(containerColor = purpleColor)
                 ) {
                     Text("확인", color = Color.White)
                 }
@@ -300,17 +334,19 @@ fun DisplayInfoField(label: String, value: String, isComplete: Boolean) {
     }
 }
 
-@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=800,unit=dp,dpi=480")
-@Composable
-fun SellCarMileageAndTypeScreenPreview() {
-    MaterialTheme {
-        val previewViewModel = remember { SellCarViewModel() }
-        previewViewModel.updateCurrentStep(2)
-        previewViewModel.updateSelectedModel("현대 아반떼 SN7")
-        SellCarMileageAndTypeScreen(
-            sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
-            onNextClicked = {}
-        )
-    }
-}
+//
+//@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=800,unit=dp,dpi=480")
+//@Composable
+//fun SellCarMileageAndTypeScreenPreview() {
+//    MaterialTheme {
+//        val previewViewModel = remember { SellCarViewModel() }
+//        // previewViewModel.updateCurrentStep(2) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
+//        SellCarMileageAndTypeScreen(
+//            sellCarViewModel = previewViewModel,
+//            onSystemBack = {},    // onNavigateBack 대신 onSystemBack
+//            onStepBack = {},      // onStepBack 추가
+//            onNextClicked = {}
+//        )
+//    }
+//}
+

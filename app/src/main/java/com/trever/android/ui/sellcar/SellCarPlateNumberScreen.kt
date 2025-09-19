@@ -30,12 +30,13 @@ import com.trever.android.ui.theme.backgroundColor
 @Composable
 fun SellCarPlateNumberScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
-    onNextClicked: () -> Unit,
+    onSystemBack: () -> Unit, // 시스템 뒤로가기 (ArrowBack 아이콘용)
+    onStepBack: () -> Unit,   // 단계별 이전 (하단 "이전" 버튼용)
+    onNextClicked: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
     val uiState by sellCarViewModel.uiState.collectAsState()
-    var plateNumber by remember { mutableStateOf(uiState.plateNumber) } // uiState.plateNumber로 수정
+    var plateNumber by remember { mutableStateOf(uiState.plateNumber) }
 
     LaunchedEffect(uiState.plateNumber) {
         if (plateNumber != uiState.plateNumber) {
@@ -47,9 +48,9 @@ fun SellCarPlateNumberScreen(
         containerColor = cs.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { }, // 제목 추가
+                title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onSystemBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로 가기"
@@ -93,15 +94,17 @@ fun SellCarPlateNumberScreen(
                 color = Color.White
             ) {
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(modifier = Modifier.size(10.dp).border(1.dp, Color.LightGray, CircleShape))
 
                     BasicTextField(
-                        value = plateNumber, // plateNumber로 수정
-                        onValueChange = { plateNumber = it }, // plateNumber로 수정
+                        value = plateNumber,
+                        onValueChange = { plateNumber = it },
                         modifier = Modifier.weight(1f),
                         textStyle = TextStyle(
                             fontSize = 28.sp,
@@ -116,9 +119,9 @@ fun SellCarPlateNumberScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (plateNumber.isEmpty()) { // plateNumber로 수정
+                                if (plateNumber.isEmpty()) {
                                     Text(
-                                        text = "12가 3456", // Placeholder 수정
+                                        text = "12가 3456",
                                         style = TextStyle(
                                             fontSize = 28.sp,
                                             fontWeight = FontWeight.Normal,
@@ -131,23 +134,46 @@ fun SellCarPlateNumberScreen(
                             }
                         }
                     )
-
                     Box(modifier = Modifier.size(10.dp).border(1.dp, Color.LightGray, CircleShape))
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            AppFilledButton(
-                text = "다음",
-                onClick = {
-                    sellCarViewModel.updatePlateNumber(plateNumber) // updatePlateNumber로 수정
-                    onNextClicked()
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                height = 56.dp,
-                enabled = plateNumber.isNotBlank() // plateNumber로 수정
-            )
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text(text = "이전", fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = {
+                        sellCarViewModel.updatePlateNumber(plateNumber)
+                        onNextClicked()
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB)),
+                    enabled = plateNumber.isNotBlank(),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    Text(text = "다음", fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
@@ -157,8 +183,8 @@ fun CustomProgressBar(
     modifier: Modifier = Modifier,
     totalSteps: Int,
     currentStep: Int,
-    activeColor: Color = Color(0xFF6A11CB),
-    inactiveColor: Color = Color(0xFFD0D0D0),
+    activeColor: Color = Color(0xFF6A11CB), // 활성화된 스텝의 색상
+    inactiveColor: Color = Color(0xFFD0D0D0), // 비활성화된 스텝의 색상
 ) {
     Row(
         modifier = modifier
@@ -170,7 +196,7 @@ fun CustomProgressBar(
         for (i in 1..totalSteps) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1f) // 각 박스가 동일한 너비를 가지도록 함
                     .height(8.dp)
                     .background(
                         color = if (i == currentStep) activeColor else inactiveColor,
@@ -178,18 +204,5 @@ fun CustomProgressBar(
                     )
             )
         }
-    }
-}
-
-@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
-@Composable
-fun SellCarPlateNumberScreenPreview() {
-    MaterialTheme {
-        val sellCarViewModel = remember { SellCarViewModel() }
-        SellCarPlateNumberScreen(
-            sellCarViewModel = sellCarViewModel,
-            onNavigateBack = {},
-            onNextClicked = {}
-        )
     }
 }

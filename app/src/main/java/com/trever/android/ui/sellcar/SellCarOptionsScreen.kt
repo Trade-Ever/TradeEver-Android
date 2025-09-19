@@ -25,7 +25,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun SellCarOptionsScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
+    onSystemBack: () -> Unit, // 시스템 뒤로가기 (ArrowBack 아이콘용)
+    onStepBack: () -> Unit,   // 단계별 이전 (하단 "이전" 버튼용)
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
@@ -40,7 +41,7 @@ fun SellCarOptionsScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -114,23 +115,46 @@ fun SellCarOptionsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    sellCarViewModel.updateDescription(description)
-                    onNextClicked()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = purpleColor,
-                    disabledContainerColor = Color.LightGray
-                ),
-                enabled = uiState.selectedOptions.isNotEmpty() && description.isNotBlank()
+            // ▼▼▼ 이전/다음 버튼 부분 수정 ▼▼▼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp) // 버튼 사이 간격
             ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack, // 파라미터로 받은 onNavigateBack 사용
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩은 필요에 따라 조절
+                ) {
+                    Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = {
+                        sellCarViewModel.updateDescription(description)
+                        onNextClicked()
+                    },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    enabled = uiState.selectedOptions.isNotEmpty() && description.isNotBlank(),
+                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩은 필요에 따라 조절
+                ) {
+                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
+            // ▲▲▲ 이전/다음 버튼 부분 수정 ▲▲▲
+        }
         }
 
         // 옵션 선택 바텀 시트
@@ -146,7 +170,6 @@ fun SellCarOptionsScreen(
             )
         }
     }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
