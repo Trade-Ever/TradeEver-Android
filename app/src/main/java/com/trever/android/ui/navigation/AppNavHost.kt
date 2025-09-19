@@ -11,18 +11,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
+// import androidx.navigation.compose.navigation // 현재 사용되지 않으므로 제거해도 무방
 import androidx.navigation.navArgument
 import com.trever.android.ui.auction.AuctionDetailScreen
-import com.trever.android.ui.auction.AuctionListScreen
+// import com.trever.android.ui.auction.AuctionListScreen // AppNavHost에서 직접 사용되지 않음
 import com.trever.android.ui.auction.BidHistoryScreen
 import com.trever.android.ui.buy.BuyDetailScreen
 
 import com.trever.android.ui.sellcar.SellListingScreen
 
-const val ROUTE_AUCTION_LIST = "auction/list"
+// const val ROUTE_AUCTION_LIST = "auction/list" // 현재 사용되지 않음
 const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
-
 const val ROUTE_BID_HISTORY = "auction/bid-history/{carId}"
 
 const val ROUTE_SELL_FLOW = "sell/flow"
@@ -31,12 +30,12 @@ const val ROUTE_BUY_DETAIL = "buy/detail/{carId}"
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
+    navController: NavHostController, // 이 navController를 SellListingScreen에 전달
     modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = "main",
+        startDestination = "main", // "main"이 MainScreen을 의미
         modifier = modifier
     ) {
         // ▼ 바텀바가 있는 탭 영역 전용 화면
@@ -97,9 +96,8 @@ fun AppNavHost(
         }
 
         composable(ROUTE_SELL_FLOW) {
-            SellListingScreen() // 내부에서 단계별 화면 전환
+            // SellListingScreen을 호출할 때 AppNavHost의 navController를 전달합니다.
+            SellListingScreen(appNavController = navController)
         }
-
-
     }
 }

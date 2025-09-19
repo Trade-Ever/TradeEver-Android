@@ -228,19 +228,19 @@ fun YearPicker(
     }
 }
 
-@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
-@Composable
-fun SellCarYearScreenPreview() {
-    YourAppTheme { // 실제 테마로 교체 필요
-        val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(5) // 이 화면은 5단계로 가정
-        previewViewModel.updateSelectedModel("현대 아반떼 SN7") // 더미 모델 설정
-        previewViewModel.updateSelectedYear(2023) // 초기 선택 연도 설정
-
-        SellCarYearScreen(
-            sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
-            onNextClicked = {}
-        )
-    }
-}
+//@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
+//@Composable
+//fun SellCarYearScreenPreview() {
+//    YourAppTheme { // 실제 테마로 교체 필요
+//        val previewViewModel = SellCarViewModel()
+//        previewViewModel.updateCurrentStep(5) // 이 화면은 5단계로 가정
+//        previewViewModel.updateSelectedModel("현대 아반떼 SN7") // 더미 모델 설정
+//        previewViewModel.updateSelectedYear(2023) // 초기 선택 연도 설정
+//
+//        SellCarYearScreen(
+//            sellCarViewModel = previewViewModel,
+//            onNavigateBack = {},
+//            onNextClicked = {}
+//        )
+//    }
+//}

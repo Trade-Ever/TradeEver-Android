@@ -3,9 +3,10 @@ package com.trever.android.ui.sellcar
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -38,26 +39,38 @@ import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 @Composable
 fun SellCarVisualsScreen(
     sellCarViewModel: SellCarViewModel,
-    onNavigateBack: () -> Unit,
+    onSystemBack: () -> Unit, // 시스템 뒤로가기 (ArrowBack 아이콘용)
+    onStepBack: () -> Unit,   // 단계별 이전 (하단 "이전" 버튼용)
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     var color by remember { mutableStateOf(uiState.color) }
 
+    // 이미지 선택 요청을 명시적으로 정의
+    val pickImagesRequest = remember {
+        PickVisualMediaRequest.Builder()
+            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            .build()
+    }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(5),
         onResult = { uris ->
-            sellCarViewModel.addImageUris(uris)
+            // 사용자가 이미지를 선택한 경우에만 상태 업데이트
+            if (uris.isNotEmpty()) {
+                sellCarViewModel.addImageUris(uris)
+            }
         }
     )
+    val purpleColor = Color(0xFF6A11CB)
 
     Scaffold(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text("이미지/색상 입력") },
+                title = { }, // 제목 추가
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -72,7 +85,7 @@ fun SellCarVisualsScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 8, currentStep = uiState.currentStep) // 전체 8단계 중 8단계로 가정
+            CustomProgressBar(totalSteps = 7, currentStep = 4)
 
             Column(
                 modifier = Modifier
@@ -86,9 +99,7 @@ fun SellCarVisualsScreen(
 
                 // 이미지 업로드 영역
                 ImageUploadBox {
-                    imagePickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                    imagePickerLauncher.launch(pickImagesRequest)
                 }
 
                 // 선택된 이미지 리스트
@@ -119,39 +130,72 @@ fun SellCarVisualsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // 색상 입력
-                Text("색상을 입력해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = color,
-                    onValueChange = { color = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("예: 흰색") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF6200EE),
-                        unfocusedBorderColor = Color.LightGray
-                    )
-                )
+                // 색상 입력 (애니메이션)
+                AnimatedVisibility(
+                    visible = uiState.imageUris.isNotEmpty(),
+                    enter = slideInVertically { it / 2 } + fadeIn(),
+                    exit = slideOutVertically { -it / 2 } + fadeOut()
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text("색상을 입력해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = color,
+                            onValueChange = { color = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("예: 흰색") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = purpleColor,
+                                unfocusedBorderColor = if (color.isNotEmpty()) purpleColor else Color.LightGray,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White
+                            )
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    sellCarViewModel.updateColor(color)
-                    onNextClicked()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp) // 버튼 사이 간격
             ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
+                // 이전 버튼
+                OutlinedButton(
+                    onClick = onStepBack, // 파라미터로 받은 onNavigateBack 사용
+                    modifier = Modifier.weight(1f).height(56.dp), // 높이 추가
+                    shape = RoundedCornerShape(8.dp), // 기존 "다음" 버튼과 동일한 모양
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black // 텍스트 색상
+                    ),
+                    border = BorderStroke(1.dp, Color.LightGray), // 테두리
+                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
+                ) {
+                    Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // 다음 버튼
+                Button(
+                    onClick = {
+                        sellCarViewModel.updateColor(color)
+                        onNextClicked()
+                    },
+                    modifier = Modifier.weight(1f).height(56.dp), // 기존 modifier에서 fillMaxWidth() 제거, weight 사용
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    enabled = uiState.imageUris.isNotEmpty() && color.isNotBlank(),
+                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
+                ) {
+                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold) // fontWeight 추가
+                }
             }
         }
     }
@@ -159,40 +203,67 @@ fun SellCarVisualsScreen(
 
 @Composable
 fun ImageUploadBox(onClick: () -> Unit) {
-    val stroke = Stroke(width = 2f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
+    val stroke = Stroke(width = 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f))
+    val purpleColor = Color(0xFF6A11CB)
+    val lightPurpleColor = Color(0xFF9F72FF)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
-            .border(2.dp, Color.LightGray, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
+            .clickable(onClick = onClick)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(40.dp))
-            Text("사진 선택(최대 5장)", color = Color.Gray)
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRoundRect(
+                color = purpleColor,
+                style = stroke,
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx())
+            )
+        }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.PhotoLibrary,
+                contentDescription = "Upload Icon",
+                tint = purpleColor,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "사진 선택(최대 5장)",
+                color = purpleColor,
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onClick,
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = lightPurpleColor,
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
             ) {
-                Text("이미지 선택")
+                Text("이미지 선택", fontSize = 16.sp)
             }
         }
     }
 }
-
-@Preview(showBackground = true, device = "spec:width=360dp,height=800dp,dpi=480")
-@Composable
-fun SellCarVisualsScreenPreview() {
-    MaterialTheme { // YourAppTheme을 실제 테마로 교체하세요
-        val previewViewModel = SellCarViewModel()
-        previewViewModel.updateCurrentStep(8)
-        SellCarVisualsScreen(
-            sellCarViewModel = previewViewModel,
-            onNavigateBack = {},
-            onNextClicked = {}
-        )
-    }
-}
+//
+//@Preview(showBackground = true, device = "spec:width=360dp,height=800dp,dpi=480")
+//@Composable
+//fun SellCarVisualsScreenPreview() {
+//    MaterialTheme {
+//        val previewViewModel = SellCarViewModel()
+//        previewViewModel.updateCurrentStep(4)
+//        SellCarVisualsScreen(
+//            sellCarViewModel = previewViewModel,
+//            onNavigateBack = {},
+//            onNextClicked = {}
+//        )
+//    }
+//}

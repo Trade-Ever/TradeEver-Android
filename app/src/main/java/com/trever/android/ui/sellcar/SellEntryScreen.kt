@@ -6,12 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.trever.android.ui.navigation.ROUTE_SELL_FLOW
+import androidx.navigation.NavHostController // 다시 추가
+import com.trever.android.ui.navigation.ROUTE_SELL_FLOW // 다시 추가
 
 @Composable
 fun SellEntryScreen(
-    parentNavController: NavHostController
+    parentNavController: NavHostController // 다시 NavHostController를 받음
 ) {
     val cs = MaterialTheme.colorScheme
     Column(
@@ -34,6 +34,7 @@ fun SellEntryScreen(
         )
         Spacer(Modifier.height(24.dp))
         Button(
+            // "등록 시작" 버튼 클릭 시 ROUTE_SELL_FLOW로 이동 (SellListingScreen으로)
             onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
             modifier = Modifier
                 .fillMaxWidth()
