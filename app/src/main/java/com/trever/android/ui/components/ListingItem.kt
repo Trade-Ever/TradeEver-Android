@@ -59,8 +59,8 @@ fun ListingItem(
     onToggleLike: (() -> Unit)? = null,
     tags: List<String> = emptyList(),
     priceLabel: String = "최고 입찰가",
-    showBadge: Boolean = true,           // 경매 배지 표시
-    showAuctionMeta: Boolean = true,     // 망치 아이콘 + 남은시간 표시
+    showBadge: Boolean = true,
+    showAuctionMeta: Boolean = true,
 ) {
     val cs = MaterialTheme.colorScheme
 
@@ -69,14 +69,17 @@ fun ListingItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = cs.backgroundColor)
+        colors = CardDefaults.cardColors(containerColor = cs.backgroundColor),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = androidx.compose.ui.graphics.SolidColor(Grey_100)
+        )
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column(Modifier.fillMaxWidth()) {
+            // 이미지 영역 - 패딩 없이 꽉 차게 설정
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .height(160.dp)
             ) {
                 if (car.imageUrl.isNullOrBlank()) {
                     Box(
@@ -98,7 +101,7 @@ fun ListingItem(
                     AuctionBadge(
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .padding(start = 8.dp, top = 8.dp)
+                            .padding(start = 12.dp, top = 8.dp)
                     )
                 }
 
@@ -119,54 +122,53 @@ fun ListingItem(
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            // 정보 영역 - 패딩 적용
+            Column(Modifier.padding(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = car.title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 18.sp
+                    )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = car.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                    fontSize = 18.sp
-                )
-
-                if (showAuctionMeta) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.gavel_1),
-                            contentDescription = "경매",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        CountdownText(car.endsAtMillis)
+                    if (showAuctionMeta) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.gavel_1),
+                                contentDescription = "경매",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            CountdownText(car.endsAtMillis)
+                        }
                     }
                 }
+
+                Text(
+                    text = "${car.year}년 · ${formatKm(car.mileageKm)}km",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+
+                Spacer(Modifier.height(6.dp))
+
+                TagsWithPrice(
+                    tags = tags.take(3),
+                    priceText = "$priceLabel ${formatKoreanWon(car.currentPriceWon)}"
+                )
             }
-
-            Text(
-                text = "${car.year}년 · ${formatKm(car.mileageKm)}km",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
-            )
-
-            Spacer(Modifier.height(6.dp))
-
-            TagsWithPrice(
-                tags = tags.take(3),
-                priceText = "$priceLabel ${formatKoreanWon(car.currentPriceWon)}"
-            )
         }
     }
-
-
-
 }
+
 private fun formatKoreanWon(amount: Long): String {
     val 억 = amount / 100_000_000
     val 만 = (amount % 100_000_000) / 10_000
@@ -215,34 +217,46 @@ private fun TagsWithPrice(
 
         Spacer(Modifier.weight(1f)) // 오른쪽으로 가격 밀기
 
-        // "최고 입찰가 " + 금액 분리
-        val label = "최고 입찰가"
-        val amount = priceText.removePrefix(label)
+        // 금액 표시 로직 수정
+        if (priceText.startsWith("최고 입찰가")) {
+            // 경매 화면: "최고 입찰가"와 실제 금액 분리
+            val labelEndIndex = priceText.indexOf("최고 입찰가") + "최고 입찰가".length
+            val label = priceText.substring(0, labelEndIndex)
+            val amount = priceText.substring(labelEndIndex).trim()
 
-        Text(
-            buildAnnotatedString {
-                withStyle(
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 12.sp,
-                        color = Color.Black
-                    ).toSpanStyle()
-                ) {
-                    append(label)
+            Text(
+                buildAnnotatedString {
+                    withStyle(
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 12.sp,
+                            color = Color.Black
+                        ).toSpanStyle()
+                    ) {
+                        append("$label ")
+                    }
+                    withStyle(
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF00C364) // 초록색
+                        ).toSpanStyle()
+                    ) {
+                        append(amount)
+                    }
                 }
-                withStyle(
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00C364) // 초록색
-                    ).toSpanStyle()
-                ) {
-                    append(amount)
-                }
-            }
-        )
+            )
+        } else {
+            // 구매 화면: 금액 전체를 초록색으로 표시
+            Text(
+                text = priceText,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF00C364) // 초록색
+                )
+            )
+        }
     }
 }
-
 @Composable
 private fun CountdownText(endsAtMillis: Long) {
     var remain by remember(endsAtMillis) { mutableStateOf(endsAtMillis - System.currentTimeMillis()) }

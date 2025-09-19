@@ -28,6 +28,7 @@ import com.trever.android.ui.sellcar.SellCarPlateNumberScreen
 import com.trever.android.ui.sellcar.SellCarYearScreen
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import androidx.core.view.WindowCompat
+import com.trever.android.data.network.ApiClient
 import com.trever.android.ui.navigation.TreverApp
 import com.trever.android.ui.theme.AppTheme
 
@@ -35,6 +36,7 @@ import com.trever.android.ui.theme.AppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ApiClient.init(applicationContext)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         enableEdgeToEdge()

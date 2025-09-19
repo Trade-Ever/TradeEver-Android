@@ -41,7 +41,13 @@ fun MainScreen(
         ) {
             // 탭: 구매
             composable(MainTab.Buy.route) {
-                BuyListScreen()
+                BuyListScreen(
+                    onItemClick = { carId ->
+                        parentNavController.navigate("buy/detail/$carId")  // 여기에서 네비게이션 처리
+                    },
+                    onToggleLike = { /* 좋아요 처리 */ },
+                    onSearchClick = { /* 검색 화면으로 이동 */ }
+                )
             }
 
             // 탭: 판매
