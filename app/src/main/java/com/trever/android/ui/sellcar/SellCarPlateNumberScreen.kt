@@ -22,8 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.trever.android.ui.auction.AppFilledButton
+//import com.trever.android.ui.auction.AppFilledButton
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+//import com.trever.android.ui.components.AppFilledButton
+//
+//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // ViewModel import
+//import com.trever.android.ui.sellcar.viewmodel.SellCarUiState // UiState import
 import com.trever.android.ui.theme.backgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
