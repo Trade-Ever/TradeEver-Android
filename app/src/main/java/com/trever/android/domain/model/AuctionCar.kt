@@ -7,6 +7,7 @@ data class AuctionCar(
     val mileageKm: Int,
     val imageUrl: String?,
     val tags: List<Tag> = emptyList(),
+    val mainOptions: List<String>,
     val currentPriceWon: Long,
     val endsAtMillis: Long,      // 마감 시간 (epoch millis)
     val liked: Boolean = false
