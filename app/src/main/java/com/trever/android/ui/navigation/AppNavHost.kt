@@ -16,6 +16,7 @@ import androidx.navigation.navArgument
 import com.trever.android.ui.auction.AuctionDetailScreen
 import com.trever.android.ui.auction.AuctionListScreen
 import com.trever.android.ui.auction.BidHistoryScreen
+import com.trever.android.ui.buy.BuyDetailScreen
 
 import com.trever.android.ui.sellcar.SellListingScreen
 
@@ -25,6 +26,8 @@ const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
 const val ROUTE_BID_HISTORY = "auction/bid-history/{carId}"
 
 const val ROUTE_SELL_FLOW = "sell/flow"
+
+const val ROUTE_BUY_DETAIL = "buy/detail/{carId}"
 
 @Composable
 fun AppNavHost(
@@ -78,6 +81,18 @@ fun AppNavHost(
                 onShowBidHistory = { id ->
                     navController.navigate("auction/bid-history/$id")
                 }
+            )
+        }
+
+        composable(
+            route = ROUTE_BUY_DETAIL,
+            arguments = listOf(navArgument("carId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val carId = backStackEntry.arguments?.getString("carId") ?: ""
+            BuyDetailScreen(
+                carId = carId,
+                onBack = { navController.popBackStack() },
+                onBuy = { /* 구매 처리 로직 */ }
             )
         }
 
