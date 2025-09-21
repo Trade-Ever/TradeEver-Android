@@ -49,8 +49,11 @@ import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.Red_1
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.utils.formatMileage
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
+import kotlin.compareTo
+import kotlin.rem
 
 @Composable
 fun ListingItem(
@@ -152,7 +155,7 @@ fun ListingItem(
                 }
 
                 Text(
-                    text = "${car.year}년 · ${formatKm(car.mileageKm)}km",
+                    text = "${car.year}년 · ${formatMileage(car.mileageKm)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
@@ -269,13 +272,17 @@ private fun CountdownText(endsAtMillis: Long) {
         remain = 0
     }
 
-    val h = TimeUnit.MILLISECONDS.toHours(remain.coerceAtLeast(0))
+    val d = TimeUnit.MILLISECONDS.toDays(remain.coerceAtLeast(0))
+    val h = TimeUnit.MILLISECONDS.toHours(remain.coerceAtLeast(0)) % 24
     val m = TimeUnit.MILLISECONDS.toMinutes(remain.coerceAtLeast(0)) % 60
+    val s = TimeUnit.MILLISECONDS.toSeconds(remain.coerceAtLeast(0)) % 60
 
-    val text = if (h > 0) {
-        "${h}시간 ${m}분"
-    } else {
-        "${m}분"
+    val text = when {
+        d > 0 -> "${d}일 ${h}시간 ${m}분"
+        h > 0 -> "${h}시간 ${m}분"
+        m >= 10 -> "${m}분"
+        m > 0 -> "${m}분 ${s}초"
+        else -> "${s}초"
     }
 
     Text(

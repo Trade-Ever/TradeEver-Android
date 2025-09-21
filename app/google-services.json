@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "116150637871",
+    "firebase_url": "https://trever-ec541-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "trever-ec541",
+    "storage_bucket": "trever-ec541.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116150637871:android:6e4ed9a10970dfcd853dda",
+        "android_client_info": {
+          "package_name": "com.trever.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCo9m8AFSSnpEGaJlHnhRT7ZIEqT-Ta5q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

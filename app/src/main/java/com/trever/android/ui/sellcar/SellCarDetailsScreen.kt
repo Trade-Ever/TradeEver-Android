@@ -17,13 +17,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -258,7 +261,10 @@ fun SelectableButtonGroup(options: List<String>, selectedOption: String, onOptio
 @Composable
 fun SellCarDetailsScreenPreview() {
     MaterialTheme {
-        val previewViewModel = remember { SellCarViewModel() }
+        val context = LocalContext.current
+        val previewViewModel: SellCarViewModel = viewModel(
+            factory = SellCarViewModelFactory(context)
+        )
         // previewViewModel.updateCurrentStep(3) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
         previewViewModel.updateFuelType("휘발유")
         previewViewModel.updateTransmissionType("자동")

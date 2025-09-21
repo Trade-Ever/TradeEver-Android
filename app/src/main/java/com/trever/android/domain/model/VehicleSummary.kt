@@ -22,3 +22,6 @@ data class VehicleSummary(
     val mainOptions: List<String>,
     val totalOptionsCount: Int
 )
+
+
+
