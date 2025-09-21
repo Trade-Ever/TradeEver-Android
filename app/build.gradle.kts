@@ -10,10 +10,18 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-
+// local.properties 읽기
+val localPropertiesFile = rootProject.file("local.properties")
+val localProps = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+val webClientId: String = localProps.getProperty("webClientId") ?: ""
 android {
     namespace = "com.trever.android"
     compileSdk = 36
@@ -27,13 +35,18 @@ android {
         }
     }
 
+
     defaultConfig {
         applicationId = "com.trever.android"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
+        buildConfigField(
+            "String",
+            "WEB_CLIENT_ID",
+            "\"$webClientId\""
+        )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -56,6 +69,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -100,6 +114,14 @@ dependencies {
     implementation("com.google.firebase:firebase-database-ktx:20.3.0")
 
     implementation("androidx.compose.material:material:1.5.4")
+
+    // 구글 로그인
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    // Koin 의존성 추가
+    implementation("io.insert-koin:koin-core:3.5.0")
+    implementation("io.insert-koin:koin-android:3.5.0")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
 
 
     implementation(libs.androidx.core.ktx)
