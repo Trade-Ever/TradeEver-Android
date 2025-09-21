@@ -16,7 +16,10 @@ import androidx.navigation.navArgument
 import com.trever.android.ui.auction.AuctionDetailScreen
 // import com.trever.android.ui.auction.AuctionListScreen // AppNavHost에서 직접 사용되지 않음
 import com.trever.android.ui.auction.BidHistoryScreen
+import com.trever.android.ui.auth.AuthViewModel
+import com.trever.android.ui.auth.LoginScreen
 import com.trever.android.ui.buy.BuyDetailScreen
+import org.koin.androidx.compose.koinViewModel
 
 import com.trever.android.ui.sellcar.SellListingScreen
 
@@ -32,19 +35,32 @@ const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}/{auctionId}"
 // 입찰 내역 경로도 함께 수정
 const val ROUTE_BID_HISTORY = "auction/bid-history/{auctionId}"
 
+const val ROUTE_LOGIN = "login"
+
 @Composable
 fun AppNavHost(
     navController: NavHostController, // 이 navController를 SellListingScreen에 전달
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+
 ) {
     NavHost(
         navController = navController,
-        startDestination = "main", // "main"이 MainScreen을 의미
+        startDestination = ROUTE_LOGIN, // "main"이 MainScreen을 의미
         modifier = modifier
     ) {
         // ▼ 바텀바가 있는 탭 영역 전용 화면
         composable("main") {
             MainScreen(parentNavController = navController)
+        }
+
+        composable(ROUTE_LOGIN) {
+            LoginScreenWrapper(
+                onLoginSuccess = {
+                    navController.navigate("main") {
+                        popUpTo(ROUTE_LOGIN) { inclusive = true }
+                    }
+                }
+            )
         }
 
         // ▼ 바텀바 없는 풀스크린들
@@ -110,4 +126,17 @@ fun AppNavHost(
             SellListingScreen(appNavController = navController)
         }
     }
+}
+
+@Composable
+fun LoginScreenWrapper(onLoginSuccess: () -> Unit) {
+    // Koin을 사용하는 경우
+    val viewModel: AuthViewModel = koinViewModel()
+    // 또는 Hilt를 사용하는 경우
+    // val viewModel: AuthViewModel = hiltViewModel()
+
+    LoginScreen(
+        viewModel = viewModel,
+        onLoginSuccess = onLoginSuccess
+    )
 }
