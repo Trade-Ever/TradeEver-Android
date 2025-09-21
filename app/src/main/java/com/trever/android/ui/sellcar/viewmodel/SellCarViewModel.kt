@@ -10,7 +10,8 @@ import java.util.Calendar
 
 data class SellCarUiState(
     val currentStep: Int = 1,
-    val plateNumber: String = "", // 번호판 프로퍼티 추가
+    val plateNumber: String = "",
+    val selectedManufacturer: String = "", // 제조사 추가
     val selectedModel: String = "",
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     val selectedCarType: String = "",
@@ -39,9 +40,12 @@ class SellCarViewModel : ViewModel() {
         _uiState.update { it.copy(currentStep = step) }
     }
 
-    // 번호판 업데이트 함수 추가
     fun updatePlateNumber(plateNumber: String) {
         _uiState.update { it.copy(plateNumber = plateNumber) }
+    }
+
+    fun updateSelectedManufacturer(manufacturer: String) { // 제조사 업데이트 함수 추가
+        _uiState.update { it.copy(selectedManufacturer = manufacturer) }
     }
 
     fun updateSelectedModel(model: String) {

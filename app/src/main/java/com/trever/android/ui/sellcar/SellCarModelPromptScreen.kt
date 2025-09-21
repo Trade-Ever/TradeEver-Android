@@ -16,23 +16,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-// import androidx.compose.ui.text.style.TextAlign // 현재 사용되지 않음
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.theme.AppTheme
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellCarModelPromptScreen(
     sellCarViewModel: SellCarViewModel,
-    onSystemBack: () -> Unit,    // ArrowBack 아이콘용
-    onStepBack: () -> Unit,      // 하단 "이전" 버튼용
-    onNextClicked: () -> Unit    // "모델 선택" Surface 클릭 또는 하단 "다음" 버튼용
-    // (기존 onPromptClicked를 onNextClicked로 변경 또는 통합)
+    onSystemBack: () -> Unit,
+    onStepBack: () -> Unit,
+    onSelectModelPathClicked: () -> Unit, // 모델 선택 플로우 시작 (Surface 클릭)
+    onConfirmAndProceedClicked: () -> Unit, // 선택 완료 후 다음 단계로 ("다음" 버튼)
+//    onSkipAndProceedClicked: () -> Unit // 건너뛰고 다음 단계로 ("건너뛰고 직접 입력" 버튼)
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
-    val purpleColor = Color(0xFF6A11CB) // 다음 버튼 색상용
+    val purpleColor = Color(0xFF6A11CB)
+
+    val isModelSelected = uiState.selectedManufacturer.isNotBlank() && 
+                          uiState.selectedModel.isNotBlank() && 
+                          uiState.selectedYear != Calendar.getInstance().get(Calendar.YEAR) // 초기값이 아닌지 확인
+
+    val displayText = if (isModelSelected) {
+        "${uiState.selectedManufacturer} ${uiState.selectedModel} ${uiState.selectedYear}"
+    } else {
+        "모델을 선택해주세요"
+    }
 
     Scaffold(
         containerColor = Color.White,
@@ -40,7 +52,7 @@ fun SellCarModelPromptScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onSystemBack) { // onSystemBack 사용
+                    IconButton(onClick = onSystemBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로 가기"
@@ -62,24 +74,22 @@ fun SellCarModelPromptScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) // ViewModel의 현재 스텝 사용
-
+            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep)
             Spacer(modifier = Modifier.height(48.dp))
-
             Text(
                 text = "차량 모델을 입력해주세요",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-
             Spacer(modifier = Modifier.height(24.dp))
 
+            // 모델 선택 영역 (클릭 시 제조사 선택부터 시작)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable { onNextClicked() }, // 클릭 시 다음 단계로 이동 (하단 버튼과 동일 액션)
+                    .clickable { onSelectModelPathClicked() }, // 제조사 선택 플로우 시작
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
                 color = Color.White
@@ -89,73 +99,81 @@ fun SellCarModelPromptScreen(
                         .padding(horizontal = 16.dp, vertical = 16.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    // 실제 선택된 모델명을 표시하도록 ViewModel의 상태를 사용
                     Text(
-                        text = if (uiState.selectedModel.isNullOrBlank()) "모델을 선택해주세요" else uiState.selectedModel!!,
+                        text = displayText,
                         fontSize = 16.sp,
-                        color = if (uiState.selectedModel.isNullOrBlank()) Color.Gray else Color.Black
+                        color = if (isModelSelected) Color.Black else Color.Gray
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // 버튼들을 하단에 위치시키기 위한 Spacer
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // ▼▼▼ 이전/다음 버튼 추가 ▼▼▼
+//            // 건너뛰기 버튼
+//            OutlinedButton(
+//                onClick = onSkipAndProceedClicked,
+//                modifier = Modifier.fillMaxWidth().height(56.dp),
+//                shape = RoundedCornerShape(8.dp),
+//                colors = ButtonDefaults.outlinedButtonColors(
+//                    contentColor = purpleColor
+//                ),
+//                border = BorderStroke(1.dp, purpleColor)
+//            ) {
+//                Text("건너뛰고 직접 입력", fontSize = 16.sp)
+//            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 이전 버튼
                 OutlinedButton(
-                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    onClick = onStepBack,
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = Color.White,
                         contentColor = Color.Black
                     ),
-                    border = BorderStroke(1.dp, Color.LightGray),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    border = BorderStroke(1.dp, Color.LightGray)
                 ) {
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-
-                // 다음 버튼
                 Button(
-                    onClick = onNextClicked, // "모델 선택" Surface 클릭과 동일한 액션
+                    onClick = onConfirmAndProceedClicked, // 선택 완료 후 다음으로
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = purpleColor,
                         disabledContainerColor = Color.LightGray
                     ),
-                    // "다음" 버튼 활성화 조건: ViewModel에서 모델이 선택되었는지 확인
-                    enabled = !uiState.selectedModel.isNullOrBlank(),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    enabled = isModelSelected, // 모델 정보가 모두 선택되었을 때만 활성화
                 ) {
                     Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
-            // ▲▲▲ 이전/다음 버튼 추가 ▲▲▲
         }
     }
 }
 
-// Preview 수정: 두 가지 콜백을 받도록
-//@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
+//@Preview(showBackground = true)
 //@Composable
 //fun SellCarModelPromptScreenPreview() {
-//    MaterialTheme { // 실제 앱 테마로 교체 권장
+//    AppTheme {
 //        val previewViewModel = SellCarViewModel()
-//        previewViewModel.updateCurrentStep(2) // 이 화면은 2단계
-//        // previewViewModel.updateSelectedModel("현대 아반떼 (미리보기)") // 미리보기에 모델명 표시 예시
+//        previewViewModel.updateCurrentStep(2)
+//        // previewViewModel.updateSelectedManufacturer("현대")
+//        // previewViewModel.updateSelectedModel("아반떼")
+//        // previewViewModel.updateSelectedYear(2023)
 //
 //        SellCarModelPromptScreen(
 //            sellCarViewModel = previewViewModel,
 //            onSystemBack = {},
 //            onStepBack = {},
-//            onNextClicked = {}
+//            onSelectModelPathClicked = {},
+//            onConfirmAndProceedClicked = {},
+//            onSkipAndProceedClicked = {}
 //        )
 //    }
 //}
-
