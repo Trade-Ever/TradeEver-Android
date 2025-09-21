@@ -1,5 +1,13 @@
 package com.trever.android.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -294,6 +303,40 @@ private fun NoticeCard(text: String) {
     }
 }
 
+//@Composable
+//private fun BidSection(
+//    bids: List<BidUi>,
+//    onMore: () -> Unit,
+//    modifier: Modifier = Modifier
+//) {
+//    val cs = MaterialTheme.colorScheme
+//
+//    val sectionBg = cs.G_100
+//
+//    Box(
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .background(sectionBg)
+//            .padding(vertical = 12.dp)
+//    ) {
+//        Column {
+//            SectionHeader(
+//                title = "입찰 내역",
+//                actionText = "더보기",
+//                onAction = onMore,
+//                actionIconRes = com.trever.android.R.drawable.arrow_right_1  // ⬅️ 네 리소스 이름에 맞춰 변경
+//            )
+//            Spacer(Modifier.height(8.dp))
+//            bids.forEach { bid ->
+//                BidRowPill(
+//                    bid = bid,
+//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+//                )
+//            }
+//        }
+//    }
+//}
+
 @Composable
 private fun BidSection(
     bids: List<BidUi>,
@@ -301,7 +344,6 @@ private fun BidSection(
     modifier: Modifier = Modifier
 ) {
     val cs = MaterialTheme.colorScheme
-
     val sectionBg = cs.G_100
 
     Box(
@@ -315,19 +357,57 @@ private fun BidSection(
                 title = "입찰 내역",
                 actionText = "더보기",
                 onAction = onMore,
-                actionIconRes = com.trever.android.R.drawable.arrow_right_1  // ⬅️ 네 리소스 이름에 맞춰 변경
+                actionIconRes = com.trever.android.R.drawable.arrow_right_1
             )
             Spacer(Modifier.height(8.dp))
-            bids.forEach { bid ->
-                BidRowPill(
-                    bid = bid,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-            }
+
+            // 애니메이션 적용된 입찰 목록
+            AnimatedBidsList(bids)
         }
     }
 }
 
+@Composable
+private fun AnimatedBidsList(bids: List<BidUi>) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        bids.forEachIndexed { index, bid ->
+            key(bid.amountText + bid.name + bid.timeText) {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = slideInHorizontally(
+                        initialOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = tween(
+                            durationMillis = 400,
+                            easing = FastOutSlowInEasing,
+                            delayMillis = index * 100 // 순차적 효과
+                        )
+                    ) + fadeIn(
+                        animationSpec = tween(400)
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            easing = FastOutSlowInEasing
+                        )
+                    ) + fadeOut(
+                        animationSpec = tween(200)
+                    )
+                ) {
+                    BidRowPill(
+                        bid = bid,
+                        modifier = Modifier.animateContentSize(
+                            animationSpec = tween(400)
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
 @Composable
 private fun SellerSection(
     seller: SellerUi,

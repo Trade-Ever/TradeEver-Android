@@ -21,10 +21,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Alignment // 주석 처리된 InfoCheck에서만 사용
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 //import androidx.compose.ui.unit.dp // 주석 처리된 InfoCheck에서만 사용
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 
 
 // 화면 상태를 정의하는 enum
@@ -46,7 +48,8 @@ enum class CurrentScreen {
 fun SellListingScreen(    appNavController: NavHostController? = null // AppNavHost로부터 NavController를 받음)
 )
 {
-    val sellCarViewModel: SellCarViewModel = viewModel()
+    val context = LocalContext.current
+    val sellCarViewModel: SellCarViewModel = viewModel(factory = SellCarViewModelFactory(context))
     var currentScreen by remember { mutableStateOf(CurrentScreen.PlateNumber) } // 초기 화면을 다시 PlateNumber로 변경
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

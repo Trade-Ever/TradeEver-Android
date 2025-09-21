@@ -35,6 +35,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.trever.android.domain.model.BidUi2
 import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.G_100
@@ -57,17 +60,23 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BidHistoryScreen(
-    carId: String,
+    auctionId: String,
+    viewModel: BidHistoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onBack: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    val bids = remember(carId) { demoBids(count = 20) }
+    val bids by viewModel.bidList.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    // 화면이 처음 표시될 때 입찰 내역 로드
+    androidx.compose.runtime.LaunchedEffect(auctionId) {
+        viewModel.loadBids(auctionId)
+    }
 
     Scaffold(
         containerColor = cs.backgroundColor,
         topBar = {
             TopAppBar(
-
                 title = { Text("입찰 내역") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -82,22 +91,27 @@ fun BidHistoryScreen(
             )
         }
     ) { inner ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(inner)               // ← 시스템 인셋/탑바 높이 자동 반영
-                .padding(horizontal = 16.dp), // 좌우 여백
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 16.dp) // 리스트 위/아래 살짝 띄움
-        ) {
-            items(bids) { bid -> BidHistoryRow(bid) }
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(top = 12.dp, bottom = 16.dp)
+            ) {
+                items(bids) { bid -> BidHistoryRow(bid) }
+            }
         }
     }
 }
-
 @Composable
 private fun BidHistoryRow(
-    bid: BidUi,
+    bid: BidUi2,
     modifier: Modifier = Modifier
 ) {
     val cs = MaterialTheme.colorScheme

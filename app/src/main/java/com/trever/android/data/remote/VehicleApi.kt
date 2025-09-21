@@ -1,10 +1,18 @@
 package com.trever.android.data.remote
 
 import com.trever.android.domain.model.AuctionCar
+import com.trever.android.domain.model.CarRegistrationRequest
 import com.trever.android.domain.model.Tag
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
+import retrofit2.http.Path
 import retrofit2.http.Query
 import kotlin.toString
 
@@ -16,6 +24,16 @@ interface VehicleApi {
         @Query("size") size: Int,
         @Query("isAuction") isAuction: Boolean? = null // null이면 필터 미적용
     ): ApiResponse<VehicleListResponse>
+
+    @Multipart
+    @POST("api/vehicles")
+    suspend fun registerVehicle(
+        @Part("request") request: RequestBody,
+        @Part photos: List<MultipartBody.Part>
+    ): ApiResponse<Int>
+
+    @GET("api/vehicles/{id}")
+    suspend fun getVehicleDetail(@Path("id") id: String): ApiResponse<VehicleDetailResponse>
 }
 
 
@@ -37,28 +55,64 @@ data class VehicleListResponse(
 )
 
 // 차량 정보 DTO
+
 @Serializable
 data class VehicleDto(
     val id: Long,
-    val carName: String,
-    val carNumber: String,
-    val manufacturer: String,
-    val model: String,
-    val year_value: Int, // API 응답과 일치하도록 사용
-    val mileage: Int,
-    val transmission: String,
-    val vehicleStatus: String,
-    val fuelType: String,
+    val carName: String? = null,
+    val manufacturer: String? = null,
+    val model: String? = null,
+    val year_value: Int? = null,  // 반드시 Int?로 선언되어야 함
+    val mileage: Int? = null,
+    val transmission: String? = null,
+    val fuelType: String? = null,
     val price: Long? = null,
-    val isAuction: String,
-    val auctionId: Long?,
-    val representativePhotoUrl: String?,
-    val locationAddress: String,
-    val favoriteCount: Int,
-    val createdAt: String,
-    val vehicleTypeName: String,
-    val mainOptions: List<String>,
-    val totalOptionsCount: Int
+    val isAuction: String? = null,
+    val auctionId: Long? = null,
+    val representativePhotoUrl: String? = null,
+    val locationAddress: String? = null,
+    val favoriteCount: Int? = null,
+    val createdAt: String? = null,  // 현재 문자열로 처리 중인데 Long으로 바꿔주세요
+    val vehicleTypeName: String? = null,
+    val mainOptions: List<String>? = null,
+    val totalOptionsCount: Int? = null
+)
+
+@Serializable
+data class VehicleDetailResponse(
+    val id: Int,
+    val carNumber: String? = null,
+    val carName: String? = null,
+    val description: String? = null,
+    val manufacturer: String? = null,
+    val model: String? = null,
+    val year_value: Int? = null,
+    val mileage: Int? = null,
+    val fuelType: String? = null,
+    val transmission: String? = null,
+    val accidentHistory: String? = null,
+    val accidentDescription: String? = null,
+    val engineCc: Int? = null,
+    val horsepower: Int? = null,
+    val color: String? = null,
+    val price: Long? = null,
+    val isAuction: String? = null,
+    val vehicleStatus: String? = null,
+    val auctionId: String? = null,
+    val favoriteCount: Int? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val sellerId: Int? = null,
+    val sellerName: String? = null,
+    val photos: List<PhotoResponse> = emptyList(),
+    val vehicleTypeName: String? = null,
+    val options: List<String>? = null
+)
+
+@Serializable
+data class PhotoResponse(
+    val id: Int,
+    val photoUrl: String
 )
 
 

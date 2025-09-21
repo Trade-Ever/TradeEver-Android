@@ -21,12 +21,16 @@ import com.trever.android.ui.buy.BuyDetailScreen
 import com.trever.android.ui.sellcar.SellListingScreen
 
 // const val ROUTE_AUCTION_LIST = "auction/list" // 현재 사용되지 않음
-const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
-const val ROUTE_BID_HISTORY = "auction/bid-history/{carId}"
+//const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
+//const val ROUTE_BID_HISTORY = "auction/bid-history/{carId}"
 
 const val ROUTE_SELL_FLOW = "sell/flow"
 
 const val ROUTE_BUY_DETAIL = "buy/detail/{carId}"
+
+const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}/{auctionId}"
+// 입찰 내역 경로도 함께 수정
+const val ROUTE_BID_HISTORY = "auction/bid-history/{auctionId}"
 
 @Composable
 fun AppNavHost(
@@ -46,42 +50,48 @@ fun AppNavHost(
         // ▼ 바텀바 없는 풀스크린들
         composable(
             route = ROUTE_AUCTION_DETAIL,
-            arguments = listOf(navArgument("carId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("carId") { type = NavType.StringType },
+                navArgument("auctionId") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val carId = backStackEntry.arguments?.getString("carId") ?: ""
+            val auctionId = backStackEntry.arguments?.getString("auctionId") ?: ""
+
             AuctionDetailScreen(
                 carId = carId,
+                auctionId = auctionId,
                 onBack = { navController.popBackStack() },
                 onShowBidHistory = { id ->
-                    navController.navigate("auction/bid-history/$id")
+                    navController.navigate("auction/bid-history/$auctionId")
                 }
             )
         }
 
         composable(
             route = ROUTE_BID_HISTORY,
-            arguments = listOf(navArgument("carId") { type = NavType.StringType })
+            arguments = listOf(navArgument("auctionId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val carId = backStackEntry.arguments?.getString("carId") ?: ""
+            val auctionId = backStackEntry.arguments?.getString("auctionId") ?: ""
             BidHistoryScreen(
-                carId = carId,
+                auctionId = auctionId,
                 onBack = { navController.popBackStack() }
             )
         }
 
-        composable(
-            route = ROUTE_AUCTION_DETAIL,
-            arguments = listOf(navArgument("carId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val carId = backStackEntry.arguments?.getString("carId") ?: ""
-            AuctionDetailScreen(
-                carId = carId,
-                onBack = { navController.popBackStack() },
-                onShowBidHistory = { id ->
-                    navController.navigate("auction/bid-history/$id")
-                }
-            )
-        }
+//        composable(
+//            route = ROUTE_AUCTION_DETAIL,
+//            arguments = listOf(navArgument("carId") { type = NavType.StringType })
+//        ) { backStackEntry ->
+//            val carId = backStackEntry.arguments?.getString("carId") ?: ""
+//            AuctionDetailScreen(
+//                carId = carId,
+//                onBack = { navController.popBackStack() },
+//                onShowBidHistory = { id ->
+//                    navController.navigate("auction/bid-history/$id")
+//                }
+//            )
+//        }
 
         composable(
             route = ROUTE_BUY_DETAIL,
