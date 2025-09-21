@@ -18,6 +18,7 @@ import com.trever.android.ui.myPage.screens.RecentlyViewedCarsScreen
 import com.trever.android.ui.myPage.screens.SalesHistoryScreen
 import com.trever.android.ui.myPage.screens.TermsScreen
 import com.trever.android.ui.sellcar.SellListingScreen
+import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // ViewModel 임포트 추가
 
 // Existing Routes
 const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}"
@@ -37,6 +38,7 @@ const val ROUTE_MYPAGE_PRIVACY_POLICY = "myPage/privacyPolicy"
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    sellCarViewModel: SellCarViewModel, // sellCarViewModel 파라미터 추가
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -45,7 +47,10 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable("main") {
-            MainScreen(parentNavController = navController)
+            MainScreen(
+                parentNavController = navController,
+                sellCarViewModel = sellCarViewModel // MainScreen에 ViewModel 전달
+            )
         }
 
         // --- Existing Fullscreen Destinations ---
@@ -87,7 +92,10 @@ fun AppNavHost(
         }
 
         composable(ROUTE_SELL_FLOW) {
-            SellListingScreen(appNavController = navController)
+            SellListingScreen(
+                appNavController = navController,
+                sellCarViewModel = sellCarViewModel // SellListingScreen에 ViewModel 전달
+            )
         }
 
         // --- MyPage Sub-Screen Destinations ---

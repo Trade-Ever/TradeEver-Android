@@ -21,13 +21,15 @@ import com.trever.android.ui.auction.AuctionListScreen
 import com.trever.android.ui.buy.BuyListScreen
 import com.trever.android.ui.myPage.MyPageScreen // MyPageScreen import 확인
 import com.trever.android.ui.sellcar.SellEntryScreen
+import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // ViewModel 임포트 추가
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.bottomBarUnselected
 
 
 @Composable
 fun MainScreen(
-    parentNavController: NavHostController   // 상세로 갈 때 이걸 사용!
+    parentNavController: NavHostController,   // 상세로 갈 때 이걸 사용!
+    sellCarViewModel: SellCarViewModel        // sellCarViewModel 파라미터 추가
 ) {
     val innerNav = rememberNavController()
 
@@ -52,7 +54,11 @@ fun MainScreen(
 
             // 탭: 판매
             composable(MainTab.Sell.route) {
-                SellEntryScreen(parentNavController = parentNavController)
+                // SellEntryScreen에 ViewModel 전달
+                SellEntryScreen(
+                    parentNavController = parentNavController,
+                    sellCarViewModel = sellCarViewModel 
+                )
             }
 
             // 탭: 경매(리스트만) — 상세는 최상위(AppNavHost)에서!
