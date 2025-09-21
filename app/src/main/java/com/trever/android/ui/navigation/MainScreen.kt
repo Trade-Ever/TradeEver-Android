@@ -19,7 +19,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.trever.android.ui.auction.AuctionListScreen
 import com.trever.android.ui.buy.BuyListScreen
-import com.trever.android.ui.myPage.MyPageScreen
+import com.trever.android.ui.myPage.MyPageScreen // MyPageScreen import 확인
 import com.trever.android.ui.sellcar.SellEntryScreen
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.bottomBarUnselected
@@ -66,7 +66,7 @@ fun MainScreen(
 
             // 탭: 마이페이지
             composable(MainTab.My.route) {
-                MyPageScreen()
+                MyPageScreen(navController = parentNavController) // parentNavController 전달
             }
         }
     }
