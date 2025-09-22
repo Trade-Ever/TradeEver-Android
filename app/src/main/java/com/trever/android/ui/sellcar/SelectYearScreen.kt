@@ -33,9 +33,9 @@ fun SelectYearScreen(
     val yearList = uiState.yearList
 
     val titleText = if (uiState.selectedModelName.isNotBlank()) {
-        "${uiState.selectedManufacturer} ${uiState.selectedModelName}"
+        "${uiState.selectedModelName}"
     } else if (uiState.selectedModel.isNotBlank()) {
-        "${uiState.selectedManufacturer} ${uiState.selectedModel}"
+        "${uiState.selectedModel}"
     } else {
         "연식 선택"
     }
@@ -43,7 +43,7 @@ fun SelectYearScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("$titleText 연식 선택", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+                title = { Text("$titleText 연식 선택", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
