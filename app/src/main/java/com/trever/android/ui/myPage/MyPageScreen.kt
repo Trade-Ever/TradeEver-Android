@@ -1,7 +1,7 @@
 package com.trever.android.ui.myPage
 
 import android.net.Uri
-import android.widget.Toast // 토스트 메시지용 임포트
+import android.widget.Toast 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,9 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter // Coil 임포트 추가
+import coil.compose.rememberAsyncImagePainter 
 import com.trever.android.R
-import com.trever.android.ui.myPage.components.ProfileEditSheetContent // 바텀시트 컨텐츠 임포트
+import com.trever.android.ui.myPage.components.ProfileEditSheetContent 
+import com.trever.android.ui.myPage.components.TransactionSheetContent // 바텀시트 임포트
+import com.trever.android.ui.myPage.components.formatAmountToManwon // 금액 포맷팅 함수 임포트
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_LIKED_CARS
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PRIVACY_POLICY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PURCHASE_HISTORY
@@ -37,7 +39,9 @@ import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
-import kotlinx.coroutines.launch // 코루틴 스코프용 임포트
+import kotlinx.coroutines.launch 
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,18 +51,27 @@ fun MyPageScreen(
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val accountInfo by viewModel.accountInfo.collectAsState()
-    val context = LocalContext.current // 토스트 메시지용
-
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true // 바텀시트가 완전히 확장되거나 숨겨지도록 설정
-    )
-    var showBottomSheet by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    if (showBottomSheet) {
+    // 프로필 수정 바텀시트 상태
+    val profileSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showProfileBottomSheet by remember { mutableStateOf(false) }
+
+    // 충전 바텀시트 상태
+    val chargeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showChargeBottomSheet by remember { mutableStateOf(false) }
+
+    // 출금 바텀시트 상태
+    val withdrawSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showWithdrawBottomSheet by remember { mutableStateOf(false) }
+
+    // 프로필 수정 바텀시트
+    if (showProfileBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState,
+            onDismissRequest = { showProfileBottomSheet = false },
+            sheetState = profileSheetState,
+            containerColor = Color.White // 프로필 바텀시트 배경색도 흰색으로 통일 (선택 사항)
         ) {
             ProfileEditSheetContent(
                 initialName = userProfile.nickname,
@@ -66,22 +79,12 @@ fun MyPageScreen(
                 initialAddress = userProfile.address ?: "",
                 initialBirthday = userProfile.birthday ?: "",
                 initialProfileImageUri = userProfile.profileImageUrl?.let { Uri.parse(it) },
-                onSaveClicked = {
-                    name, phone, address, birthday, imageUri ->
-                    // ViewModel의 프로필 업데이트 함수 호출
-                    viewModel.updateUserProfile(
-                        newName = name,
-                        newPhoneNumber = phone.ifEmpty { null }, // 빈 문자열이면 null로 전달
-                        newAddress = address.ifEmpty { null },   // 빈 문자열이면 null로 전달
-                        newBirthday = birthday.ifEmpty { null }, // 빈 문자열이면 null로 전달
-                        newProfileImageUrl = imageUri?.toString()
-                    )
+                onSaveClicked = { name, phone, address, birthday, imageUri ->
+                    viewModel.updateUserProfile(name, phone.ifEmpty { null }, address.ifEmpty { null }, birthday.ifEmpty { null }, imageUri?.toString())
                     scope.launch {
-                        sheetState.hide()
+                        profileSheetState.hide()
                     }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet = false
-                        }
+                        if (!profileSheetState.isVisible) showProfileBottomSheet = false
                     }
                     Toast.makeText(context, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
                 }
@@ -89,11 +92,65 @@ fun MyPageScreen(
         }
     }
 
+    // 충전 바텀시트
+    if (showChargeBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showChargeBottomSheet = false },
+            sheetState = chargeSheetState,
+            containerColor = Color.White // 바텀시트 컨테이너 색상을 흰색으로 설정
+            // modifier = Modifier.fillMaxHeight(0.9f) // 높이 고정 제거
+        ) {
+            TransactionSheetContent(
+                title = "얼마나 충전할까요?",
+                bankName = accountInfo.bankName ?: "알 수 없는 은행",
+                accountNumber = accountInfo.accountNumber,
+                bankLogoResId = R.drawable.ic_bank_placeholder, // TODO: 실제 은행 로고로 교체
+                preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
+                actionButtonText = "충전하기",
+                onActionClick = { amount ->
+                    viewModel.charge(amount) 
+                    scope.launch {
+                        chargeSheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!chargeSheetState.isVisible) showChargeBottomSheet = false
+                    }
+                    Toast.makeText(context, "${formatAmountToManwon(amount)} 충전 완료", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    // 출금 바텀시트
+    if (showWithdrawBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showWithdrawBottomSheet = false },
+            sheetState = withdrawSheetState,
+            containerColor = Color.White // 바텀시트 컨테이너 색상을 흰색으로 설정
+            // modifier = Modifier.fillMaxHeight(0.9f) // 높이 고정 제거
+        ) {
+            TransactionSheetContent(
+                title = "얼마나 출금할까요?",
+                bankName = accountInfo.bankName ?: "알 수 없는 은행",
+                accountNumber = accountInfo.accountNumber,
+                bankLogoResId = R.drawable.ic_bank_placeholder, // TODO: 실제 은행 로고로 교체
+                preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
+                actionButtonText = "출금하기",
+                onActionClick = { amount ->
+                    viewModel.withdraw(amount) 
+                    scope.launch {
+                        withdrawSheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!withdrawSheetState.isVisible) showWithdrawBottomSheet = false
+                    }
+                    Toast.makeText(context, "${formatAmountToManwon(amount)} 출금 요청됨", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
     Scaffold(
-        topBar = {
-            MyPageTopAppBar()
-        },
-        containerColor = Color(0xFFF4F4F4)
+        topBar = { MyPageTopAppBar() },
+        containerColor = Color(0xFFF4F4F4) 
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -109,17 +166,16 @@ fun MyPageScreen(
                     nickname = userProfile.nickname,
                     email = userProfile.email,
                     profileImageUrl = userProfile.profileImageUrl,
-                    onProfileClick = { 
-                        showBottomSheet = true // 프로필 클릭 시 바텀시트 표시
-                    }
+                    onProfileClick = { showProfileBottomSheet = true }
                 )
             }
 
             item {
                 AccountSection(
-                    balance = accountInfo.balance,
-                    onChargeClick = { viewModel.onChargeClicked() },
-                    onWithdrawClick = { viewModel.onWithdrawClicked() }
+                    accountTitle = accountInfo.accountName ?: "내 계좌", 
+                    balance = accountInfo.balance, 
+                    onChargeClick = { showChargeBottomSheet = true },
+                    onWithdrawClick = { showWithdrawBottomSheet = true }
                 )
             }
 
@@ -164,7 +220,7 @@ fun MyPageTopAppBar() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF4F4F4))
+            .background(Color(0xFFF4F4F4)) 
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -186,7 +242,7 @@ fun ProfileSection(
             .clickable(onClick = onProfileClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) 
     ) {
         Row(
             modifier = Modifier
@@ -198,7 +254,7 @@ fun ProfileSection(
                 painter = if (profileImageUrl != null) {
                     rememberAsyncImagePainter(model = profileImageUrl)
                 } else {
-                    painterResource(id = R.drawable.profile_placeholder) 
+                    painterResource(id = R.drawable.profile_placeholder)
                 },
                 contentDescription = "프로필 사진",
                 modifier = Modifier
@@ -211,15 +267,14 @@ fun ProfileSection(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = nickname,
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = email,
-                    fontSize = 14.sp,
-                    color = Color.DarkGray
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
                 )
             }
         }
@@ -228,15 +283,16 @@ fun ProfileSection(
 
 @Composable
 fun AccountSection(
-    balance: String,
+    accountTitle: String,
+    balance: Long, 
     onChargeClick: () -> Unit,
     onWithdrawClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF5222D0)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF5222D0)), 
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) 
     ) {
         Row(
             modifier = Modifier
@@ -245,14 +301,14 @@ fun AccountSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "내 계좌",
+                text = accountTitle,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.White
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = balance,
+                text = "${NumberFormat.getNumberInstance(Locale.KOREA).format(balance)}원",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -281,6 +337,23 @@ fun AccountSection(
     }
 }
 
+/*
+@Composable
+fun AccountActionButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary, 
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
+    ) {
+        Text(text, fontWeight = FontWeight.Medium)
+    }
+}
+*/
+
 data class MyPageActionItem(val title: String, val isLogout: Boolean = false, val action: () -> Unit)
 
 @Composable
@@ -288,16 +361,15 @@ fun MyPageMenuGroup(title: String, items: List<MyPageActionItem>) {
     Column {
         Text(
             text = title,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.titleSmall, 
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
             modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 items.forEachIndexed { index, item ->
@@ -330,9 +402,8 @@ fun MyPageMenuListItem(title: String, isLogout: Boolean = false, onClick: () -> 
     ) {
         Text(
             text = title,
-            fontSize = 15.sp,
-            color = if (isLogout) Color.Red else Color.Black,
-            fontWeight = FontWeight.Normal
+            style = MaterialTheme.typography.bodyMedium, 
+            color = if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.weight(1f))
         if (!isLogout) {
