@@ -2,19 +2,19 @@ package com.trever.android.data.remote
 
 import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.CarRegistrationRequest
-import com.trever.android.domain.model.Tag
-import kotlinx.serialization.SerialName
+import com.trever.android.domain.model.Tag // Tag가 실제로 사용되지 않는다면 제거 고려
+import kotlinx.serialization.SerialName // 사용되지 않는다면 제거 고려
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.Body
+import retrofit2.http.Body // 사용되지 않는다면 제거 고려
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
-import kotlin.toString
+// import kotlin.toString // 일반적으로 불필요
 
 interface VehicleApi {
 
@@ -22,8 +22,21 @@ interface VehicleApi {
     suspend fun listVehicles(
         @Query("page") page: Int,
         @Query("size") size: Int,
-        @Query("isAuction") isAuction: Boolean? = null // null이면 필터 미적용
+        @Query("isAuction") isAuction: Boolean? = null
     ): ApiResponse<VehicleListResponse>
+
+    // (신규) category를 파라미터로 받는 새 제조사 목록 조회 함수
+    @GET("api/cars/manufacturers")
+    suspend fun getManufacturersByCategory(
+        @Query("category") category: String
+    ): ApiResponse<List<String>>
+
+    // 차명 목록 조회 API 변경
+    @GET("api/cars/carnames")
+    suspend fun getCarNames(
+        @Query("category") category: String,
+        @Query("manufacturer") manufacturer: String
+    ): ApiResponse<List<String>>
 
     @Multipart
     @POST("api/vehicles")

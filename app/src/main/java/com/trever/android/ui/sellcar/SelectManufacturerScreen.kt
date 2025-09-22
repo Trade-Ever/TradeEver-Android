@@ -1,6 +1,7 @@
 package com.trever.android.ui.sellcar
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,51 +10,36 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// NavController import 제거
-import com.trever.android.R
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
-//import com.trever.android.ui.theme.Grey_500
 
-// 더미 데이터 및 플레이스홀더 로고 정의는 이전과 동일하게 유지
-data class ManufacturerItem(val logoResId: Int, val name: String, val count: String, val isDomestic: Boolean)
-val placeholderManufacturerLogo = R.drawable.hyundai_logo
-val dummyManufacturers = listOf(
-    ManufacturerItem(placeholderManufacturerLogo, "현대", "44,661", true),
-    ManufacturerItem(placeholderManufacturerLogo, "제네시스", "11,696", true),
-    ManufacturerItem(placeholderManufacturerLogo, "기아", "11,696", true),
-    ManufacturerItem(placeholderManufacturerLogo, "쉐보레(GM대우)", "11,696", true),
-    ManufacturerItem(placeholderManufacturerLogo, "르노코리아(삼성)", "11,696", true),
-    ManufacturerItem(placeholderManufacturerLogo, "BMW", "11,696", false),
-    ManufacturerItem(placeholderManufacturerLogo, "벤츠", "11,696", false),
-    ManufacturerItem(placeholderManufacturerLogo, "아우디", "11,696", false),
-    ManufacturerItem(placeholderManufacturerLogo, "포르쉐", "11,696", false),
-    ManufacturerItem(placeholderManufacturerLogo, "미니", "11,696", false)
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SelectManufacturerScreen(
     viewModel: SellCarViewModel,
-    onSystemBack: () -> Unit, // 시스템 뒤로가기 콜백
-    onManufacturerSelected: () -> Unit, // 제조사 선택 완료 콜백
-    // onStepBack: (() -> Unit)? = null // 화면 내 이전 버튼용 (필요시 추가)
+    onSystemBack: () -> Unit,
+    onManufacturerSelected: () -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val manufacturerData = uiState.manufacturerDataMap
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("제조사", fontWeight = FontWeight.Bold) },
+                title = { Text("제조사 선택", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onSystemBack) { // onSystemBack 콜백 사용
+                    IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -62,66 +48,73 @@ fun SelectManufacturerScreen(
         },
         containerColor = Color.White
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            item {
+        if (uiState.isLoadingManufacturers) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (manufacturerData.isEmpty() && !uiState.isLoadingManufacturers) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    text = "국산차",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(vertical = 16.dp)
+                    "제조사 정보를 불러올 수 없습니다.\n네트워크 연결을 확인 후 다시 시도해주세요.",
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
                 )
             }
-            items(dummyManufacturers.filter { it.isDomestic }) { manufacturer ->
-                ManufacturerRow(manufacturer = manufacturer) {
-                    viewModel.updateSelectedManufacturer(manufacturer.name)
-                    onManufacturerSelected() // 다음 화면으로 전환 콜백 호출
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                manufacturerData.keys.sorted().forEach { category ->
+                    stickyHeader {
+                        Text(
+                            text = category,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(horizontal = 16.dp, vertical = 16.dp)
+                        )
+                    }
+                    val manufacturers = manufacturerData[category] ?: emptyList()
+                    items(manufacturers) { manufacturerName ->
+                        ManufacturerRow(manufacturerName = manufacturerName) {
+                            viewModel.updateSelectedManufacturer(category, manufacturerName)
+                            onManufacturerSelected()
+                        }
+                        HorizontalDivider(
+                            color = Grey_100,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
-                HorizontalDivider(color = Grey_100)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "수입차",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
-            }
-            items(dummyManufacturers.filter { !it.isDomestic }) { manufacturer ->
-                ManufacturerRow(manufacturer = manufacturer) {
-                    viewModel.updateSelectedManufacturer(manufacturer.name)
-                    onManufacturerSelected() // 다음 화면으로 전환 콜백 호출
-                }
-                HorizontalDivider(color = Grey_100)
             }
         }
     }
 }
 
 @Composable
-fun ManufacturerRow(manufacturer: ManufacturerItem, onClick: () -> Unit) {
+fun ManufacturerRow(manufacturerName: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = manufacturer.logoResId),
-            contentDescription = "${manufacturer.name} 로고",
-            modifier = Modifier.size(36.dp)
+        Text(
+            text = manufacturerName,
+            fontSize = 16.sp,
+            color = Color.Black
         )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = manufacturer.name, fontSize = 16.sp, color = Color.Black)
-        Spacer(modifier = Modifier.weight(1f))
-        Text(text = manufacturer.count, fontSize = 14.sp, color = Color.Black) // Grey_500 사용 확인
     }
 }
 
@@ -129,10 +122,47 @@ fun ManufacturerRow(manufacturer: ManufacturerItem, onClick: () -> Unit) {
 //@Composable
 //fun SelectManufacturerScreenPreview() {
 //    AppTheme {
-//        SelectManufacturerScreen(
-//            viewModel = SellCarViewModel(), // Preview용 ViewModel
-//            onSystemBack = {},
-//            onManufacturerSelected = {}
+//        val dummyData = mapOf(
+//            "국산" to listOf("현대", "기아", "제네시스"),
+//            "수입" to listOf("BMW", "벤츠", "아우디")
 //        )
+//
+//        Scaffold(
+//            topBar = {
+//                TopAppBar(
+//                    title = { Text("제조사 선택", fontWeight = FontWeight.Bold) },
+//                    navigationIcon = {
+//                        IconButton(onClick = {}) {
+//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
+//                        }
+//                    },
+//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+//                )
+//            }
+//        ) { paddingValues ->
+//            LazyColumn(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(paddingValues)
+//            ) {
+//                dummyData.keys.sorted().forEach { category ->
+//                    item {
+//                        Text(
+//                            text = category,
+//                            fontSize = 16.sp,
+//                            fontWeight = FontWeight.SemiBold,
+//                            modifier = Modifier.padding(16.dp)
+//                        )
+//                    }
+//                    items(dummyData[category] ?: emptyList()) { manufacturerName ->
+//                        ManufacturerRow(manufacturerName = manufacturerName) {}
+//                        HorizontalDivider(
+//                            color = Grey_100,
+//                            modifier = Modifier.padding(horizontal = 16.dp)
+//                        )
+//                    }
+//                }
+//            }
+//        }
 //    }
 //}
