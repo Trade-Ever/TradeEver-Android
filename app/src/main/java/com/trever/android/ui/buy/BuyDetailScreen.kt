@@ -20,9 +20,13 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.trever.android.data.remote.toBuyDetailUi
 import com.trever.android.ui.auction.SellerUi
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AppOutlinedButton
@@ -31,35 +35,76 @@ import com.trever.android.ui.theme.backgroundColor
 @Composable
 fun BuyDetailScreen(
     carId: String,
-    item: AuctionDetailUi = demoBuyDetail(),
+    viewModel: BuyDetailViewModel = viewModel(),
     onBack: () -> Unit = {},
     onLike: () -> Unit = {},
     onInquiry: () -> Unit = {},
     onBuy: () -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    // 화면 진입시 데이터 로드
+    LaunchedEffect(carId) {
+        viewModel.loadVehicleDetail(carId)
+    }
+
     var showBuySheet by remember { mutableStateOf(false) }
     val blur by animateDpAsState(if (showBuySheet) 12.dp else 0.dp, label = "")
 
-    Box(Modifier.blur(blur)) {
-        DetailContent(
-            item = item,
-            onBack = onBack,
-            badge = { SellingBadge() },  // 구매 뱃지
-            showBidSection = false,  // 입찰 섹션 표시 안 함
-            onMoreBids = null,       // 입찰 내역 보기 기능 비활성화
-            bottomBar = {
-                BuyBottomActionBar(
-                    price = item.priceWonText,
-                    onBuy = { showBuySheet = true },
-                    onInquiry = onInquiry
-                )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .blur(blur)
+        ) {
+            when (val state = uiState) {
+                is BuyDetailUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is BuyDetailUiState.Success -> {
+                    // API 응답 데이터를 UI 모델로 변환
+                    val detailUi = state.vehicle.toBuyDetailUi()
+
+                    DetailContent(
+                        item = detailUi,
+                        onBack = onBack,
+                        badge = { SellingBadge() },  // 구매 뱃지
+                        showBidSection = false,  // 입찰 섹션 표시 안 함
+                        onMoreBids = null,       // 입찰 내역 보기 기능 비활성화
+                        bottomBar = {
+                            BuyBottomActionBar(
+                                price = detailUi.priceWonText,
+                                onBuy = { showBuySheet = true },
+                                onInquiry = onInquiry
+                            )
+                        }
+                    )
+                }
+
+                is BuyDetailUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(state.message)
+                    }
+                }
             }
-        )
+        }
     }
 
     if (showBuySheet) {
+        // 현재 가격 정보 가져오기
+        val currentPrice = (uiState as? BuyDetailUiState.Success)?.vehicle?.toBuyDetailUi()?.priceWon ?: 0L
+
         BuyConfirmSheet(
-            price = item.priceWon,
+            price = currentPrice,
             onConfirm = {
                 onBuy()
                 showBuySheet = false
@@ -68,7 +113,6 @@ fun BuyDetailScreen(
         )
     }
 }
-
 @Composable
 private fun BuyBottomActionBar(
     price: String,

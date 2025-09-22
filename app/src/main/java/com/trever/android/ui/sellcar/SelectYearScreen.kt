@@ -87,17 +87,17 @@ fun YearRow(year: String, onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SelectYearScreenPreview() {
-    AppTheme {
-        val previewViewModel = remember { SellCarViewModel() }
-        previewViewModel.updateSelectedManufacturer("현대")
-        previewViewModel.updateSelectedModel("아반떼")
-        SelectYearScreen(
-            viewModel = previewViewModel,
-            onSystemBack = {},
-            onYearSelected = {}
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SelectYearScreenPreview() {
+//    AppTheme {
+//        val previewViewModel = remember { SellCarViewModel() }
+//        previewViewModel.updateSelectedManufacturer("현대")
+//        previewViewModel.updateSelectedModel("아반떼")
+//        SelectYearScreen(
+//            viewModel = previewViewModel,
+//            onSystemBack = {},
+//            onYearSelected = {}
+//        )
+//    }
+//}

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,21 +45,51 @@ import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.theme.backgroundColor
 import java.util.concurrent.TimeUnit
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.R
+import com.trever.android.data.remote.toAuctionCarForDisplay
+
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.G_300
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BuyListScreen(
-    items: List<AuctionCar> = sampleAuctions(),
+    viewModel: BuyListViewModel = viewModel(),
     onItemClick: (String) -> Unit = {},
     onToggleLike: (String) -> Unit = {},
     onSearchClick: () -> Unit = {}     // ← 검색 화면으로 이동 콜백
 ) {
     val cs = MaterialTheme.colorScheme
+    val uiState by viewModel.uiState.collectAsState()
+
+    // 당겨서 새로고침 상태
+    var refreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = {
+            refreshing = true
+            viewModel.loadVehicles()
+        }
+    )
+
+    // 새로고침 완료 감지
+    LaunchedEffect(uiState) {
+        if (refreshing && uiState !is BuyListUiState.Loading) {
+            refreshing = false
+        }
+    }
 
     // 검색 버튼 실제 높이를 리스트 패딩에 반영
     var searchBarH by remember { mutableStateOf(0) }
@@ -69,28 +100,81 @@ fun BuyListScreen(
             .fillMaxSize()
             .background(cs.backgroundColor)
     ) {
-        // 목록
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 10.dp,
-                end = 10.dp,
-                top = searchBarHdp + 30.dp,  // 떠있는 검색 버튼 공간만큼 띄우기
-                bottom = 10.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        // 목록 부분
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (val state = uiState) {
+                is BuyListUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is BuyListUiState.Success -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pullRefresh(pullRefreshState)
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                start = 10.dp,
+                                end = 10.dp,
+                                top = searchBarHdp + 30.dp,
+                                bottom = 10.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(state.vehicles, key = { it.id }) { vehicle ->
+                                ListingItem(
+                                    car = vehicle.toAuctionCarForDisplay(),
+                                    onClick = { onItemClick(vehicle.id.toString()) },
+                                    onToggleLike = { onToggleLike(vehicle.id.toString()) },
+                                    tags = vehicle.mainOptions ?: emptyList(),
+                                    showBadge = false,
+                                    showAuctionMeta = false,
+                                    priceLabel = ""
+                                )
+                            }
 
-            items(items, key = { it.id }) { car ->
-                ListingItem(
-                    car = car,
-                    onClick = { onItemClick(car.id) },
-                    onToggleLike = { onToggleLike(car.id) },
-                    tags = listOf("비흡연자", "무사고", "정비완료"),
-                    showBadge = false,
-                    showAuctionMeta = false,
-                    priceLabel = ""  // 레이블 없이 가격만 표시
-                )
+                            if (state.hasMorePages) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(modifier = Modifier.size(30.dp))
+
+                                        LaunchedEffect(key1 = true) {
+                                            viewModel.loadNextPage()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // 당겨서 새로고침 인디케이터
+                        PullRefreshIndicator(
+                            refreshing = refreshing,
+                            state = pullRefreshState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            backgroundColor = cs.surfaceVariant.copy(alpha = 0.9f),
+                            contentColor = cs.primary
+                        )
+                    }
+                }
+                is BuyListUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(state.message)
+                    }
+                }
             }
         }
 
@@ -100,14 +184,12 @@ fun BuyListScreen(
             onClick = onSearchClick,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-
                 .padding(horizontal = 20.dp, vertical = 16.dp)
                 .zIndex(1f)
                 .onSizeChanged { searchBarH = it.height }
         )
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FloatingSearchButton(
@@ -153,7 +235,7 @@ private fun sampleAuctions(): List<AuctionCar> {
     val now = System.currentTimeMillis()
     val demoImage = "https://dimg.donga.com/wps/EVLOUNGE/IMAGE/2024/02/06/123417778.1.jpg"
     return listOf(
-        AuctionCar("1", "Taycan GTS", 2024, 3850, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  141_900_000, now + TimeUnit.HOURS.toMillis(26),true),
+        AuctionCar("1", "Taycan GTS", 2024, 3850, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  141_900_000, now + TimeUnit.HOURS.toMillis(26),true,0),
         AuctionCar("2", "Taycan GTS", 2024, 3858, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  30_000_000, now + TimeUnit.HOURS.toMillis(5) + TimeUnit.MINUTES.toMillis(15)),
         AuctionCar("3", "Taycan GTS", 2024, 3858, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  141_900_000, now + TimeUnit.MINUTES.toMillis(45))
     )

@@ -64,8 +64,8 @@ fun MainScreen(
             // 탭: 경매(리스트만) — 상세는 최상위(AppNavHost)에서!
             composable(MainTab.Auction.route) {
                 AuctionListScreen(
-                    onItemClick = { carId ->
-                        parentNavController.navigate("auction/detail/$carId")
+                    onItemClick = { carId,auctionId ->
+                        parentNavController.navigate("auction/detail/$carId/$auctionId")
                     }
                 )
             }

@@ -124,16 +124,16 @@ fun ModelRow(model: ModelItem, onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SelectModelScreenPreview() {
-    AppTheme {
-        val previewViewModel = remember { SellCarViewModel() }
-        previewViewModel.updateSelectedManufacturer("현대")
-        SelectModelScreen(
-            viewModel = previewViewModel,
-            onSystemBack = {},
-            onModelSelected = {}
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SelectModelScreenPreview() {
+//    AppTheme {
+//        val previewViewModel = remember { SellCarViewModel() }
+//        previewViewModel.updateSelectedManufacturer("현대")
+//        SelectModelScreen(
+//            viewModel = previewViewModel,
+//            onSystemBack = {},
+//            onModelSelected = {}
+//        )
+//    }
+//}

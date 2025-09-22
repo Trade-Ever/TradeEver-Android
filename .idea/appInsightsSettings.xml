@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.trever.android" />
+                  <option name="mobileSdkAppId" value="1:116150637871:android:6e4ed9a10970dfcd853dda" />
+                  <option name="projectId" value="trever-ec541" />
+                  <option name="projectNumber" value="116150637871" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

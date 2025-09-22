@@ -336,23 +336,23 @@ fun DisplayInfoField(label: String, value: String, isComplete: Boolean) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SellCarMileageAndTypeScreenPreview() {
-    AppTheme {
-        val previewViewModel = remember { SellCarViewModel() }
-        previewViewModel.updateCurrentStep(3) // 이 화면은 3단계 또는 그 이후
-        previewViewModel.updateSelectedManufacturer("현대")
-        previewViewModel.updateSelectedModel("아반떼 SN7")
-        previewViewModel.updateSelectedYear(2023)
-        // previewViewModel.updateSelectedCarType("준중형")
-        // previewViewModel.updateMileage("15000")
-
-        SellCarMileageAndTypeScreen(
-            sellCarViewModel = previewViewModel,
-            onSystemBack = {},
-            onStepBack = {},
-            onNextClicked = {}
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SellCarMileageAndTypeScreenPreview() {
+//    AppTheme {
+//        val previewViewModel = remember { SellCarViewModel() }
+//        previewViewModel.updateCurrentStep(3) // 이 화면은 3단계 또는 그 이후
+//        previewViewModel.updateSelectedManufacturer("현대")
+//        previewViewModel.updateSelectedModel("아반떼 SN7")
+//        previewViewModel.updateSelectedYear(2023)
+//        // previewViewModel.updateSelectedCarType("준중형")
+//        // previewViewModel.updateMileage("15000")
+//
+//        SellCarMileageAndTypeScreen(
+//            sellCarViewModel = previewViewModel,
+//            onSystemBack = {},
+//            onStepBack = {},
+//            onNextClicked = {}
+//        )
+//    }
+//}

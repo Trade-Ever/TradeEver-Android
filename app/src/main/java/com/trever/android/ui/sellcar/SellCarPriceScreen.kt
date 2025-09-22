@@ -1,5 +1,7 @@
 package com.trever.android.ui.sellcar
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -22,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,12 +32,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.div
+import kotlin.unaryMinus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +90,7 @@ fun SellCarPriceScreen(
 
     val purpleColor = Color(0xFF6A11CB)
     val lightPurpleColor = Color(0xFF9F72FF)
+    val isLoading by sellCarViewModel.isLoading.collectAsState()
 
     // ViewModel의 price가 변경되면 로컬 상태도 업데이트
     LaunchedEffect(uiState.price) {
@@ -146,7 +154,7 @@ fun SellCarPriceScreen(
                 }
 
                 AnimatedVisibility(
-                    visible = uiState.transactionType.isNotEmpty(),
+                    visible = uiState.transactionType == "경매", // 경매인 경우에만 표시
                     enter = slideInVertically { it / 2 } + fadeIn(),
                     exit = slideOutVertically { -it / 2 } + fadeOut()
                 ) {
@@ -174,7 +182,8 @@ fun SellCarPriceScreen(
                 }
 
                 AnimatedVisibility(
-                    visible = endDatePickerState.selectedDateMillis != null,
+                    visible = (uiState.transactionType == "경매" && endDatePickerState.selectedDateMillis != null) ||
+                            uiState.transactionType == "일반거래",
                     enter = slideInVertically { it / 2 } + fadeIn(),
                     exit = slideOutVertically { -it / 2 } + fadeOut()
                 ) {
@@ -201,6 +210,7 @@ fun SellCarPriceScreen(
                     }
                 }
             } // 스크롤 Column 끝
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -232,7 +242,12 @@ fun SellCarPriceScreen(
                             startDatePickerState.selectedDateMillis,
                             endDatePickerState.selectedDateMillis
                         )
-                        onRegisterClicked()
+                        sellCarViewModel.registerCar(
+                            onSuccess = { onRegisterClicked() },
+                            onError = { errorMessage ->
+
+                            }
+                        )
                     },
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
@@ -240,10 +255,13 @@ fun SellCarPriceScreen(
                         containerColor = purpleColor,
                         disabledContainerColor = Color.LightGray
                     ),
-                    enabled = uiState.transactionType.isNotEmpty() &&
-                            startDatePickerState.selectedDateMillis != null &&
-                            endDatePickerState.selectedDateMillis != null &&
-                            price.isNotBlank(),
+                    enabled = when(uiState.transactionType) {
+                        "경매" -> startDatePickerState.selectedDateMillis != null &&
+                                endDatePickerState.selectedDateMillis != null &&
+                                price.isNotBlank() && !isLoading
+                        "일반거래" -> price.isNotBlank() && !isLoading
+                        else -> false
+                    },
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
                     Text("등록하기", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
@@ -286,6 +304,7 @@ fun SellCarPriceScreen(
             }
         }
     }
+
 }
 
 // DateBox, formatDate 함수는 변경 없이 그대로 사용
@@ -327,7 +346,10 @@ private fun formatDate(timestamp: Long, format: String): String {
 @Composable
 fun SellCarPriceScreenPreview() {
     MaterialTheme {
-        val previewViewModel = remember { SellCarViewModel() }
+        val context = LocalContext.current
+        val previewViewModel: SellCarViewModel = viewModel(
+//            factory = SellCarViewModelFactory(context)
+        )
         // previewViewModel.updateCurrentStep(7) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
         previewViewModel.updateTransactionType("경매")
         // previewViewModel.updatePrice("3000") // 예시 가격
@@ -340,4 +362,6 @@ fun SellCarPriceScreenPreview() {
         )
     }
 }
+
+
 

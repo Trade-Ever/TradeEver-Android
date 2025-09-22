@@ -14,11 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,17 +161,17 @@ fun SellCarOptionsScreen(
         }
 
         // 옵션 선택 바텀 시트
-        if (showBottomSheet) {
-            OptionsBottomSheet(
-                allOptions = listOf("열선시트", "통풍시트", "썬루프", "열선핸들", "내비게이션", "전동시트", "어라운드뷰", "전동트렁크", "스마트키", "블랙박스"),
-                selectedOptions = uiState.selectedOptions,
-                onDismiss = { showBottomSheet = false },
-                onConfirm = { selected ->
-                    sellCarViewModel.updateSelectedOptions(selected)
-                    showBottomSheet = false
-                }
-            )
-        }
+    if (showBottomSheet) {
+        OptionsBottomSheet(
+            allOptions = listOf("열선시트", "통풍시트", "썬루프", "열선핸들", "내비게이션", "전동시트", "어라운드뷰", "전동트렁크"),
+            selectedOptions = uiState.selectedOptions,
+            onDismiss = { showBottomSheet = false },
+            onConfirm = { selected ->
+                sellCarViewModel.updateSelectedOptions(selected)
+                showBottomSheet = false
+            }
+        )
+    }
     }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -258,7 +261,8 @@ fun OptionsBottomSheet(
 @Composable
 fun SellCarOptionsScreenPreview() {
     MaterialTheme {
-        val vm = SellCarViewModel()
+        val context = LocalContext.current
+
         var showSheet by remember { mutableStateOf(true) }
         if (showSheet) {
             OptionsBottomSheet(
