@@ -1,138 +1,114 @@
 package com.trever.android.ui.myPage
 
-import android.net.Uri 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.trever.android.data.repository.AuthRepository
+import com.trever.android.data.repository.MyPageRepository
+import com.trever.android.domain.model.RecentlyViewedCar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update 
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 
-// UserProfile 데이터 클래스는 이전과 동일하게 유지
+// 화면(Screen)에서 필요로 하는 데이터 모델들
 data class UserProfile(
-    val nickname: String = "닉네임",
-    val email: String = "nick@example.com",
-    val profileImageUrl: String? = null, 
-    val phoneNumber: String? = null,    
-    val address: String? = null,        
-    val birthday: String? = null         
+    val nickname: String = "트레버",
+    val email: String = "trever@example.com",
+    val phoneNumber: String? = null,
+    val address: String? = null,
+    val birthday: String? = null,
+    val profileImageUrl: String? = null
 )
 
-// AccountInfo 데이터 클래스 수정
 data class AccountInfo(
-    val balance: Long = 10000L, // Long 타입으로 변경, 기본값 10,000원
-    val accountNumber: String = "1002-044-******", // 실제 계좌번호 (또는 마스킹된 형태)
-    val bankName: String? = "우리은행",      // 은행 이름
-    val accountName: String? = "내 계좌"    // 계좌 별칭 (예: 주거래 통장)
-) {
-    // UI 표시용 포맷된 잔액 문자열 생성 함수
-    fun getFormattedBalance(): String {
-        return "${NumberFormat.getNumberInstance(Locale.KOREA).format(balance)}원"
-    }
-}
+    val accountName: String = "내 예치금 계좌",
+    val balance: Long = 1_234_567,
+    val bankName: String? = "트레버 은행",
+    val accountNumber: String = "123-456-789012"
+)
 
-class MyPageViewModel : ViewModel() {
+class MyPageViewModel(
+    private val myPageRepository: MyPageRepository,
+    private val authRepository: AuthRepository // 유저 정보 등을 위해 AuthRepository도 사용
+) : ViewModel() {
 
-    private val _userProfile = MutableStateFlow(UserProfile()) 
+    // --- StateFlow 정의 --- //
+
+    private val _userProfile = MutableStateFlow(UserProfile())
     val userProfile: StateFlow<UserProfile> = _userProfile.asStateFlow()
 
-    private val _accountInfo = MutableStateFlow(AccountInfo()) // AccountInfo 초기화
+    private val _accountInfo = MutableStateFlow(AccountInfo())
     val accountInfo: StateFlow<AccountInfo> = _accountInfo.asStateFlow()
 
+    private val _recentlyViewedCars = MutableStateFlow<List<RecentlyViewedCar>>(emptyList())
+    val recentlyViewedCars: StateFlow<List<RecentlyViewedCar>> = _recentlyViewedCars.asStateFlow()
+
     init {
-        // 예시: 앱 시작 시 또는 ViewModel 생성 시 사용자 프로필 및 계좌 정보 로드
-        loadUserProfile() // 프로필 정보 로드 함수 호출 (예시)
-        loadAccountInfo() // 계좌 정보 로드 함수 호출 (예시)
+        // ViewModel이 생성될 때 초기 데이터를 로드합니다.
+        loadRecentlyViewedCars()
+        // TODO: loadUserProfile(authRepository), loadAccountInfo() 등 초기화 로직 추가 필요
     }
 
-    fun updateUserProfile(newName: String, newPhoneNumber: String?, newAddress: String?, newBirthday: String?, newProfileImageUrl: String?) {
+    // --- 화면(Screen)에서 호출하는 함수들 --- //
+
+    fun loadRecentlyViewedCars() {
         viewModelScope.launch {
-            _userProfile.update {
-                it.copy(
-                    nickname = newName,
-                    phoneNumber = newPhoneNumber,
-                    address = newAddress,
-                    birthday = newBirthday,
-                    profileImageUrl = newProfileImageUrl
+            myPageRepository.getRecentlyViewedCars() // MyPageRepository 사용
+                .onSuccess { cars ->
+                    _recentlyViewedCars.value = cars
+                }
+                .onFailure { e ->
+                    Log.e("MyPageViewModel", "최근 본 차량 로드 실패", e)
+                }
+        }
+    }
+
+    fun updateUserProfile(name: String, phone: String?, address: String?, birthday: String?, imageUri: String?) {
+        viewModelScope.launch {
+            // TODO: 실제 프로필 업데이트 API 호출 로직 구현 (authRepository 사용)
+            _userProfile.update { currentState ->
+                currentState.copy(
+                    nickname = name,
+                    phoneNumber = phone,
+                    address = address,
+                    birthday = birthday,
+                    profileImageUrl = imageUri ?: currentState.profileImageUrl
                 )
             }
-            Log.d("MyPageViewModel", "UserProfile updated: ${_userProfile.value}")
-            // TODO: 변경된 프로필 정보를 영구 저장하는 로직 추가 (SharedPreferences, Room, 서버 API 등)
+            Log.d("MyPageViewModel", "Profile Updated: $name, $phone, $address, $birthday, $imageUri")
         }
     }
 
-    // 충전 함수 (바텀시트의 최종 '충전하기' 버튼에서 호출될 함수)
     fun charge(amount: Long) {
         viewModelScope.launch {
-            _accountInfo.update {
-                it.copy(balance = it.balance + amount)
-            }
-            Log.d("MyPageViewModel", "Charged ${amount}. New balance: ${_accountInfo.value.getFormattedBalance()}")
-            // TODO: 실제 충전 API 호출 및 결과 처리 로직 추가
+            // TODO: 실제 충전 API 호출 로직 구현
+            _accountInfo.update { it.copy(balance = it.balance + amount) }
+            Log.d("MyPageViewModel", "Charge: $amount")
         }
     }
 
-    // 출금 함수 (바텀시트의 최종 '출금하기' 버튼에서 호출될 함수)
     fun withdraw(amount: Long) {
         viewModelScope.launch {
-            if (amount <= _accountInfo.value.balance) {
-                _accountInfo.update {
-                    it.copy(balance = it.balance - amount)
-                }
-                Log.d("MyPageViewModel", "Withdrew ${amount}. New balance: ${_accountInfo.value.getFormattedBalance()}")
-                // TODO: 실제 출금 API 호출 및 결과 처리 로직 추가
-            } else {
-                Log.w("MyPageViewModel", "Withdrawal failed. Insufficient balance. Current balance: ${_accountInfo.value.getFormattedBalance()}")
-                // TODO: 잔액 부족 시 사용자에게 알림 처리 (예: Toast, Snackbar, StateFlow 이벤트 등)
-            }
+            // TODO: 실제 출금 API 호출 로직 구현
+            _accountInfo.update { it.copy(balance = it.balance - amount) }
+            Log.d("MyPageViewModel", "Withdraw: $amount")
         }
-    }
-
-    // 바텀시트를 여는 기존 함수들은 Screen에서 바텀시트 상태를 직접 제어하므로 ViewModel에서는 단순 로그만 남기거나 비워둘 수 있음
-    fun onChargeClicked() {
-        Log.d("MyPageViewModel", "Charge button clicked. Bottom sheet should be shown by the Screen.")
-    }
-
-    fun onWithdrawClicked() {
-        Log.d("MyPageViewModel", "Withdraw button clicked. Bottom sheet should be shown by the Screen.")
     }
 
     fun onLogoutClicked() {
-        Log.d("MyPageViewModel", "로그아웃 버튼 클릭됨")
-        // TODO: 로그아웃 로직 연결 (데이터 초기화, 화면 전환 등)
-        // 예: _userProfile.value = UserProfile() 
-        //     _accountInfo.value = AccountInfo()
-    }
-    
-    // 예시: 사용자 프로필 로드 함수 (실제 구현 필요)
-    private fun loadUserProfile() {
         viewModelScope.launch {
-            // TODO: SharedPreferences, Room, 서버 API 등에서 프로필 정보 로드
-            _userProfile.value = UserProfile(
-                nickname = "TreverUser",
-                email = "trever@example.com",
-                profileImageUrl = null, 
-                phoneNumber = "010-1234-5678",
-                address = "서울시 강남구 테헤란로 123",
-                birthday = "19901225"
-            )
+            // TODO: 실제 로그아웃 로직 구현 (authRepository 사용)
+            Log.d("MyPageViewModel", "Logout clicked")
         }
     }
 
-    // 예시: 계좌 정보 로드 함수 (실제 구현 필요)
-    private fun loadAccountInfo() {
+    // 찜한 차량 기능은 아직 구현되지 않았으므로 임시로 남겨둡니다.
+    fun loadLikedCars() {
         viewModelScope.launch {
-            // TODO: SharedPreferences, Room, 서버 API 등에서 계좌 정보 로드
-            _accountInfo.value = AccountInfo(
-                balance = 50000L, // 초기 잔액 50,000원
-                accountNumber = "1002-123-456789",
-                bankName = "우리은행",
-                accountName = "내 계좌"
-            )
+            Log.d("MyPageViewModel", "Liked cars loaded (dummy)")
         }
     }
 }
