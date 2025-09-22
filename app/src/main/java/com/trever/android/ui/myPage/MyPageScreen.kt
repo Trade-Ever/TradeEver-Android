@@ -1,5 +1,7 @@
 package com.trever.android.ui.myPage
 
+import android.net.Uri
+import android.widget.Toast // 토스트 메시지용 임포트
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,9 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,16 +26,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.trever.android.R // trever_logo 등의 리소스 사용
+import coil.compose.rememberAsyncImagePainter // Coil 임포트 추가
+import com.trever.android.R
+import com.trever.android.ui.myPage.components.ProfileEditSheetContent // 바텀시트 컨텐츠 임포트
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_LIKED_CARS
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PRIVACY_POLICY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PURCHASE_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_RECENTLY_VIEWED
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
-// import com.trever.android.ui.navigation.ROUTE_MYPAGE_ACCOUNT // 계좌 섹션에서 필요 시 사용
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
+import kotlinx.coroutines.launch // 코루틴 스코프용 임포트
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,12 +47,53 @@ fun MyPageScreen(
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val accountInfo by viewModel.accountInfo.collectAsState()
+    val context = LocalContext.current // 토스트 메시지용
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true // 바텀시트가 완전히 확장되거나 숨겨지도록 설정
+    )
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+        ) {
+            ProfileEditSheetContent(
+                initialName = userProfile.nickname,
+                initialPhoneNumber = userProfile.phoneNumber ?: "",
+                initialAddress = userProfile.address ?: "",
+                initialBirthday = userProfile.birthday ?: "",
+                initialProfileImageUri = userProfile.profileImageUrl?.let { Uri.parse(it) },
+                onSaveClicked = {
+                    name, phone, address, birthday, imageUri ->
+                    // ViewModel의 프로필 업데이트 함수 호출
+                    viewModel.updateUserProfile(
+                        newName = name,
+                        newPhoneNumber = phone.ifEmpty { null }, // 빈 문자열이면 null로 전달
+                        newAddress = address.ifEmpty { null },   // 빈 문자열이면 null로 전달
+                        newBirthday = birthday.ifEmpty { null }, // 빈 문자열이면 null로 전달
+                        newProfileImageUrl = imageUri?.toString()
+                    )
+                    scope.launch {
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            showBottomSheet = false
+                        }
+                    }
+                    Toast.makeText(context, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
             MyPageTopAppBar()
         },
-        containerColor = Color(0xFFF4F4F4) 
+        containerColor = Color(0xFFF4F4F4)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -66,15 +109,17 @@ fun MyPageScreen(
                     nickname = userProfile.nickname,
                     email = userProfile.email,
                     profileImageUrl = userProfile.profileImageUrl,
-                    onProfileClick = { /* navController.navigate(ROUTE_MYPAGE_PROFILE_DETAIL or similar) */ }
+                    onProfileClick = { 
+                        showBottomSheet = true // 프로필 클릭 시 바텀시트 표시
+                    }
                 )
             }
 
             item {
                 AccountSection(
                     balance = accountInfo.balance,
-                    onChargeClick = { viewModel.onChargeClicked() /* navController.navigate(ROUTE_MYPAGE_ACCOUNT or "myPage/charge") */ },
-                    onWithdrawClick = { viewModel.onWithdrawClicked() /* navController.navigate(ROUTE_MYPAGE_ACCOUNT or "myPage/withdraw") */ }
+                    onChargeClick = { viewModel.onChargeClicked() },
+                    onWithdrawClick = { viewModel.onWithdrawClicked() }
                 )
             }
 
@@ -124,11 +169,7 @@ fun MyPageTopAppBar() {
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-//        Image(
-//            painter = painterResource(id = R.drawable.trever_logo_text),
-//            contentDescription = "Trever 로고",
-//            modifier = Modifier.height(24.dp)
-//        )
+        Text("마이페이지", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -153,6 +194,20 @@ fun ProfileSection(
                 .padding(horizontal = 20.dp, vertical = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Image(
+                painter = if (profileImageUrl != null) {
+                    rememberAsyncImagePainter(model = profileImageUrl)
+                } else {
+                    painterResource(id = R.drawable.profile_placeholder) 
+                },
+                contentDescription = "프로필 사진",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Grey_100),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = nickname,
@@ -167,16 +222,6 @@ fun ProfileSection(
                     color = Color.DarkGray
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
-//            Image(
-//                painter = painterResource(id = R.drawable.profile_placeholder_round),
-//                contentDescription = "프로필 사진",
-//                modifier = Modifier
-//                    .size(56.dp)
-//                    .clip(CircleShape)
-//                    .background(Grey_100),
-//                contentScale = ContentScale.Crop
-//            )
         }
     }
 }
