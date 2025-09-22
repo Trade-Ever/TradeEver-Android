@@ -63,17 +63,16 @@ fun SellEntryScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(top = 24.dp, bottom = 24.dp),
+                        .height(250.dp), // 이미지 컨테이너 높이
                     contentAlignment = Alignment.Center
                 ) {
                     // 배경 차량 이미지
                     Image(
-                        painter = painterResource(id = R.drawable.sell_entry_car_placeholder), // 제공된 보라색 차량 이미지
+                        painter = painterResource(id = R.drawable.purple_car_22),
                         contentDescription = "차량 등록 배경",
                         modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .align(Alignment.Center),
+                            .matchParentSize(), // 부모 Box 크기에 이미지를 맞춤
+                        // Crop -> Fit 으로 변경하여 이미지 잘림 없이 전체가 보이도록 수정
                         contentScale = ContentScale.Fit
                     )
 
@@ -82,7 +81,8 @@ fun SellEntryScreen(
                         onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .offset(y = (-30).dp), // Y축 오프셋으로 위치 미세 조정
+                            // offset 값을 조절해 버튼을 번호판 위치로 이동
+                            .offset(y = (-50).dp),
                         shape = RoundedCornerShape(4.dp), // 번호판 모양
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
