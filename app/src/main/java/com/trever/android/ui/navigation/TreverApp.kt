@@ -1,41 +1,41 @@
 package com.trever.android.ui.navigation
 
-
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+// 주석 처리된 임포트들은 현재 사용되지 않으므로 그대로 두거나 정리할 수 있습니다.
+// import androidx.compose.foundation.LocalIndication
+// import androidx.compose.foundation.layout.PaddingValues
+// import androidx.compose.foundation.layout.WindowInsets
+// import androidx.compose.foundation.layout.height
+// import androidx.compose.foundation.layout.padding
+// import androidx.compose.material.ripple.rememberRipple
+// import androidx.compose.material3.Icon
+// import androidx.compose.material3.MaterialTheme
+// import androidx.compose.material3.NavigationBar
+// import androidx.compose.material3.NavigationBarItem
+// import androidx.compose.material3.NavigationBarItemDefaults
+// import androidx.compose.material3.Scaffold
+// import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
+// import androidx.compose.runtime.CompositionLocalProvider
+// import androidx.compose.runtime.getValue
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.graphics.Color
+// import androidx.compose.ui.res.painterResource
+// import androidx.compose.ui.unit.dp
+// import androidx.navigation.NavDestination.Companion.hierarchy
+// import androidx.navigation.NavGraph.Companion.findStartDestination
+// import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.trever.android.ui.theme.backgroundColor
-import com.trever.android.ui.theme.bottomBarUnselected
-import com.trever.android.ui.theme.primaryLight
-
+import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // ViewModel 임포트 추가
+// import com.trever.android.ui.theme.backgroundColor
+// import com.trever.android.ui.theme.bottomBarUnselected
+// import com.trever.android.ui.theme.primaryLight
 
 @Composable
-fun TreverApp() {
+fun TreverApp(sellCarViewModel: SellCarViewModel) { // sellCarViewModel 파라미터 추가
     val navController = rememberNavController()
-    // 바텀바를 여기서 관리하지 않음! (MainScreen 내부로 이동)
-    AppNavHost(navController = navController)
-//    val navController = rememberNavController()
+    // AppNavHost에 sellCarViewModel 전달
+    AppNavHost(navController = navController, sellCarViewModel = sellCarViewModel)
+
 //    val backStackEntry by navController.currentBackStackEntryAsState()
 //    val currentDestination = backStackEntry?.destination
 //    val cs = MaterialTheme.colorScheme
@@ -89,7 +89,8 @@ fun TreverApp() {
 //        val bottom = if (!hideBottomBar) padding.calculateBottomPadding() else 0.dp
 //        AppNavHost(
 //            navController = navController,
-//            modifier = Modifier.padding(bottom = bottom)
+//            modifier = Modifier.padding(bottom = bottom),
+//            sellCarViewModel = sellCarViewModel // Scaffold를 사용할 경우 여기에도 전달
 //        )
 //    }
 }

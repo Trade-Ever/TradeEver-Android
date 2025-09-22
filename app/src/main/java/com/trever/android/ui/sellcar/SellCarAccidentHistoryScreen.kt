@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
-import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
+//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,7 +184,7 @@ fun SellCarAccidentHistoryScreenPreview() {
     MaterialTheme {
         val context = LocalContext.current
         val previewViewModel: SellCarViewModel = viewModel(
-            factory = SellCarViewModelFactory(context)
+//            factory = SellCarViewModelFactory(context)
         )
         // previewViewModel.updateCurrentStep(6) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
         previewViewModel.updateHasAccidentHistory(true)
@@ -205,7 +205,7 @@ fun SellCarAccidentHistoryScreenNoAccidentPreview() {
     MaterialTheme {
         val context = LocalContext.current
         val previewViewModel: SellCarViewModel = viewModel(
-            factory = SellCarViewModelFactory(context)
+//            factory = SellCarViewModelFactory(context)
         )
         // previewViewModel.updateCurrentStep(6)
         previewViewModel.updateHasAccidentHistory(false)

@@ -1,10 +1,15 @@
 package com.trever.android.ui.sellcar.viewmodel
 
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
+import androidx.lifecycle.ViewModel // ViewModel 임포트 확인
+import com.trever.android.R // For placeholder drawable
+import com.trever.android.domain.model.AuctionCar
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+
 import androidx.lifecycle.viewModelScope
 import com.trever.android.data.network.ApiClient
 import com.trever.android.data.repository.VehicleRepository
@@ -16,12 +21,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 import kotlin.text.get
 import kotlin.toString
 
+// SellCarUiState 데이터 클래스는 변경 없음 (이전 정의 사용)
 data class SellCarUiState(
     val currentStep: Int = 1,
-    val plateNumber: String = "", // 번호판 프로퍼티 추가
+    val plateNumber: String = "",
+    val selectedManufacturer: String = "",
     val selectedModel: String = "",
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     val selectedCarType: String = "",
@@ -42,18 +51,28 @@ data class SellCarUiState(
     val transactionEndDateMillis: Long? = null,
 )
 
-class SellCarViewModel(private val context: Context) : ViewModel() {
+// @HiltViewModel 제거
+//class SellCarViewModel : ViewModel() { // @Inject constructor() 제거
+class SellCarViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(SellCarUiState())
     val uiState: StateFlow<SellCarUiState> = _uiState.asStateFlow()
-    private val repository = VehicleRepository(ApiClient.vehicleApi,context)
+    // Repository에 application context 전달
+    private val repository = VehicleRepository(ApiClient.vehicleApi, application.applicationContext)
+
+
+    private val _registeredCars = MutableStateFlow<List<AuctionCar>>(emptyList())
+    val registeredCars: StateFlow<List<AuctionCar>> = _registeredCars.asStateFlow()
 
     fun updateCurrentStep(step: Int) {
         _uiState.update { it.copy(currentStep = step) }
     }
 
-    // 번호판 업데이트 함수 추가
     fun updatePlateNumber(plateNumber: String) {
         _uiState.update { it.copy(plateNumber = plateNumber) }
+    }
+
+    fun updateSelectedManufacturer(manufacturer: String) {
+        _uiState.update { it.copy(selectedManufacturer = manufacturer) }
     }
 
     fun updateSelectedModel(model: String) {
@@ -133,12 +152,37 @@ class SellCarViewModel(private val context: Context) : ViewModel() {
         }
     }
 
+    fun completeRegistrationAndAddCar() {
+        val currentState = _uiState.value
+        val newCar = AuctionCar(
+            id = UUID.randomUUID().toString(),
+            title = "${currentState.selectedManufacturer} ${currentState.selectedModel}".trim().ifEmpty { currentState.plateNumber.ifEmpty{"차량 정보 없음"} },
+            imageUrl = currentState.imageUris.firstOrNull()?.toString() ?: "drawable://" + R.drawable.sell_entry_banner_placeholder,
+            year = currentState.selectedYear,
+            mileageKm = currentState.mileage.filter { it.isDigit() }.toIntOrNull() ?: 0,
+            currentPriceWon = currentState.price.filter { it.isDigit() }.toLongOrNull() ?: 0L,
+            endsAtMillis = currentState.transactionEndDateMillis ?: (System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)),
+            liked = false,
+            manufacturer = currentState.selectedManufacturer.ifEmpty { null },
+            model = currentState.selectedModel.ifEmpty { null },
+            transactionType = currentState.transactionType.ifEmpty { null },
+            mainOptions = currentState.selectedOptions // AuctionCar 모델의 mainOptions는 기본값으로 emptyList()를 가짐
+            // AuctionCar 모델의 tags는 기본값으로 emptyList()를 가짐
+        )
+        _registeredCars.update { currentList -> currentList + newCar }
+        resetUiStateForNewRegistration()
+    }
+
+    private fun resetUiStateForNewRegistration() {
+        _uiState.value = SellCarUiState()
+    }
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
     fun registerCar(
         onSuccess: () -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
     ) {
         if (_isLoading.value) return // 이미 요청 중이면 무시
 

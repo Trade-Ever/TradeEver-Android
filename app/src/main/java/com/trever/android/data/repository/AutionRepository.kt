@@ -47,6 +47,7 @@ class AuctionRepository(
                 auctionCar.copy(
                     currentPriceWon = firebaseAuction.currentBidPrice.takeIf { it > 0 }
                         ?: firebaseAuction.startPrice,
+                    // firebaseAuction.endAt이 이제 Long 타입이므로 직접 사용
                     endsAtMillis = parseFirebaseDateToMillis(firebaseAuction.endAt)
                 )
             } else {
@@ -79,12 +80,17 @@ class AuctionRepository(
         })
     }
 
+    // 이 함수는 FirebaseAuction의 endAt을 처리하는 데 직접 사용되지 않을 수 있지만,
+    // 다른 곳에서 문자열 날짜 파싱이 필요할 수 있으므로 유지합니다.
     private fun parseFirebaseDateToMillis(dateString: String): Long {
         return try {
             val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            val date = format.parse(dateString.substringBefore('.'))
-            date?.time ?: System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)
+            // dateString이 '.'을 포함하지 않을 수 있으므로 substringBefore의 두 번째 인자 추가
+            val dateToParse = dateString.substringBefore('.', dateString)
+            val date = format.parse(dateToParse)
+            date?.time ?: (System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1))
         } catch (e: Exception) {
+            Log.e("AuctionRepository", "Date parsing failed for: $dateString", e)
             // 현재 시간 + 1일을 기본값으로 설정
             System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)
         }
@@ -150,6 +156,4 @@ class AuctionRepository(
             }
         })
     }
-
-
 }

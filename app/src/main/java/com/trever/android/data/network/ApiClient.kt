@@ -68,20 +68,22 @@ object ApiClient {
             .build()
 
         authApi = retrofitForAuth.create(AuthApi::class.java)
-        vehicleApi = retrofitForAuth.create(VehicleApi::class.java)
+
         auctionApi = retrofitForAuth.create(AuctionApi::class.java)
 
-//        // (2) 인증 인터셉터/리프레시 인증자 부착한 클라이언트 & Retrofit (CarApi 등)
-//        val authedClient = baseClient.newBuilder()
-//            .addInterceptor(AuthInterceptor(tokenStore))
-//            .authenticator(TokenAuthenticator(tokenStore, authApi))
-//            .build()
-//
-//        val retrofit = Retrofit.Builder()
-//            .baseUrl(baseUrl)
-//            .client(authedClient)
-//            .addConverterFactory(converter)
-//            .build()
+        // (2) 인증 인터셉터/리프레시 인증자 부착한 클라이언트 & Retrofit (CarApi 등)
+        val authedClient = baseClient.newBuilder()
+            .addInterceptor(AuthInterceptor(tokenStore))
+            .authenticator(TokenAuthenticator(tokenStore, authApi))
+            .build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(authedClient)
+            .addConverterFactory(converter)
+            .build()
+
+        vehicleApi = retrofit.create(VehicleApi::class.java)
 
 
 

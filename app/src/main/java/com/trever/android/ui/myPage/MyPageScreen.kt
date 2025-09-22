@@ -1,371 +1,426 @@
 package com.trever.android.ui.myPage
 
-import androidx.compose.foundation.BorderStroke
+import android.net.Uri
+import android.widget.Toast 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter 
 import com.trever.android.R
+import com.trever.android.ui.myPage.components.ProfileEditSheetContent 
+import com.trever.android.ui.myPage.components.TransactionSheetContent // 바텀시트 임포트
+import com.trever.android.ui.myPage.components.formatAmountToManwon // 금액 포맷팅 함수 임포트
+import com.trever.android.ui.navigation.ROUTE_MYPAGE_LIKED_CARS
+import com.trever.android.ui.navigation.ROUTE_MYPAGE_PRIVACY_POLICY
+import com.trever.android.ui.navigation.ROUTE_MYPAGE_PURCHASE_HISTORY
+import com.trever.android.ui.navigation.ROUTE_MYPAGE_RECENTLY_VIEWED
+import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
+import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
-import com.trever.android.ui.theme.primaryLight
+import kotlinx.coroutines.launch 
+import java.text.NumberFormat
+import java.util.Locale
 
-// 마이페이지 전체 화면 프리뷰에서 확인할 수 있도록 프리뷰를 제일 위에 올려놨습니다.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyPageScreen(
+    navController: NavController,
+    viewModel: MyPageViewModel = viewModel()
+) {
+    val userProfile by viewModel.userProfile.collectAsState()
+    val accountInfo by viewModel.accountInfo.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // 프로필 수정 바텀시트 상태
+    val profileSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showProfileBottomSheet by remember { mutableStateOf(false) }
+
+    // 충전 바텀시트 상태
+    val chargeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showChargeBottomSheet by remember { mutableStateOf(false) }
+
+    // 출금 바텀시트 상태
+    val withdrawSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showWithdrawBottomSheet by remember { mutableStateOf(false) }
+
+    // 프로필 수정 바텀시트
+    if (showProfileBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showProfileBottomSheet = false },
+            sheetState = profileSheetState,
+            containerColor = Color.White // 프로필 바텀시트 배경색도 흰색으로 통일 (선택 사항)
+        ) {
+            ProfileEditSheetContent(
+                initialName = userProfile.nickname,
+                initialPhoneNumber = userProfile.phoneNumber ?: "",
+                initialAddress = userProfile.address ?: "",
+                initialBirthday = userProfile.birthday ?: "",
+                initialProfileImageUri = userProfile.profileImageUrl?.let { Uri.parse(it) },
+                onSaveClicked = { name, phone, address, birthday, imageUri ->
+                    viewModel.updateUserProfile(name, phone.ifEmpty { null }, address.ifEmpty { null }, birthday.ifEmpty { null }, imageUri?.toString())
+                    scope.launch {
+                        profileSheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!profileSheetState.isVisible) showProfileBottomSheet = false
+                    }
+                    Toast.makeText(context, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    // 충전 바텀시트
+    if (showChargeBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showChargeBottomSheet = false },
+            sheetState = chargeSheetState,
+            containerColor = Color.White // 바텀시트 컨테이너 색상을 흰색으로 설정
+            // modifier = Modifier.fillMaxHeight(0.9f) // 높이 고정 제거
+        ) {
+            TransactionSheetContent(
+                title = "얼마나 충전할까요?",
+                bankName = accountInfo.bankName ?: "알 수 없는 은행",
+                accountNumber = accountInfo.accountNumber,
+                bankLogoResId = R.drawable.ic_bank_placeholder, // TODO: 실제 은행 로고로 교체
+                preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
+                actionButtonText = "충전하기",
+                onActionClick = { amount ->
+                    viewModel.charge(amount) 
+                    scope.launch {
+                        chargeSheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!chargeSheetState.isVisible) showChargeBottomSheet = false
+                    }
+                    Toast.makeText(context, "${formatAmountToManwon(amount)} 충전 완료", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    // 출금 바텀시트
+    if (showWithdrawBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showWithdrawBottomSheet = false },
+            sheetState = withdrawSheetState,
+            containerColor = Color.White // 바텀시트 컨테이너 색상을 흰색으로 설정
+            // modifier = Modifier.fillMaxHeight(0.9f) // 높이 고정 제거
+        ) {
+            TransactionSheetContent(
+                title = "얼마나 출금할까요?",
+                bankName = accountInfo.bankName ?: "알 수 없는 은행",
+                accountNumber = accountInfo.accountNumber,
+                bankLogoResId = R.drawable.ic_bank_placeholder, // TODO: 실제 은행 로고로 교체
+                preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
+                actionButtonText = "출금하기",
+                onActionClick = { amount ->
+                    viewModel.withdraw(amount) 
+                    scope.launch {
+                        withdrawSheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!withdrawSheetState.isVisible) showWithdrawBottomSheet = false
+                    }
+                    Toast.makeText(context, "${formatAmountToManwon(amount)} 출금 요청됨", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    Scaffold(
+        topBar = { MyPageTopAppBar() },
+        containerColor = Color(0xFFF4F4F4) 
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+
+            item {
+                ProfileSection(
+                    nickname = userProfile.nickname,
+                    email = userProfile.email,
+                    profileImageUrl = userProfile.profileImageUrl,
+                    onProfileClick = { showProfileBottomSheet = true }
+                )
+            }
+
+            item {
+                AccountSection(
+                    accountTitle = accountInfo.accountName ?: "내 계좌", 
+                    balance = accountInfo.balance, 
+                    onChargeClick = { showChargeBottomSheet = true },
+                    onWithdrawClick = { showWithdrawBottomSheet = true }
+                )
+            }
+
+            item {
+                MyPageMenuGroup(
+                    title = "나의 활동",
+                    items = listOf(
+                        MyPageActionItem("최근 본 차") { navController.navigate(ROUTE_MYPAGE_RECENTLY_VIEWED) },
+                        MyPageActionItem("찜한 차") { navController.navigate(ROUTE_MYPAGE_LIKED_CARS) }
+                    )
+                )
+            }
+
+            item {
+                MyPageMenuGroup(
+                    title = "거래 내역",
+                    items = listOf(
+                        MyPageActionItem("판매 내역") { navController.navigate(ROUTE_MYPAGE_SALES_HISTORY) },
+                        MyPageActionItem("구매 내역") { navController.navigate(ROUTE_MYPAGE_PURCHASE_HISTORY) }
+                    )
+                )
+            }
+
+            item {
+                MyPageMenuGroup(
+                    title = "고객지원",
+                    items = listOf(
+                        MyPageActionItem("약관 및 정책") { navController.navigate(ROUTE_MYPAGE_TERMS) },
+                        MyPageActionItem("개인정보 처리방침") { navController.navigate(ROUTE_MYPAGE_PRIVACY_POLICY) },
+                        MyPageActionItem("로그아웃", true) { viewModel.onLogoutClicked() }
+                    )
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+    }
+}
+
+@Composable
+fun MyPageTopAppBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF4F4F4)) 
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(56.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("마이페이지", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun ProfileSection(
+    nickname: String,
+    email: String,
+    profileImageUrl: String?,
+    onProfileClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onProfileClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) 
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = if (profileImageUrl != null) {
+                    rememberAsyncImagePainter(model = profileImageUrl)
+                } else {
+                    painterResource(id = R.drawable.profile_placeholder)
+                },
+                contentDescription = "프로필 사진",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Grey_100),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = nickname,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AccountSection(
+    accountTitle: String,
+    balance: Long, 
+    onChargeClick: () -> Unit,
+    onWithdrawClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF5222D0)), 
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) 
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = accountTitle,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "${NumberFormat.getNumberInstance(Locale.KOREA).format(balance)}원",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier.padding(end = 12.dp)
+            )
+            TextButton(
+                onClick = onChargeClick,
+                modifier = Modifier.height(32.dp),
+                contentPadding = PaddingValues(horizontal = 6.dp)
+            ) {
+                Text("충전", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            }
+            Text(
+                text = "|",
+                color = Color.White.copy(alpha = 0.6f),
+                modifier = Modifier.align(Alignment.CenterVertically).padding(horizontal=2.dp)
+            )
+            TextButton(
+                onClick = onWithdrawClick,
+                modifier = Modifier.height(32.dp),
+                contentPadding = PaddingValues(horizontal = 6.dp)
+            ) {
+                Text("출금", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+/*
+@Composable
+fun AccountActionButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary, 
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
+    ) {
+        Text(text, fontWeight = FontWeight.Medium)
+    }
+}
+*/
+
+data class MyPageActionItem(val title: String, val isLogout: Boolean = false, val action: () -> Unit)
+
+@Composable
+fun MyPageMenuGroup(title: String, items: List<MyPageActionItem>) {
+    Column {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall, 
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                items.forEachIndexed { index, item ->
+                    MyPageMenuListItem(
+                        title = item.title,
+                        isLogout = item.isLogout,
+                        onClick = item.action
+                    )
+                    if (index < items.size - 1) {
+                        HorizontalDivider(
+                            color = Color(0xFFF0F0F0),
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(horizontal = 20.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MyPageMenuListItem(title: String, isLogout: Boolean = false, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium, 
+            color = if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        if (!isLogout) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "이동",
+                tint = Color.Gray
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun MyPageScreenPreview() {
     AppTheme {
-        MyPageScreen()
+        val navController = NavController(LocalContext.current)
+        MyPageScreen(navController = navController)
     }
 }
-
-@Composable
-fun MyPageScreen() {
-    // 앱 바 영역이 있기 때문에 전체 영역은 일단 컬럼으로 감싼다.
-    // - 앱바
-    // - 스크롤뷰
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White) // 일단은 테마 적용 안하고 흰색 배경으로
-    ) {
-        /// 앱바 영역
-        MyPageAppBar()
-
-        /// 스크롤뷰 영역
-        Column(
-            modifier = Modifier
-                .fillMaxWidth() // 컬럼 영역 전체 세로 폭으로 확장. 컨텐트 없는 부분도 제스쳐 인식되서 스크롤 되도록
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            /// 상단 프로필 카드
-            ProfileCard()
-
-            Spacer(Modifier.height(25.dp))
-
-            /// 내 계좌 카드
-            AccountCard()
-
-            Spacer(Modifier.height(25.dp))
-
-            /// 최근 본 차
-            MyRecentCars()
-
-            Spacer(Modifier.height(25.dp))
-
-            /// 찜한 차
-            MyRecentCars()
-
-            Spacer(Modifier.height(25.dp))
-        }
-    }
-}
-
-// 피그마 마이페이지에 있는 앱바가 다른 곳에는 일단 적용이 안 되어 있어서 이름을 MyPageAppBar로 지었습니다.
-// 나중에 공통 영역에서 앱바로 쓸 필요가 생기면 이름만 수정해서 사용할 수 있도록 컴포저블로 빼놨습니다.
-@Composable
-fun MyPageAppBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.trever_logo),
-            contentDescription = "마이페이지 앱바 트레버 로고",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .size(52.dp)
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Image(
-            painter = painterResource(id = R.drawable.gear_setting),
-            contentDescription = "셋팅 기어 아이콘",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .padding(end = 14.dp)
-                .size(30.dp)
-        )
-    }
-}
-
-@Composable
-fun ProfileCard() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = primaryLight,
-                shape = RoundedCornerShape(16.dp)  // 모서리 반경
-            )
-            .padding(horizontal = 16.dp)
-            .padding(vertical = 29.dp)
-    ) {
-        // 상단 Row: 프로필 이미지 + 이름/이메일 + 알림 아이콘
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // 프로필 이미지
-            // 기본 아이콘 사용 (Material Icons)
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Default Profile",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 이름/이메일
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("닉네임", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("nick@gmail.com", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
-            }
-
-            // 알림 아이콘
-            Icon(
-                painter = painterResource(R.drawable.ic_notification), // 벨 아이콘
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(40.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 하단 4개의 통계 버튼
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            StatItem(icon = R.drawable.ic_patients, number = "120+", label = "Patients")
-            StatItem(icon = R.drawable.ic_exp, number = "7+", label = "Years Exp")
-            StatItem(icon = R.drawable.ic_rating, number = "4.9", label = "Rating")
-            StatItem(icon = R.drawable.ic_reviews, number = "100+", label = "Reviews")
-        }
-    }
-}
-
-// 프로필 카드에 들어가는 4개의 통계 버튼
-@Composable
-fun StatItem(icon: Int, number: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier.size(40.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(number, color = Color.White, fontWeight = FontWeight.Bold)
-        Text(label, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
-    }
-}
-
-// 내 계좌 카드뷰
-@Composable
-fun AccountCard(
-    balance: String = "10,000원",
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                color = Color(0xFF6C4EFF),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        // 좌측 계좌 정보
-        Text(
-            text = "내 계좌",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-
-        // 우측 잔액 + 버튼
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = balance,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = "충전",
-                color = Color.White,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable {
-                    // 충전 클릭 시 처리
-                }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "출금",
-                color = Color.White,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable {
-                    // 출금 클릭 시 처리
-                }
-            )
-        }
-    }
-}
-
-// 임시 Car 데이터 클래스
-data class Car(
-    val name: String,
-    val type: String,
-    val price: String,
-    val year: String,
-    val km: String
-)
-
-// 최근 본 차
-@Composable
-fun MyRecentCars() {
-    val cars = listOf(
-        Car("GV80", "SUV", "2,300만원", "2024년", "15,000km"),
-        Car("GV80", "SUV", "2,300만원", "2024년", "15,000km"),
-        Car("GV80", "SUV", "2,300만원", "2024년", "15,000km")
-    )
-
-    Column {
-        Row(
-            modifier = Modifier
-                .height(40.dp)
-                .fillMaxWidth()
-            ,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("최근 본 차")
-            Image(
-                painter = painterResource(id = R.drawable.arrow_right_round),
-                contentDescription = null,
-                modifier = Modifier.size(26.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(cars) { car ->
-                MyPageCarCard(car)
-            }
-        }
-    }
-}
-
-
-@Composable
-fun MyPageCarCard(car: Car) {
-    Card(
-        modifier = Modifier
-            .width(180.dp)
-            .height(280.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent, // 배경을 투명하게 설정
-            contentColor = MaterialTheme.colorScheme.onSurface // 콘텐츠 색상 유지
-        ),
-        border = BorderStroke(1.dp, Grey_100) // 테두리 추가 (1.dp 두께, 회색)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(text = car.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text(text = car.type, color = Color.Gray, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            // 이미지 더미
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Car Image")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = car.price, fontWeight = FontWeight.Bold)
-            Text(text = car.year, color = Color.Gray, fontSize = 12.sp)
-            Text(text = car.km, color = Color.Gray, fontSize = 12.sp)
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
