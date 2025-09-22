@@ -41,12 +41,11 @@ fun SellCarMileageAndTypeScreen(
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     var mileage by remember { mutableStateOf(uiState.mileage) }
-    
-    // 연식 초기값: ViewModel의 selectedYear가 초기값이 아니면 사용, 아니면 빈 문자열
+
     val initialYearString = if (uiState.selectedYear != Calendar.getInstance().get(Calendar.YEAR)) {
         uiState.selectedYear.toString()
     } else {
-        "" // 사용자가 직접 입력해야 하는 경우 또는 선택 안한 경우
+        ""
     }
     var yearInput by remember(uiState.selectedYear) { mutableStateOf(initialYearString) }
     
@@ -54,11 +53,13 @@ fun SellCarMileageAndTypeScreen(
 
     val purpleColor = Color(0xFF6A11CB)
 
-    // 선택된 차량 정보 조합 (제조사 + 모델)
-    val selectedCarModelDisplay = listOfNotNull(
-        uiState.selectedManufacturer.takeIf { it.isNotBlank() },
-        uiState.selectedModel.takeIf { it.isNotBlank() }
-    ).joinToString(" ").ifEmpty { "(모델 정보 없음)" }
+    // 상세 모델명까지 포함하여 차량 정보 조합
+    val selectedCarModelDisplay = listOf(
+        uiState.selectedManufacturer,
+//        uiState.selectedModel,
+        uiState.selectedModelName
+    ).filter { it.isNotBlank() }.joinToString(" ")
+     .ifBlank { "(모델 정보 없음)" }
 
     val isCarModelInfoComplete = uiState.selectedManufacturer.isNotBlank() && uiState.selectedModel.isNotBlank()
 
@@ -94,7 +95,6 @@ fun SellCarMileageAndTypeScreen(
                 CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep)
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 수정된 차량 모델 표시부
                 DisplayInfoField(
                     label = "선택된 차량 모델",
                     value = selectedCarModelDisplay,
@@ -106,7 +106,7 @@ fun SellCarMileageAndTypeScreen(
                 Text("연식을 입력해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = yearInput, // ViewModel의 값으로 초기화된 로컬 상태 사용
+                    value = yearInput,
                     onValueChange = {
                         if (it.length <= 4) yearInput = it.filter { c -> c.isDigit() }
                     },
@@ -125,7 +125,7 @@ fun SellCarMileageAndTypeScreen(
                 )
 
                 AnimatedVisibility(
-                    visible = yearInput.length == 4, // 로컬 입력 상태(yearInput) 기준
+                    visible = yearInput.length == 4,
                     enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
                     exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut()
                 ) {
@@ -183,7 +183,7 @@ fun SellCarMileageAndTypeScreen(
                         )
                     }
                 }
-            } // 스크롤 Column 끝
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -205,7 +205,6 @@ fun SellCarMileageAndTypeScreen(
                 }
                 Button(
                     onClick = {
-                        // 입력된 연식(yearInput)으로 ViewModel 업데이트
                         sellCarViewModel.updateSelectedYear(yearInput.toIntOrNull() ?: Calendar.getInstance().get(Calendar.YEAR))
                         sellCarViewModel.updateMileage(mileage)
                         onNextClicked()
@@ -272,7 +271,6 @@ fun CarTypeBottomSheet(
                         val isSelected = tempSelectedType == type
                         Button(
                             onClick = { tempSelectedType = type },
-//                            modifier = Modifier.weight(1f).height(48.dp),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
@@ -282,8 +280,7 @@ fun CarTypeBottomSheet(
                                 contentColor = if (isSelected) Color.White else Color.Black
                             ),
                             border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null,
-                            contentPadding = PaddingValues(horizontal = 4.dp) // 버튼 내부 패딩을 최소화
-
+                            contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
                             Text(
                                 text = type,
@@ -296,7 +293,6 @@ fun CarTypeBottomSheet(
                     if (rowItems.size < 4) {
                         for (i in 0 until (4 - rowItems.size)) {
                             Spacer(modifier = Modifier.weight(1f))
-//                            Spacer(modifier = Modifier.weight(1f).height(48.dp))
                         }
                     }
                 }
@@ -346,28 +342,7 @@ fun DisplayInfoField(label: String, value: String, isComplete: Boolean) {
             text = value,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             fontSize = 16.sp,
-            color = if (value == "(모델 정보 없음)" && !isComplete) Color.Gray else Color.Black // 모델 정보 없을 때 회색 처리 추가
+            color = if (value == "(모델 정보 없음)" && !isComplete) Color.Gray else Color.Black
         )
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun SellCarMileageAndTypeScreenPreview() {
-//    AppTheme {
-//        val previewViewModel = remember { SellCarViewModel() }
-//        previewViewModel.updateCurrentStep(3) // 이 화면은 3단계 또는 그 이후
-//        previewViewModel.updateSelectedManufacturer("현대")
-//        previewViewModel.updateSelectedModel("아반떼 SN7")
-//        previewViewModel.updateSelectedYear(2023)
-//        // previewViewModel.updateSelectedCarType("준중형")
-//        // previewViewModel.updateMileage("15000")
-//
-//        SellCarMileageAndTypeScreen(
-//            sellCarViewModel = previewViewModel,
-//            onSystemBack = {},
-//            onStepBack = {},
-//            onNextClicked = {}
-//        )
-//    }
-//}

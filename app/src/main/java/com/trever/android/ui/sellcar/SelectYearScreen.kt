@@ -10,35 +10,32 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember // remember 추가 (Preview용)
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// NavController import 제거
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
-import java.util.Calendar
-
-// 더미 데이터 정의는 이전과 동일하게 유지
-val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-val dummyYears = (currentYear downTo currentYear - 20).toList().map { it.toString() }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectYearScreen(
     viewModel: SellCarViewModel,
-    onSystemBack: () -> Unit, // 시스템 뒤로가기 콜백
-    onYearSelected: () -> Unit, // 연식 선택 완료 콜백
-    // onStepBack: (() -> Unit)? = null // 화면 내 이전 버튼용 (필요시 추가)
+    onSystemBack: () -> Unit,
+    onYearSelected: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val titleText = if (uiState.selectedManufacturer.isNotBlank() && uiState.selectedModel.isNotBlank()) {
-        "${uiState.selectedManufacturer} ${uiState.selectedModel} 연식 선택"
+    val yearList = uiState.yearList
+
+    val titleText = if (uiState.selectedModelName.isNotBlank()) {
+        "${uiState.selectedModelName}"
+    } else if (uiState.selectedModel.isNotBlank()) {
+        "${uiState.selectedModel}"
     } else {
         "연식 선택"
     }
@@ -46,9 +43,9 @@ fun SelectYearScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(titleText, fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+                title = { Text("$titleText 연식 선택", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onSystemBack) { // onSystemBack 콜백 사용
+                    IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -57,18 +54,38 @@ fun SelectYearScreen(
         },
         containerColor = Color.White
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            items(dummyYears) { year ->
-                YearRow(year = year) {
-                    viewModel.updateSelectedYear(year.toInt())
-                    onYearSelected() // 다음 화면으로 전환 콜백 호출
+        if (uiState.isLoadingYears) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (yearList.isEmpty() && !uiState.isLoadingYears) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "선택하신 모델의 연식 정보가 없습니다.",
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
+            ) {
+                items(yearList) { year ->
+                    YearRow(year = year.toString()) {
+                        viewModel.updateSelectedYear(year)
+                        onYearSelected()
+                    }
+                    HorizontalDivider(color = Grey_100)
                 }
-                HorizontalDivider(color = Grey_100)
             }
         }
     }
@@ -91,13 +108,32 @@ fun YearRow(year: String, onClick: () -> Unit) {
 //@Composable
 //fun SelectYearScreenPreview() {
 //    AppTheme {
-//        val previewViewModel = remember { SellCarViewModel() }
-//        previewViewModel.updateSelectedManufacturer("현대")
-//        previewViewModel.updateSelectedModel("아반떼")
-//        SelectYearScreen(
-//            viewModel = previewViewModel,
-//            onSystemBack = {},
-//            onYearSelected = {}
-//        )
+//        val dummyYears = (2024 downTo 2010).toList()
+//
+//        Scaffold(
+//            topBar = {
+//                TopAppBar(
+//                    title = { Text("현대 쏘나타 연식 선택", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+//                    navigationIcon = {
+//                        IconButton(onClick = {}) {
+//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
+//                        }
+//                    },
+//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+//                )
+//            }
+//        ) { paddingValues ->
+//            LazyColumn(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(paddingValues)
+//                    .padding(horizontal = 16.dp)
+//            ) {
+//                items(dummyYears) { year ->
+//                    YearRow(year = year.toString()) {}
+//                    HorizontalDivider(color = Grey_100)
+//                }
+//            }
+//        }
 //    }
 //}

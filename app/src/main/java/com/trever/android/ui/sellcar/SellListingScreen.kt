@@ -11,23 +11,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-// import androidx.lifecycle.viewmodel.compose.viewModel // 이제 파라미터로 받으므로 이 임포트 삭제
 import androidx.compose.ui.platform.LocalContext
-//import androidx.compose.ui.unit.dp // 주석 처리된 InfoCheck에서만 사용
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
-import java.util.Calendar // ViewModel에서 연식 초기값 비교용
-//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
+import java.util.Calendar
 
-// 화면 상태를 정의하는 enum (이전과 동일)
+// 화면 상태를 정의하는 enum 수정
 enum class CurrentScreen {
     PlateNumber,
-//    Entry,
-//    InfoCheck,
     ModelPrompt,
     SelectManufacturer,
     SelectModel,
+    SelectModelName, // 상세 모델명 선택 화면 추가
     SelectYear,
     MileageAndType,
     Details,
@@ -40,13 +36,9 @@ enum class CurrentScreen {
 @Composable
 fun SellListingScreen(
     appNavController: NavHostController? = null,
-    sellCarViewModel: SellCarViewModel // ViewModel을 파라미터로 받음
+    sellCarViewModel: SellCarViewModel
 ) {
-    // val sellCarViewModel: SellCarViewModel = viewModel() // 이 줄 삭제
-    // 초기 화면
-    val context = LocalContext.current
-//    val sellCarViewModel: SellCarViewModel = viewModel(factory = SellCarViewModelFactory(context))
-    var currentScreen by remember { mutableStateOf(CurrentScreen.PlateNumber) } // 초기 화면을 다시 PlateNumber로 변경
+    var currentScreen by remember { mutableStateOf(CurrentScreen.PlateNumber) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -93,6 +85,18 @@ fun SellListingScreen(
                         viewModel = sellCarViewModel,
                         onSystemBack = { currentScreen = CurrentScreen.SelectManufacturer },
                         onModelSelected = {
+                            // 차명 선택 후, 상세 모델명 선택 화면으로 이동
+                            currentScreen = CurrentScreen.SelectModelName
+                        }
+                    )
+                }
+                // 신규: 상세 모델명 선택 화면 로직 추가
+                CurrentScreen.SelectModelName -> {
+                    SelectModelNameScreen(
+                        viewModel = sellCarViewModel,
+                        onSystemBack = { currentScreen = CurrentScreen.SelectModel },
+                        onModelNameSelected = {
+                            // 상세 모델명 선택 후, 연식 선택 화면으로 이동
                             currentScreen = CurrentScreen.SelectYear
                         }
                     )
@@ -100,7 +104,8 @@ fun SellListingScreen(
                 CurrentScreen.SelectYear -> {
                     SelectYearScreen(
                         viewModel = sellCarViewModel,
-                        onSystemBack = { currentScreen = CurrentScreen.SelectModel },
+                        // 뒤로가기 목적지를 SelectModel -> SelectModelName으로 수정
+                        onSystemBack = { currentScreen = CurrentScreen.SelectModelName },
                         onYearSelected = {
                             sellCarViewModel.updateCurrentStep(2)
                             currentScreen = CurrentScreen.MileageAndType
