@@ -20,9 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.common.math.LinearTransformation.horizontal
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
@@ -263,25 +265,38 @@ fun CarTypeBottomSheet(
 
             val rows = carTypes.chunked(4)
             rows.forEach { rowItems ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     rowItems.forEach { type ->
                         val isSelected = tempSelectedType == type
                         Button(
                             onClick = { tempSelectedType = type },
-                            modifier = Modifier.weight(1f).height(48.dp),
+//                            modifier = Modifier.weight(1f).height(48.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isSelected) selectedColor else Color.White,
                                 contentColor = if (isSelected) Color.White else Color.Black
                             ),
-                            border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null
+                            border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null,
+                            contentPadding = PaddingValues(horizontal = 4.dp) // 버튼 내부 패딩을 최소화
+
                         ) {
-                            Text(type, fontSize = 14.sp)
+                            Text(
+                                text = type,
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Visible
+                            )
                         }
                     }
                     if (rowItems.size < 4) {
                         for (i in 0 until (4 - rowItems.size)) {
-                            Spacer(modifier = Modifier.weight(1f).height(48.dp))
+                            Spacer(modifier = Modifier.weight(1f))
+//                            Spacer(modifier = Modifier.weight(1f).height(48.dp))
                         }
                     }
                 }

@@ -1,20 +1,17 @@
 package com.trever.android.ui.sellcar.viewmodel
 
-
 import android.app.Application
-import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.ViewModel // ViewModel 임포트 확인
-import com.trever.android.R // For placeholder drawable
-import com.trever.android.domain.model.AuctionCar
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-
 import androidx.lifecycle.viewModelScope
+import com.trever.android.R
 import com.trever.android.data.network.ApiClient
+// import com.trever.android.data.remote.CarNameDetail // 더 이상 사용하지 않음
+// import com.trever.android.data.remote.ManufacturerData // 더 이상 사용하지 않음
 import com.trever.android.data.repository.VehicleRepository
+import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.CarRegistrationRequest
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,10 +20,8 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import kotlin.text.get
-import kotlin.toString
 
-// SellCarUiState 데이터 클래스는 변경 없음 (이전 정의 사용)
+// SellCarUiState 데이터 클래스 수정
 data class SellCarUiState(
     val currentStep: Int = 1,
     val plateNumber: String = "",
@@ -49,20 +44,25 @@ data class SellCarUiState(
     val price: String = "",
     val transactionStartDateMillis: Long? = null,
     val transactionEndDateMillis: Long? = null,
+    val manufacturerDataMap: Map<String, List<String>> = emptyMap(),
+    val isLoadingManufacturers: Boolean = false,
+    val carNameList: List<String> = emptyList(), // List<CarNameDetail> -> List<String>
+    val isLoadingCarNames: Boolean = false
 )
 
-// @HiltViewModel 제거
-//class SellCarViewModel : ViewModel() { // @Inject constructor() 제거
 class SellCarViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(SellCarUiState())
     val uiState: StateFlow<SellCarUiState> = _uiState.asStateFlow()
-    // Repository에 application context 전달
     private val repository = VehicleRepository(ApiClient.vehicleApi, application.applicationContext)
-
 
     private val _registeredCars = MutableStateFlow<List<AuctionCar>>(emptyList())
     val registeredCars: StateFlow<List<AuctionCar>> = _registeredCars.asStateFlow()
 
+    init {
+        loadManufacturers()
+    }
+
+    // --- Update 함수들 ---
     fun updateCurrentStep(step: Int) {
         _uiState.update { it.copy(currentStep = step) }
     }
@@ -71,8 +71,17 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(plateNumber = plateNumber) }
     }
 
-    fun updateSelectedManufacturer(manufacturer: String) {
-        _uiState.update { it.copy(selectedManufacturer = manufacturer) }
+    fun updateSelectedManufacturer(category: String, manufacturer: String) {
+        _uiState.update {
+            it.copy(
+                selectedManufacturer = manufacturer,
+                selectedModel = "",
+                carNameList = emptyList()
+            )
+        }
+        if (manufacturer.isNotEmpty()) {
+            loadCarNamesForManufacturer(category, manufacturer)
+        }
     }
 
     fun updateSelectedModel(model: String) {
@@ -151,13 +160,14 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             )
         }
     }
+    // --- Update 함수들 끝 ---
 
-    fun completeRegistrationAndAddCar() {
+    fun completeRegistrationAndAddCar() { // 로컬 테스트용
         val currentState = _uiState.value
-        val newCar = AuctionCar(
+        val newCar = AuctionCar( /* ... 이전과 동일 ... */
             id = UUID.randomUUID().toString(),
             title = "${currentState.selectedManufacturer} ${currentState.selectedModel}".trim().ifEmpty { currentState.plateNumber.ifEmpty{"차량 정보 없음"} },
-            imageUrl = currentState.imageUris.firstOrNull()?.toString() ?: "drawable://" + R.drawable.sell_entry_banner_placeholder,
+            imageUrl = currentState.imageUris.firstOrNull()?.toString() ?: "drawable://${R.drawable.sell_entry_banner_placeholder}",
             year = currentState.selectedYear,
             mileageKm = currentState.mileage.filter { it.isDigit() }.toIntOrNull() ?: 0,
             currentPriceWon = currentState.price.filter { it.isDigit() }.toLongOrNull() ?: 0L,
@@ -166,8 +176,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             manufacturer = currentState.selectedManufacturer.ifEmpty { null },
             model = currentState.selectedModel.ifEmpty { null },
             transactionType = currentState.transactionType.ifEmpty { null },
-            mainOptions = currentState.selectedOptions // AuctionCar 모델의 mainOptions는 기본값으로 emptyList()를 가짐
-            // AuctionCar 모델의 tags는 기본값으로 emptyList()를 가짐
+            mainOptions = currentState.selectedOptions
         )
         _registeredCars.update { currentList -> currentList + newCar }
         resetUiStateForNewRegistration()
@@ -175,57 +184,93 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
 
     private fun resetUiStateForNewRegistration() {
         _uiState.value = SellCarUiState()
+        loadManufacturers()
     }
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(false) // 전체 등록 과정 로딩
     val isLoading = _isLoading.asStateFlow()
 
-    fun registerCar(
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
-        if (_isLoading.value) return // 이미 요청 중이면 무시
+    fun loadManufacturers() {
+        if (_uiState.value.isLoadingManufacturers) return
+        _uiState.update { it.copy(isLoadingManufacturers = true) }
+        viewModelScope.launch {
+            val result = repository.getManufacturersDataForSelection()
+            _uiState.update { currentState ->
+                result.fold(
+                    onSuccess = { dataMap ->
+                        currentState.copy(
+                            manufacturerDataMap = dataMap,
+                            isLoadingManufacturers = false
+                        )
+                    },
+                    onFailure = { exception ->
+                        Log.e("SellCarViewModel", "Failed to load manufacturers", exception)
+                        currentState.copy(isLoadingManufacturers = false)
+                    }
+                )
+            }
+        }
+    }
 
-        _isLoading.value = true // 로딩 상태 시작
+    private fun loadCarNamesForManufacturer(category: String, manufacturer: String) {
+        if (manufacturer.isBlank() || _uiState.value.isLoadingCarNames) return
+        _uiState.update { it.copy(isLoadingCarNames = true) }
+        viewModelScope.launch {
+            val result = repository.getCarNameList(category, manufacturer)
+            _uiState.update { currentState ->
+                result.fold(
+                    onSuccess = { data ->
+                        currentState.copy(carNameList = data, isLoadingCarNames = false)
+                    },
+                    onFailure = { exception ->
+                        Log.e("SellCarViewModel", "Failed to load car names for $manufacturer", exception)
+                        currentState.copy(isLoadingCarNames = false, carNameList = emptyList())
+                    }
+                )
+            }
+        }
+    }
+
+    fun registerCar(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (_isLoading.value) return
+        _isLoading.value = true
         viewModelScope.launch {
             try {
-                // uiState에서 데이터 가져오기
-                val isAuction = uiState.value.transactionType == "경매"
+                val currentState = _uiState.value
+                val isAuction = currentState.transactionType == "경매"
                 val request = CarRegistrationRequest(
-                    carNumber = uiState.value.plateNumber,
-                    carName = "${uiState.value.plateNumber} ${uiState.value.selectedModel}",
-                    description = uiState.value.description,
-                    manufacturer = uiState.value.plateNumber,
-                    model = uiState.value.selectedModel,
-                    year_value = uiState.value.selectedYear,
-                    mileage = uiState.value.mileage.toInt(),
-                    fuelType = uiState.value.fuelType,
-                    transmission = uiState.value.transmissionType,
-                    accidentHistory = uiState.value.hasAccidentHistory ?: false,
-                    accidentDescription = uiState.value.accidentDetails,
-                    engineCc = uiState.value.displacement.toInt(),
-                    horsepower = uiState.value.horsepower.toInt(),
-                    color = "화이트", // 색상 데이터가 없어 기본값 설정
+                    carNumber = currentState.plateNumber,
+                    carName = "${currentState.selectedManufacturer} ${currentState.selectedModel}".trim().ifEmpty { currentState.plateNumber },
+                    description = currentState.description,
+                    manufacturer = currentState.selectedManufacturer,
+                    model = currentState.selectedModel,
+                    year_value = currentState.selectedYear,
+                    mileage = currentState.mileage.toIntOrNull() ?: 0,
+                    fuelType = currentState.fuelType,
+                    transmission = currentState.transmissionType,
+                    accidentHistory = currentState.hasAccidentHistory ?: false,
+                    accidentDescription = currentState.accidentDetails,
+                    engineCc = currentState.displacement.toIntOrNull() ?: 0,
+                    horsepower = currentState.horsepower.toIntOrNull() ?: 0,
+                    color = currentState.color.ifEmpty { "정보 없음" },
                     additionalInfo = "",
                     isAuction = isAuction,
-                    price = if (!isAuction) uiState.value.price.toInt() * 10000  else null,
-                    startPrice = if (isAuction) uiState.value.price.toInt() * 10000  else null,
-                    startAt = if (isAuction) convertMillisToDateString(uiState.value.transactionStartDateMillis) else null,
-                    endAt = if (isAuction) convertMillisToDateString(uiState.value.transactionEndDateMillis) else null,
-                    locationAddress = "서울특별시 강남구 테헤란로 152", // 위치 데이터 기본값
-                    photoOrders = listOf(0, 1, 2, 3, 4), // 사진 순서
-                    vehicleType = convertToVehicleType(uiState.value.selectedCarType),
-                    options = uiState.value.selectedOptions
+                    price = if (!isAuction) (currentState.price.toIntOrNull() ?: 0) * 10000 else null,
+                    startPrice = if (isAuction) (currentState.price.toIntOrNull() ?: 0) * 10000 else null,
+                    startAt = if (isAuction) convertMillisToDateString(currentState.transactionStartDateMillis) else null,
+                    endAt = if (isAuction) convertMillisToDateString(currentState.transactionEndDateMillis) else null,
+                    locationAddress = "서울특별시 강남구 테헤란로 152",
+                    photoOrders = currentState.imageUris.indices.toList(),
+                    vehicleType = convertToVehicleType(currentState.selectedCarType),
+                    options = currentState.selectedOptions
                 )
-
-                // API 호출
-                repository.registerVehicle(request, uiState.value.imageUris)
+                repository.registerVehicle(request, currentState.imageUris)
                 onSuccess()
             } catch (e: Exception) {
                 Log.e("SellCarViewModel", "차량 등록 실패", e)
                 onError(e.message ?: "차량 등록 중 오류가 발생했습니다")
             } finally {
-                _isLoading.value = false // 로딩 상태 종료
+                _isLoading.value = false
             }
         }
     }
@@ -239,9 +284,8 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         return "$year-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}"
     }
 
-    // 차종을 API 요구 형식으로 변환
     private fun convertToVehicleType(carType: String): String {
-        return when(carType) {
+        return when (carType) {
             "대형" -> "LARGE"
             "중형" -> "MID_SIZE"
             "준중형" -> "SEMI_MID_SIZE"
@@ -250,7 +294,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             "SUV" -> "SUV"
             "스포츠" -> "SPORTS"
             "승합차" -> "VAN"
-            else -> "OTHER"
+            else -> carType.uppercase().replace(" ", "_")
         }
     }
 }

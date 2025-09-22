@@ -74,7 +74,7 @@ fun SellListingScreen(
                             currentScreen = CurrentScreen.SelectManufacturer
                         },
                         onConfirmAndProceedClicked = {
-                            sellCarViewModel.updateCurrentStep(3)
+                            sellCarViewModel.updateCurrentStep(2)
                             currentScreen = CurrentScreen.MileageAndType
                         },
                     )
@@ -102,7 +102,7 @@ fun SellListingScreen(
                         viewModel = sellCarViewModel,
                         onSystemBack = { currentScreen = CurrentScreen.SelectModel },
                         onYearSelected = {
-                            sellCarViewModel.updateCurrentStep(3)
+                            sellCarViewModel.updateCurrentStep(2)
                             currentScreen = CurrentScreen.MileageAndType
                         }
                     )
@@ -133,7 +133,7 @@ fun SellListingScreen(
                             sellCarViewModel.updateCurrentStep(2)
                         },
                         onNextClicked = {
-                            sellCarViewModel.updateCurrentStep(4)
+                            sellCarViewModel.updateCurrentStep(3)
                             currentScreen = CurrentScreen.Details
                         }
                     )
@@ -143,11 +143,11 @@ fun SellListingScreen(
                         sellCarViewModel = sellCarViewModel,
                         onSystemBack = { appNavController?.popBackStack() },
                         onStepBack = {
-                            sellCarViewModel.updateCurrentStep(3)
+                            sellCarViewModel.updateCurrentStep(2)
                             currentScreen = CurrentScreen.MileageAndType
                         },
                         onNextClicked = {
-                            sellCarViewModel.updateCurrentStep(5)
+                            sellCarViewModel.updateCurrentStep(4)
                             currentScreen = CurrentScreen.Visuals
                         }
                     )
@@ -157,11 +157,11 @@ fun SellListingScreen(
                         sellCarViewModel = sellCarViewModel,
                         onSystemBack = { appNavController?.popBackStack() },
                         onStepBack = {
-                            sellCarViewModel.updateCurrentStep(4)
+                            sellCarViewModel.updateCurrentStep(3)
                             currentScreen = CurrentScreen.Details
                          },
                         onNextClicked = {
-                            sellCarViewModel.updateCurrentStep(6)
+                            sellCarViewModel.updateCurrentStep(5)
                             currentScreen = CurrentScreen.Options
                         }
                     )
@@ -171,11 +171,11 @@ fun SellListingScreen(
                         sellCarViewModel = sellCarViewModel,
                         onSystemBack = { appNavController?.popBackStack() },
                         onStepBack = {
-                            sellCarViewModel.updateCurrentStep(5)
+                            sellCarViewModel.updateCurrentStep(4)
                             currentScreen = CurrentScreen.Visuals
                         },
                         onNextClicked = {
-                            sellCarViewModel.updateCurrentStep(7)
+                            sellCarViewModel.updateCurrentStep(6)
                             currentScreen = CurrentScreen.AccidentHistory
                         }
                     )
@@ -185,10 +185,11 @@ fun SellListingScreen(
                         sellCarViewModel = sellCarViewModel,
                         onSystemBack = { appNavController?.popBackStack() },
                         onStepBack = {
-                            sellCarViewModel.updateCurrentStep(6)
+                            sellCarViewModel.updateCurrentStep(5)
                             currentScreen = CurrentScreen.Options
                         },
                         onNextClicked = {
+                            sellCarViewModel.updateCurrentStep(7)
                             currentScreen = CurrentScreen.Price
                         }
                     )
@@ -198,6 +199,7 @@ fun SellListingScreen(
                         sellCarViewModel = sellCarViewModel,
                         onSystemBack = { appNavController?.popBackStack() },
                         onStepBack = {
+                            sellCarViewModel.updateCurrentStep(6)
                             currentScreen = CurrentScreen.AccidentHistory
                         },
                         onRegisterClicked = {
