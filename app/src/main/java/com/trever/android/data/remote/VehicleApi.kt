@@ -127,7 +127,7 @@ data class VehicleDetailResponse(
     val price: Long? = null,
     val isAuction: String? = null,
     val vehicleStatus: String? = null,
-    val auctionId: String? = null,
+    val auctionId: Long? = null,
     val favoriteCount: Int? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
