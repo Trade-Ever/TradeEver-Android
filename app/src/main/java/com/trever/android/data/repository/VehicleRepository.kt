@@ -145,6 +145,39 @@ class VehicleRepository(
         }
     }
 
+    suspend fun getModelNameList(category: String, manufacturer: String, carName: String): Result<List<String>> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.getModelNames(category, manufacturer, carName)
+            if (response.success && response.data != null) {
+                Result.success(response.data)
+            } else {
+                Result.failure(Exception(response.message ?: "Failed to load model names for $carName"))
+            }
+        } catch (e: Exception) {
+            Log.e("VehicleRepository", "Error fetching model names for $carName", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getYearList(
+        category: String,
+        manufacturer: String,
+        carName: String,
+        modelName: String
+    ): Result<List<Int>> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.getYears(category, manufacturer, carName, modelName)
+            if (response.success && response.data != null) {
+                Result.success(response.data)
+            } else {
+                Result.failure(Exception(response.message ?: "Failed to load years for $modelName"))
+            }
+        } catch (e: Exception) {
+            Log.e("VehicleRepository", "Error fetching years for $modelName", e)
+            Result.failure(e)
+        }
+    }
+
     private fun uriToFile(context: Context, uri: Uri, fileName: String): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val tempFile = File(context.cacheDir, fileName)

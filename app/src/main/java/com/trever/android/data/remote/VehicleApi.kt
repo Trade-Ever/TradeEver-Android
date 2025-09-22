@@ -25,18 +25,31 @@ interface VehicleApi {
         @Query("isAuction") isAuction: Boolean? = null
     ): ApiResponse<VehicleListResponse>
 
-    // (신규) category를 파라미터로 받는 새 제조사 목록 조회 함수
     @GET("api/cars/manufacturers")
     suspend fun getManufacturersByCategory(
         @Query("category") category: String
     ): ApiResponse<List<String>>
 
-    // 차명 목록 조회 API 변경
     @GET("api/cars/carnames")
     suspend fun getCarNames(
         @Query("category") category: String,
         @Query("manufacturer") manufacturer: String
     ): ApiResponse<List<String>>
+
+    @GET("api/cars/modelnames")
+    suspend fun getModelNames(
+        @Query("category") category: String,
+        @Query("manufacturer") manufacturer: String,
+        @Query("carName") carName: String
+    ): ApiResponse<List<String>>
+
+    @GET("api/cars/years")
+    suspend fun getYears(
+        @Query("category") category: String,
+        @Query("manufacturer") manufacturer: String,
+        @Query("carName") carName: String,
+        @Query("modelName") modelName: String
+    ): ApiResponse<List<Int>>
 
     @Multipart
     @POST("api/vehicles")

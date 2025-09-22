@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// import com.trever.android.data.remote.CarNameDetail // 더 이상 사용하지 않음
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
@@ -39,7 +38,7 @@ fun SelectModelScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (selectedManufacturer.isNotEmpty()) "$selectedManufacturer 모델 선택" else "모델 선택",
+                        text = if (selectedManufacturer.isNotEmpty()) "$selectedManufacturer 차명 선택" else "차명 선택",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -97,7 +96,7 @@ fun SelectModelScreen(
             ) {
                 items(carNameList) { carName ->
                     ModelRow(carName = carName) {
-                        viewModel.updateSelectedModel(carName)
+                        viewModel.updateSelectedModel(carName) // updateSelectedCarName -> updateSelectedModel
                         onModelSelected()
                     }
                     HorizontalDivider(
@@ -111,7 +110,7 @@ fun SelectModelScreen(
 }
 
 @Composable
-fun ModelRow(carName: String, onClick: () -> Unit) { // 파라미터를 String으로 변경
+fun ModelRow(carName: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,7 +119,7 @@ fun ModelRow(carName: String, onClick: () -> Unit) { // 파라미터를 String�
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = carName, // 전달받은 String 사용
+            text = carName,
             fontSize = 16.sp,
             color = Color.Black
         )
