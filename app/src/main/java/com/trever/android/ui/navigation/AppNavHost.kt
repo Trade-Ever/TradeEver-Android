@@ -70,6 +70,8 @@ const val PROFILE_INPUT = "profile_input"
 
 const val ROUTE_SEARCH = "search"
 
+const val ROUTE_CONTRACT = "contract/{contractPdfUrl}"
+
 @Composable
 fun AppNavHost(
     navController: NavHostController,

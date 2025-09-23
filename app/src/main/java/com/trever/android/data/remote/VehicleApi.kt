@@ -66,7 +66,43 @@ interface VehicleApi {
 
     @GET("api/vehicles/{id}")
     suspend fun getVehicleDetail(@Path("id") id: String): ApiResponse<VehicleDetailResponse>
+
+    @POST("api/v1/transactions/apply/{vehicleId}")
+    suspend fun applyBuy(@Path("vehicleId") vehicleId: String): ApiResponse<BuyApplyData>
+
+    @GET("api/v1/transactions/requests/{vehicleId}")
+    suspend fun getBuyRequests(@Path("vehicleId") vehicleId: String): ApiResponse<List<BuyApplyData>>
+
+    @POST("api/v1/transactions/select/{vehicleId}")
+    suspend fun selectBuyer(
+        @Path("vehicleId") vehicleId: String,
+        @Query("buyerId") buyerId: Long
+    ): ApiResponse<SelectBuyerResponse>
 }
+
+@Serializable
+data class SelectBuyerResponse(
+    val transactionId: Long,
+    val vehicleId: Long,
+    val vehicleName: String,
+    val buyerName: String,
+    val sellerName: String,
+    val finalPrice: Long,
+    val status: String,
+    val createdAt: String,
+    val contractId: Long,
+    val contractPdfUrl: String
+)
+
+@Serializable
+data class BuyApplyData(
+    val id: Long,
+    val buyerId: Long,
+    val vehicleId: Long,
+    val buyerName: String,
+    val vehicleName: String,
+    val createdAt: String
+)
 
 
 @Serializable
@@ -135,6 +171,9 @@ data class VehicleDetailResponse(
     val updatedAt: String? = null,
     val sellerId: Int? = null,
     val sellerName: String? = null,
+    val sellerLocationCity: String? = null, // 추가
+    val sellerPhone: String? = null,        // 추가
+    val sellerProfileImageUrl: String? = null, // 추가
     val photos: List<PhotoResponse> = emptyList(),
     val vehicleTypeName: String? = null,
     val options: List<String>? = null

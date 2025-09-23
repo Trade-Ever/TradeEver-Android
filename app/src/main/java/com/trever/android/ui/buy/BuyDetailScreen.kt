@@ -1,5 +1,10 @@
 package com.trever.android.ui.buy
 
+
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,6 +22,8 @@ import com.trever.android.ui.auction.AuctionDetailUi
 import com.trever.android.ui.components.DetailContent
 import com.trever.android.ui.components.SellingBadge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -24,12 +31,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.data.remote.toBuyDetailUi
 import com.trever.android.ui.auction.SellerUi
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AppOutlinedButton
+import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
 
 @Composable
@@ -42,6 +51,7 @@ fun BuyDetailScreen(
     onBuy: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showInquirySheet by remember { mutableStateOf(false) }
 
     // 화면 진입시 데이터 로드
     LaunchedEffect(carId) {
@@ -49,13 +59,15 @@ fun BuyDetailScreen(
     }
 
     var showBuySheet by remember { mutableStateOf(false) }
-    val blur by animateDpAsState(if (showBuySheet) 12.dp else 0.dp, label = "")
+    var showBuyerSelectSheet by remember { mutableStateOf(false) }
+    val buyerList by viewModel.buyerList.collectAsState()
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
-                .blur(blur)
+
         ) {
             when (val state = uiState) {
                 is BuyDetailUiState.Loading -> {
@@ -69,7 +81,10 @@ fun BuyDetailScreen(
 
                 is BuyDetailUiState.Success -> {
                     // API 응답 데이터를 UI 모델로 변환
+                    val isSeller = state.vehicle.isSeller
+                    val isSoldOut = state.vehicle.vehicleStatus == "판매완료"
                     val detailUi = state.vehicle.toBuyDetailUi()
+                    val sellerPhone = detailUi.seller?.phoneNumber ?: ""
 
                     DetailContent(
                         item = detailUi,
@@ -78,13 +93,69 @@ fun BuyDetailScreen(
                         showBidSection = false,  // 입찰 섹션 표시 안 함
                         onMoreBids = null,       // 입찰 내역 보기 기능 비활성화
                         bottomBar = {
-                            BuyBottomActionBar(
-                                price = detailUi.priceWonText,
-                                onBuy = { showBuySheet = true },
-                                onInquiry = onInquiry
-                            )
+                            if (isSoldOut) {
+                                // 판매완료 표시만
+                                SoldOutBottomActionBar()
+                            }
+                            else if (isSeller) {
+                                SellerBottomActionBar(
+                                    onComplete = {
+                                        viewModel.loadBuyRequests(carId)
+                                        showBuyerSelectSheet = true
+                                    }
+                                )
+                            } else {
+                                BuyBottomActionBar(
+                                    price = detailUi.priceWonText,
+                                    onBuy = { showBuySheet = true },
+                                    onInquiry = { showInquirySheet = true }
+                                )
+                            }
                         }
                     )
+                    if (showInquirySheet) {
+                        InquirySheet(
+                            sellerPhone = sellerPhone,
+                            onDismiss = { showInquirySheet = false }
+                        )
+                    }
+
+                    if (showBuySheet) {
+                        val context = LocalContext.current
+
+                        BuyConfirmSheet(
+                            onConfirm = {
+                                viewModel.applyBuy(carId) { success, message ->
+                                    Toast.makeText(
+                                        context,
+                                        if (success) "신청 성공: $message" else "신청 실패: $message",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    Log.d("BuyDetailScreen", "Buy application result: $message")
+                                }
+                                showBuySheet = false
+                            },
+                            onDismiss = { showBuySheet = false }
+                        )
+                    }
+                    // 3. 바텀시트(구매자 선택)
+                    if (showBuyerSelectSheet) {
+                        val context = LocalContext.current
+                        BuyerSelectSheet(
+                            buyers = buyerList.map { it.buyerName },
+                            onSelect = { selectedBuyerName ->
+                                val selectedBuyer = buyerList.find { it.buyerName == selectedBuyerName }
+                                selectedBuyer?.let {
+                                    viewModel.selectBuyer(carId, it.buyerId) { success, message, response ->
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        // 필요시 response 활용
+                                    }
+                                }
+                                showBuyerSelectSheet = false
+                            },
+                            onDismiss = { showBuyerSelectSheet = false }
+                        )
+                    }
                 }
 
                 is BuyDetailUiState.Error -> {
@@ -99,18 +170,123 @@ fun BuyDetailScreen(
         }
     }
 
-    if (showBuySheet) {
-        // 현재 가격 정보 가져오기
-        val currentPrice = (uiState as? BuyDetailUiState.Success)?.vehicle?.toBuyDetailUi()?.priceWon ?: 0L
 
-        BuyConfirmSheet(
-            price = currentPrice,
-            onConfirm = {
-                onBuy()
-                showBuySheet = false
-            },
-            onDismiss = { showBuySheet = false }
+}
+
+@Composable
+private fun SoldOutBottomActionBar(
+    modifier: Modifier = Modifier
+) {
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = cs.backgroundColor,
+        contentColor = cs.onSurface,
+        tonalElevation = 2.dp,
+        shadowElevation = 12.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(16.dp)
+        ) {
+            AppOutlinedButton(
+                text = "판매완료",
+                onClick = {},
+                enabled = false,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun SellerBottomActionBar(
+    onComplete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = cs.backgroundColor,
+        contentColor = cs.onSurface,
+        tonalElevation = 2.dp,
+        shadowElevation = 12.dp
+    ) { Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(16.dp)
+    ) {
+        AppOutlinedButton(
+            text = "판매완료로 변경하기",
+            onClick = onComplete,
+            modifier = Modifier
+                .fillMaxWidth()
+
         )
+    }}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BuyerSelectSheet(
+    buyers: List<String>,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val (selected, setSelected) = remember { mutableStateOf<String?>(null) }
+    val cs = MaterialTheme.colorScheme
+
+    ModalBottomSheet(
+        containerColor = cs.backgroundColor,
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("구매자를 선택하세요", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(16.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                buyers.forEach { buyer ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(1f)
+                            .padding(vertical = 6.dp)
+                            .clickable { setSelected(buyer) }
+                            .background(
+                                if (selected == buyer) cs.primary.copy(alpha = 0.1f) else Color.Transparent,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = buyer,
+                            color = if (selected == buyer) cs.primary else cs.G_200
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            AppFilledButton(
+                text = "구매자 선택하기",
+                onClick = { selected?.let { onSelect(it) } },
+                enabled = selected != null,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 @Composable
@@ -121,6 +297,8 @@ private fun BuyBottomActionBar(
     modifier: Modifier = Modifier
 ) {
     val cs = MaterialTheme.colorScheme
+
+
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -159,8 +337,8 @@ private fun BuyBottomActionBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
+//@OptIn(ExperimentalMaterial3Api::class)
+/*@Composable
 private fun BuyConfirmSheet(
     price: Long,
     onConfirm: () -> Unit,
@@ -240,50 +418,100 @@ private fun BuyConfirmSheet(
             Spacer(Modifier.height(16.dp))
         }
     }
+}*/
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun InquirySheet(
+    sellerPhone: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val cs = MaterialTheme.colorScheme
+
+    ModalBottomSheet(
+        containerColor = cs.backgroundColor,
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("문의 방법 선택", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(16.dp))
+            AppFilledButton(
+                text = "전화 문의",
+                onClick = {
+                    val intent = Intent(Intent.ACTION_DIAL).apply {
+                        data = Uri.parse("tel:$sellerPhone")
+                    }
+                    context.startActivity(intent)
+                    onDismiss()
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(12.dp))
+            AppOutlinedButton(
+                text = "문자 문의",
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        data = Uri.parse("sms:$sellerPhone")
+                    }
+                    context.startActivity(intent)
+                    onDismiss()
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+    }
 }
 
-private fun demoBuyDetail() = AuctionDetailUi(
-    images = listOf(
-        "https://picsum.photos/id/1018/1600/900",
-        "https://picsum.photos/id/1015/1600/900",
-        "https://picsum.photos/id/1020/1600/900",
-    ),
-    liked = false,
-    title = "현대 아반떼 CN7",
-    subTitle = "2023년 · 1.5만km",
-    priceWon = 22_500_000,
-    priceWonText = "2,250만원",
-    startPriceText = "",  // 경매가 아니므로 시작가 필요 없음
-    likeCount = 18,
-    remainText = "",      // 경매가 아니므로 남은 시간 필요 없음
-    specs = listOf(
-        "연료" to "가솔린",
-        "변속기" to "자동",
-        "배기량(cc)" to "1,598cc",
-        "마력" to "123마력",
-        "색상" to "아마존 그레이",
-        "기타 정보" to listOf(
-            "열선시트(앞좌석)", "스마트키", "내비게이션(정품)",
-            "블루투스", "전동시트(운전석)", "통풍시트(앞좌석)"
-        ).joinToString("\n"),
-        "사고 이력" to "없음",
-        "사고 설명" to ""
-    ),
-    notice = "신차 보증기간 이내의 차량입니다.\n" +
-            "\n" +
-            "풀옵션 차량으로 편의장비 완벽하게 갖춰진 차량입니다.",
-    bids = emptyList(),  // 입찰 내역 없음
-    seller = SellerUi(
-        name = "이판매",
-        id = "seller456",
-        addr = "서울 강남구 역삼동",
-        regDate = "2025.08.22",
-        validDate = "2025.10.12",
-        count = 57,
-        response = 98,
-        avatarUrl = null
-    )
-)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BuyConfirmSheet(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+
+    ModalBottomSheet(
+        containerColor = cs.backgroundColor,
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("구매 신청", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(16.dp))
+
+
+            AppFilledButton(
+                text = "신청하기",
+                onClick = {
+                    onConfirm()
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(12.dp))
+            AppOutlinedButton(
+                text = "취소",
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+
 
 private fun formatKoreanWon(amount: Long): String {
     val 억 = amount / 100_000_000

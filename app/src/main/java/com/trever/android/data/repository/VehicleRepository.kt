@@ -178,6 +178,36 @@ class VehicleRepository(
         }
     }
 
+    suspend fun selectBuyer(vehicleId: String, buyerId: Long): Result<SelectBuyerResponse> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.selectBuyer(vehicleId, buyerId)
+            if (response.success && response.data != null) {
+                Result.success(response.data)
+            } else {
+                Result.failure(Exception(response.message))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getBuyRequests(vehicleId: String): Result<List<BuyApplyData>> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.getBuyRequests(vehicleId)
+            if (response.success && response.data != null) {
+                Result.success(response.data)
+            } else {
+                Result.failure(Exception(response.message))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun applyBuy(vehicleId: String): ApiResponse<BuyApplyData> {
+        return api.applyBuy(vehicleId)
+    }
+
     private fun uriToFile(context: Context, uri: Uri, fileName: String): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val tempFile = File(context.cacheDir, fileName)
@@ -188,4 +218,6 @@ class VehicleRepository(
         }
         return tempFile
     }
+
+
 }

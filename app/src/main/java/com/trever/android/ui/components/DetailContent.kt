@@ -118,7 +118,8 @@ fun DetailContent(
                     priceWon = item.priceWon,
                     likeCount = item.likeCount,
                     priceColor = cs.Green,
-                    badge = badge
+                    badge = badge,
+                    carName = item.carName
                 )
             }
             item {
@@ -169,6 +170,7 @@ fun DetailContent(
 
 @Composable
 private fun TitleSection(
+    carName: String,
     title: String,
     subTitle: String,
     priceWon: Long,
@@ -189,6 +191,12 @@ private fun TitleSection(
             Spacer(Modifier.width(4.dp))
             Icon(Icons.Default.FavoriteBorder, contentDescription = null, tint = Color(0xFF9198A1))
         }
+        Text(
+            text = carName,
+            color = cs.onSurface,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+
+        )
         Spacer(Modifier.height(2.dp))
         Text(text = subTitle, color = Color(0xFF9198A1))
 
@@ -455,11 +463,11 @@ private fun SellerSection(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val keyW = 72.dp
-                KeyValueLine(key = "판매자 ID", value = seller.id,       keyWidth = keyW)
+                KeyValueLine(key = "판매자", value = seller.name,       keyWidth = keyW)
                 KeyValueLine(key = "주소",     value = seller.addr,     keyWidth = keyW)
                 Spacer(Modifier.height(4.dp))
-                KeyValueLine(key = "등록일",   value = seller.regDate,  keyWidth = keyW)
-                KeyValueLine(key = "수정일",   value = seller.validDate, keyWidth = keyW)
+//                KeyValueLine(key = "등록일",   value = seller.,  keyWidth = keyW)
+//                KeyValueLine(key = "수정일",   value = seller.validDate, keyWidth = keyW)
             }
 
         }
