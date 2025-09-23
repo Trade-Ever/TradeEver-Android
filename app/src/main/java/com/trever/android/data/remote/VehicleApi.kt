@@ -13,6 +13,9 @@ import retrofit2.http.Query
 
 interface VehicleApi {
 
+    @GET("api/vehicles/check-car-number")
+    suspend fun checkCarNumber(@Query("carNumber") carNumber: String): ApiResponse<CarNumberCheckDto>
+
     @GET("api/vehicles")
     suspend fun listVehicles(
         @Query("page") page: Int,
@@ -64,6 +67,11 @@ interface VehicleApi {
     suspend fun getVehicleDetail(@Path("id") id: String): ApiResponse<VehicleDetailResponse>
 }
 
+@Serializable
+data class CarNumberCheckDto(
+    val carNumber: String,
+    val exists: Boolean
+)
 
 @Serializable
 data class ApiResponse<T>(

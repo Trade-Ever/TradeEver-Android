@@ -2,6 +2,7 @@ package com.trever.android.ui.sellcar
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -88,11 +89,11 @@ fun SellEntryScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp), // 이미지 컨테이너 높이
+                            .height(250.dp), // 이미지 컨테이너 높이
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.purple_car_44),
+                            painter = painterResource(id = R.drawable.purple_car_78),
                             contentDescription = "차량 등록 배경",
                             modifier = Modifier.matchParentSize(),
                             contentScale = ContentScale.Fit
@@ -101,11 +102,16 @@ fun SellEntryScreen(
                             onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .offset(y = (-50).dp),
-                            shape = RoundedCornerShape(4.dp),
+                                .offset(y = (-40).dp)
+                                .border(
+                                    width = 4.dp, // Adjust the border thickness as needed
+                                    color = Color.Gray,
+                                    shape = RoundedCornerShape(8.dp) // Use the same shape for the border
+                                ),
+                            shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
-                                contentColor = Color.Black
+                                contentColor = Color.Black,
                             ),
                             elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
@@ -113,7 +119,7 @@ fun SellEntryScreen(
                                 text = "차량 등록하기",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 1.dp)
                             )
                         }
                     }
@@ -148,7 +154,7 @@ fun SellEntryScreen(
                             else -> {
                                 Text(
                                     text = "내가 등록한 차량",
-                                    style = MaterialTheme.typography.titleLarge,
+                                    style = MaterialTheme.typography.titleMedium, // Changed to a smaller style
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
                                 )

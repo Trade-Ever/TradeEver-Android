@@ -26,6 +26,20 @@ class VehicleRepository(
     private val context: Context? = null,
     private val gson: Gson = Gson()
 ) {
+
+    suspend fun checkCarNumber(carNumber: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.checkCarNumber(carNumber)
+            if (response.success) {
+                Result.success(response.data.exists)
+            } else {
+                Result.failure(Exception(response.message))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getMyVehicles(page: Int = 0, size: Int = 10): Result<MyVehiclesResponse> {
         return withContext(Dispatchers.IO) {
             try {
