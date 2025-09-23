@@ -24,7 +24,7 @@ data class UserProfile(
 )
 
 data class AccountInfo(
-    val accountName: String = "내 예치금 계좌",
+    val accountName: String = "내 계좌",
     val balance: Long = 1_234_567,
     val bankName: String? = "트레버 은행",
     val accountNumber: String = "123-456-789012"
