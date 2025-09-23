@@ -141,35 +141,32 @@ class AuctionListViewModel : ViewModel() {
         viewModelScope.launch {
             repository.getAuctions(currentPage)
                 .onSuccess { auctions ->
+                    // Firebase 데이터로 갱신
+                    val updatedAuctions = auctionRepository.updateAuctionsWithFirebaseData(auctions)
                     val currentState = _uiState.value
                     val newState = if (currentState is AuctionListUiState.Success && !isRefresh) {
-                        // 기존 목록에 새로운 아이템 추가
                         currentState.copy(
-                            auctions = currentState.auctions + auctions,
+                            auctions = currentState.auctions + updatedAuctions,
                             currentPage = currentPage,
-                            hasMorePages = auctions.isNotEmpty() && auctions.size == 10 // 페이지 크기가 10이면
+                            hasMorePages = updatedAuctions.isNotEmpty() && updatedAuctions.size == 10
                         )
                     } else {
-                        // 새로운 목록 설정
                         AuctionListUiState.Success(
-                            auctions = auctions,
+                            auctions = updatedAuctions,
                             currentPage = currentPage,
-                            hasMorePages = auctions.isNotEmpty() && auctions.size == 10
+                            hasMorePages = updatedAuctions.isNotEmpty() && updatedAuctions.size == 10
                         )
                     }
-
                     _uiState.value = newState
-                    isLastPage = auctions.isEmpty() || auctions.size < 10
+                    isLastPage = updatedAuctions.isEmpty() || updatedAuctions.size < 10
                 }
                 .onFailure { error ->
                     Log.e("AuctionListViewModel", "Error loading auctions", error)
                     _uiState.value = AuctionListUiState.Error(error.message ?: "알 수 없는 오류")
                 }
-
             isLoading = false
         }
     }
-
     fun loadNextPage() {
         if (!isLoading && !isLastPage) {
             currentPage++
@@ -210,25 +207,18 @@ class AuctionListViewModel : ViewModel() {
             "https://trever-ec541-default-rtdb.asia-southeast1.firebasedatabase.app/auctions"
         ).addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // 현재 상태가 Success인 경우에만 업데이트
                 val currentState = _uiState.value
                 if (currentState is AuctionListUiState.Success) {
-                    // 기존 목록을 유지하면서 Firebase 데이터로 업데이트
+                    // 현재까지 불러온 모든 경매 목록을 Firebase 데이터로 업데이트
                     viewModelScope.launch {
                         val updatedAuctions = auctionRepository.updateAuctionsWithFirebaseData(
                             currentState.auctions
                         )
                         _uiState.value = currentState.copy(auctions = updatedAuctions)
                     }
-                } else {
-                    // 아직 데이터가 로드되지 않은 경우에만 전체 로드
-                    loadAuctionsWithFirebaseData()
                 }
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("AuctionListViewModel", "Firebase listener error: ${error.message}")
-            }
+            override fun onCancelled(error: DatabaseError) { /* ... */ }
         })
     }
 }

@@ -38,6 +38,7 @@ fun RecentlyViewedCarsScreen(
     val tabs = listOf("최근", "찜")
 
     val recentlyViewedCars by viewModel.recentlyViewedCars.collectAsState()
+    val likedCars by viewModel.likedCars.collectAsState()
 
     LaunchedEffect(selectedTabIndex) {
         when (selectedTabIndex) {
@@ -84,8 +85,11 @@ fun RecentlyViewedCarsScreen(
                     }
                 }
                 1 -> {
-                    // 찜한 차량은 아직 AuctionCar를 사용하므로, 추후 RecentlyViewedCar와 유사한 모델로 교체 필요
-                    EmptyState(message = "찜한 내역이 없습니다.")
+                    if (likedCars.isEmpty()) {
+                        EmptyState(message = "찜한 내역이 없습니다.")
+                    } else {
+                        LikedCarList(cars = likedCars, navController = navController)
+                    }
                 }
             }
         }
@@ -100,7 +104,6 @@ private fun CarList(cars: List<RecentlyViewedCar>, navController: NavController)
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(cars, key = { it.id }) { car ->
-            // RecentlyViewedCar를 ListingItem이 요구하는 AuctionCar로 변환
             val auctionCar = AuctionCar(
                 id = car.id,
                 title = car.title,
@@ -112,22 +115,40 @@ private fun CarList(cars: List<RecentlyViewedCar>, navController: NavController)
                 model = car.model,
                 tags = emptyList(),
                 mainOptions = emptyList(),
+                startAtMillis = 0L, // 임시값 추가
                 endsAtMillis = 0L,
                 liked = false,
-                auctionId = if(car.isAuction) car.id.toLongOrNull() else null, // 임시 처리
+                auctionId = if(car.isAuction) car.id.toLongOrNull() else null, 
                 transactionType = if(car.isAuction) "경매" else "일반"
             )
 
             ListingItem(
                 car = auctionCar,
-                onClick = {
-                    // TODO: 상세 화면으로 이동하는 네비게이션 로직 구현
-                    // navController.navigate("vehicleDetail/${car.id}")
-                },
+                onClick = { /* TODO: 상세 화면 이동 */ },
                 onToggleLike = { /* TODO: 찜하기 로직 */ },
                 showBadge = car.isAuction,
                 showAuctionMeta = car.isAuction,
                 priceLabel = if (car.isAuction) "최고 입찰가" else "판매 가격"
+            )
+        }
+    }
+}
+
+@Composable
+private fun LikedCarList(cars: List<AuctionCar>, navController: NavController) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(all = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(cars, key = { it.id }) { car ->
+            ListingItem(
+                car = car,
+                onClick = { /* TODO: 상세 화면 이동 */ },
+                onToggleLike = { /* TODO: 찜하기 로직 */ },
+                showBadge = car.transactionType == "경매",
+                showAuctionMeta = car.transactionType == "경매",
+                priceLabel = if (car.transactionType == "경매") "최고 입찰가" else "판매 가격"
             )
         }
     }
@@ -149,12 +170,3 @@ private fun EmptyState(message: String) {
         )
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun RecentlyViewedCarsScreenPreview() {
-//    AppTheme {
-//        // Preview에서는 ViewModel을 직접 주입할 수 없으므로, 로직이 없는 상태로 렌더링됩니다.
-//        RecentlyViewedCarsScreen(navController = rememberNavController())
-//    }
-//}

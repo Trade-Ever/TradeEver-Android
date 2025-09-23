@@ -150,6 +150,8 @@ data class VehicleDetailResponse(
     val transmission: String? = null,
     val accidentHistory: String? = null,
     val accidentDescription: String? = null,
+    val isSeller: Boolean? = null,
+    val favorite: Boolean? = null,
     val engineCc: Int? = null,
     val horsepower: Int? = null,
     val color: String? = null,

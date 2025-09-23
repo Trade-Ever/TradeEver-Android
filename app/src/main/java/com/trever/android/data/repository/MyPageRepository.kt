@@ -3,6 +3,8 @@ package com.trever.android.data.repository
 import android.util.Log
 import com.trever.android.data.remote.MyPageApi
 import com.trever.android.data.remote.RecentlyViewedCarDto
+import com.trever.android.data.remote.toAuctionCar
+import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.RecentlyViewedCar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -27,6 +29,24 @@ class MyPageRepository(private val myPageApi: MyPageApi) {
             }
         } catch (e: Exception) {
             Log.e("MyPageRepository", "최근 본 차량 로드 실패", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * "찜한 차량" 목록을 서버에서 가져옵니다. (캐시 해결을 위한 주석 추가)
+     */
+    suspend fun getLikedCars(): Result<List<AuctionCar>> = withContext(Dispatchers.IO) {
+        try {
+            val response = myPageApi.getLikedCars()
+            if (response.success) {
+                val domainModels = response.data.map { it.toAuctionCar() }
+                Result.success(domainModels)
+            } else {
+                Result.failure(Exception(response.message))
+            }
+        } catch (e: Exception) {
+            Log.e("MyPageRepository", "찜한 차량 로드 실패", e)
             Result.failure(e)
         }
     }

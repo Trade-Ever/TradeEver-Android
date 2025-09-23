@@ -10,6 +10,9 @@ interface MyPageApi {
 
     @GET("api/v1/recent-views")
     suspend fun getRecentlyViewedCars(): ApiResponse<List<RecentlyViewedCarDto>>
+
+    @GET("api/v1/favorites")
+    suspend fun getLikedCars(): ApiResponse<List<VehicleSummaryDto>>
 }
 
 /**

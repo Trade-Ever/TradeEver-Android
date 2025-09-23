@@ -6,7 +6,10 @@ import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuctionApi
 import com.trever.android.data.remote.AuthApi
 import com.trever.android.data.remote.TransactionApi
+import com.trever.android.data.remote.ProfileApi
+import com.trever.android.data.remote.SearchApi
 import com.trever.android.data.remote.VehicleApi
+import com.trever.android.data.remote.WalletApi
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -14,6 +17,7 @@ import retrofit2.Retrofit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import okhttp3.MediaType.Companion.toMediaType
+import kotlin.jvm.java
 
 object ApiClient {
 
@@ -35,6 +39,17 @@ object ApiClient {
         private set
 
 
+    lateinit var walletApi: WalletApi
+        private set
+
+    lateinit var profileApi: ProfileApi
+        private set
+
+    lateinit var searchApi: SearchApi
+        private set
+
+//    lateinit var profileApi: ProfileApi
+//        private set
 
     fun init(context: Context, baseUrl: String = BASE_URL) {
         tokenStore = TokenStore(context)
@@ -91,6 +106,11 @@ object ApiClient {
         transactionApi = retrofit.create(TransactionApi::class.java)
 
 
+        walletApi = retrofit.create(WalletApi::class.java)
+        profileApi = retrofit.create(ProfileApi::class.java)
+        profileApi = retrofit.create(ProfileApi::class.java)
+        searchApi = retrofit.create(SearchApi::class.java)
+        auctionApi = retrofit.create(AuctionApi::class.java)
 
 
     }

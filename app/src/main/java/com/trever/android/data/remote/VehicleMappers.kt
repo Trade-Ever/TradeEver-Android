@@ -1,6 +1,7 @@
 package com.trever.android.data.remote
 
 import com.trever.android.domain.model.AuctionCar
+import com.trever.android.domain.model.SearchCarItem
 import com.trever.android.domain.model.SellerInfo
 import com.trever.android.domain.model.Tag
 import com.trever.android.domain.model.VehicleDetail
@@ -45,6 +46,7 @@ fun VehicleDto.toAuctionCar(): AuctionCar {
         mainOptions = mainOptions ?: emptyList(),
         currentPriceWon = price ?: 0L,
         endsAtMillis = System.currentTimeMillis() + 86400000,
+        startAtMillis = System.currentTimeMillis() + 86400000,
         liked = false,
         auctionId = auctionId ?: 0
     )
@@ -61,7 +63,8 @@ fun VehicleSummaryDto.toAuctionCar(): AuctionCar {
         mainOptions = mainOptions ?: emptyList(),
         currentPriceWon = price ?: 0L,
         // TODO: API 응답에 경매 종료 시간이 없으므로 임시값 사용
-        endsAtMillis = System.currentTimeMillis() + 86400000, 
+        endsAtMillis = System.currentTimeMillis() + 86400000,
+        startAtMillis = System.currentTimeMillis(),
         liked = isFavorite ?: false,
         auctionId = auctionId ?: 0
     )
@@ -152,10 +155,39 @@ fun VehicleSummary.toAuctionCarForDisplay(): AuctionCar {
         mainOptions = mainOptions,
         currentPriceWon = priceWon ?: 0L,
         endsAtMillis = 0L, // 경매 종료 시간
+        startAtMillis = 0L,
         liked = false,
         auctionId = auctionId ?: 0
     )
 }
+
+fun Vehicle.toSearchCarItem(): SearchCarItem =
+    if (this.isAuction == "Y") {
+        SearchCarItem.Auction(
+            id = (this.id ?: 0L).toString(),
+            title = "${this.manufacturer ?: ""} ${this.carName ?: ""} ${this.model ?: ""}",
+            year = this.year_value ?: 0,
+            mileageKm = this.mileage ?: 0,
+            imageUrl = this.representativePhotoUrl,
+            liked = this.isFavorite ?: false,
+            currentPriceWon = (this.price ?: 0) * 10000L,
+            endsAtMillis = 0L, // 실제 종료 시간 필요시 매핑
+            startAtMillis = 0L,
+            mainOptions = this.mainOptions ?: emptyList(),
+            auctionId = this.auctionId ?: 0L
+        )
+    } else {
+        SearchCarItem.General(
+            id = (this.id ?: 0L).toString(),
+            title = "${this.manufacturer ?: ""} ${this.carName ?: ""} ${this.model ?: ""}",
+            year = this.year_value ?: 0,
+            mileageKm = this.mileage ?: 0,
+            imageUrl = this.representativePhotoUrl,
+            liked = this.isFavorite ?: false,
+            priceWon = (this.price ?: 0) * 10000L,
+            mainOptions = this.mainOptions ?: emptyList()
+        )
+    }
 
 fun VehicleDetail.toBuyDetailUi(): AuctionDetailUi {
     val priceValue = price
