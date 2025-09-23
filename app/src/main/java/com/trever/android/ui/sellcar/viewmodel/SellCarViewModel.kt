@@ -7,8 +7,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.trever.android.R
 import com.trever.android.data.network.ApiClient
-// import com.trever.android.data.remote.CarNameDetail // 더 이상 사용하지 않음
-// import com.trever.android.data.remote.ManufacturerData // 더 이상 사용하지 않음
 import com.trever.android.data.repository.VehicleRepository
 import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.CarRegistrationRequest
@@ -21,12 +19,12 @@ import java.util.Calendar
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-// SellCarUiState 데이터 클래스 수정
 data class SellCarUiState(
     val currentStep: Int = 1,
     val plateNumber: String = "",
     val selectedManufacturer: String = "",
-    val selectedModel: String = "",
+    val selectedModel: String = "", // '차명' (예: 쏘나타)
+    val selectedModelName: String = "", // '상세 모델명' (예: DN8)
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     val selectedCarType: String = "",
     val mileage: String = "",
@@ -46,8 +44,12 @@ data class SellCarUiState(
     val transactionEndDateMillis: Long? = null,
     val manufacturerDataMap: Map<String, List<String>> = emptyMap(),
     val isLoadingManufacturers: Boolean = false,
-    val carNameList: List<String> = emptyList(), // List<CarNameDetail> -> List<String>
-    val isLoadingCarNames: Boolean = false
+    val carNameList: List<String> = emptyList(),
+    val isLoadingCarNames: Boolean = false,
+    val modelNameList: List<String> = emptyList(),
+    val isLoadingModelNames: Boolean = false,
+    val yearList: List<Int> = emptyList(), // 연식 리스트 추가
+    val isLoadingYears: Boolean = false // 연식 로딩 상태 추가
 )
 
 class SellCarViewModel(application: Application) : AndroidViewModel(application) {
@@ -62,7 +64,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         loadManufacturers()
     }
 
-    // --- Update 함수들 ---
+    // --- 상태 업데이트 함수들 ---
     fun updateCurrentStep(step: Int) {
         _uiState.update { it.copy(currentStep = step) }
     }
@@ -76,16 +78,44 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             it.copy(
                 selectedManufacturer = manufacturer,
                 selectedModel = "",
-                carNameList = emptyList()
+                selectedModelName = "",
+                carNameList = emptyList(),
+                modelNameList = emptyList(),
+                yearList = emptyList()
             )
         }
         if (manufacturer.isNotEmpty()) {
-            loadCarNamesForManufacturer(category, manufacturer)
+            loadCarNames(category, manufacturer)
         }
     }
 
     fun updateSelectedModel(model: String) {
-        _uiState.update { it.copy(selectedModel = model) }
+        _uiState.update {
+            it.copy(
+                selectedModel = model,
+                selectedModelName = "",
+                modelNameList = emptyList(),
+                yearList = emptyList()
+            )
+        }
+        if (model.isNotEmpty()) {
+            val state = _uiState.value
+            val category = findCategoryForManufacturer(state.selectedManufacturer)
+            if (category != null) {
+                loadModelNames(category, state.selectedManufacturer, model)
+            }
+        }
+    }
+
+    fun updateSelectedModelName(modelName: String) {
+        _uiState.update { it.copy(selectedModelName = modelName, yearList = emptyList()) }
+        if (modelName.isNotEmpty()) {
+            val state = _uiState.value
+            val category = findCategoryForManufacturer(state.selectedManufacturer)
+            if (category != null) {
+                loadYears(category, state.selectedManufacturer, state.selectedModel, modelName)
+            }
+        }
     }
 
     fun updateSelectedYear(year: Int) {
@@ -160,11 +190,10 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             )
         }
     }
-    // --- Update 함수들 끝 ---
 
-    fun completeRegistrationAndAddCar() { // 로컬 테스트용
+    fun completeRegistrationAndAddCar() {
         val currentState = _uiState.value
-        val newCar = AuctionCar( /* ... 이전과 동일 ... */
+        val newCar = AuctionCar(
             id = UUID.randomUUID().toString(),
             title = "${currentState.selectedManufacturer} ${currentState.selectedModel}".trim().ifEmpty { currentState.plateNumber.ifEmpty{"차량 정보 없음"} },
             imageUrl = currentState.imageUris.firstOrNull()?.toString() ?: "drawable://${R.drawable.sell_entry_banner_placeholder}",
@@ -172,6 +201,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             mileageKm = currentState.mileage.filter { it.isDigit() }.toIntOrNull() ?: 0,
             currentPriceWon = currentState.price.filter { it.isDigit() }.toLongOrNull() ?: 0L,
             endsAtMillis = currentState.transactionEndDateMillis ?: (System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)),
+            startAtMillis = currentState.transactionStartDateMillis ?: System.currentTimeMillis(),
             liked = false,
             manufacturer = currentState.selectedManufacturer.ifEmpty { null },
             model = currentState.selectedModel.ifEmpty { null },
@@ -187,10 +217,9 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         loadManufacturers()
     }
 
-    private val _isLoading = MutableStateFlow(false) // 전체 등록 과정 로딩
-    val isLoading = _isLoading.asStateFlow()
+    // --- 데이터 로드 함수들 ---
 
-    fun loadManufacturers() {
+    private fun loadManufacturers() {
         if (_uiState.value.isLoadingManufacturers) return
         _uiState.update { it.copy(isLoadingManufacturers = true) }
         viewModelScope.launch {
@@ -198,10 +227,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             _uiState.update { currentState ->
                 result.fold(
                     onSuccess = { dataMap ->
-                        currentState.copy(
-                            manufacturerDataMap = dataMap,
-                            isLoadingManufacturers = false
-                        )
+                        currentState.copy(manufacturerDataMap = dataMap, isLoadingManufacturers = false)
                     },
                     onFailure = { exception ->
                         Log.e("SellCarViewModel", "Failed to load manufacturers", exception)
@@ -212,7 +238,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun loadCarNamesForManufacturer(category: String, manufacturer: String) {
+    private fun loadCarNames(category: String, manufacturer: String) {
         if (manufacturer.isBlank() || _uiState.value.isLoadingCarNames) return
         _uiState.update { it.copy(isLoadingCarNames = true) }
         viewModelScope.launch {
@@ -231,19 +257,71 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun registerCar(onSuccess: () -> Unit, onError: (String) -> Unit) {
+    private fun loadModelNames(category: String, manufacturer: String, carName: String) {
+        if (carName.isBlank() || _uiState.value.isLoadingModelNames) return
+        _uiState.update { it.copy(isLoadingModelNames = true) }
+        viewModelScope.launch {
+            val result = repository.getModelNameList(category, manufacturer, carName)
+            _uiState.update { currentState ->
+                result.fold(
+                    onSuccess = { data ->
+                        currentState.copy(modelNameList = data, isLoadingModelNames = false)
+                    },
+                    onFailure = { exception ->
+                        Log.e("SellCarViewModel", "Failed to load model names for $carName", exception)
+                        currentState.copy(isLoadingModelNames = false, modelNameList = emptyList())
+                    }
+                )
+            }
+        }
+    }
+
+    private fun loadYears(category: String, manufacturer: String, carName: String, modelName: String) {
+        if (modelName.isBlank() || _uiState.value.isLoadingYears) return
+        _uiState.update { it.copy(isLoadingYears = true) }
+        viewModelScope.launch {
+            val result = repository.getYearList(category, manufacturer, carName, modelName)
+            _uiState.update { currentState ->
+                result.fold(
+                    onSuccess = { data ->
+                        currentState.copy(yearList = data.sortedDescending(), isLoadingYears = false)
+                    },
+                    onFailure = { exception ->
+                        Log.e("SellCarViewModel", "Failed to load years for $modelName", exception)
+                        currentState.copy(isLoadingYears = false, yearList = emptyList())
+                    }
+                )
+            }
+        }
+    }
+
+    private fun findCategoryForManufacturer(manufacturer: String): String? {
+        return _uiState.value.manufacturerDataMap.entries.find { it.value.contains(manufacturer) }?.key
+    }
+
+    // --- 차량 등록 함수 ---
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    fun registerCar(
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
         if (_isLoading.value) return
+
         _isLoading.value = true
         viewModelScope.launch {
             try {
                 val currentState = _uiState.value
                 val isAuction = currentState.transactionType == "경매"
+
                 val request = CarRegistrationRequest(
                     carNumber = currentState.plateNumber,
-                    carName = "${currentState.selectedManufacturer} ${currentState.selectedModel}".trim().ifEmpty { currentState.plateNumber },
+                    carName = currentState.selectedModel, // 차명 (예: 쏘나타)
                     description = currentState.description,
                     manufacturer = currentState.selectedManufacturer,
-                    model = currentState.selectedModel,
+                    model = currentState.selectedModelName, // 상세 모델명 (예: DN8)
                     year_value = currentState.selectedYear,
                     mileage = currentState.mileage.toIntOrNull() ?: 0,
                     fuelType = currentState.fuelType,
@@ -259,11 +337,12 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
                     startPrice = if (isAuction) (currentState.price.toIntOrNull() ?: 0) * 10000 else null,
                     startAt = if (isAuction) convertMillisToDateString(currentState.transactionStartDateMillis) else null,
                     endAt = if (isAuction) convertMillisToDateString(currentState.transactionEndDateMillis) else null,
-                    locationAddress = "서울특별시 강남구 테헤란로 152",
+                    locationAddress = "서울특별시 강남구 테헤란로 152", // TODO: 실제 주소 입력 UI 필요
                     photoOrders = currentState.imageUris.indices.toList(),
                     vehicleType = convertToVehicleType(currentState.selectedCarType),
                     options = currentState.selectedOptions
                 )
+
                 repository.registerVehicle(request, currentState.imageUris)
                 onSuccess()
             } catch (e: Exception) {

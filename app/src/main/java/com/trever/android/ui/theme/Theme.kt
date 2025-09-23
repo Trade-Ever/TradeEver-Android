@@ -20,7 +20,9 @@ val ColorScheme.bottomBarUnselected: Color
     @Composable
     get() = if (isSystemInDarkTheme()) Grey_300_Dark else Grey_300
 
-
+val ColorScheme.P_300: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Color(0xFFA076F9) else Color(0xFFA076F9)
 
 
 val ColorScheme.G_300: Color

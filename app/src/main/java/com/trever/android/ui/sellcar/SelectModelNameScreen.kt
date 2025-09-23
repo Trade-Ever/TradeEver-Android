@@ -24,21 +24,21 @@ import com.trever.android.ui.theme.Grey_100
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectModelScreen(
+fun SelectModelNameScreen(
     viewModel: SellCarViewModel,
     onSystemBack: () -> Unit,
-    onModelSelected: () -> Unit
+    onModelNameSelected: () -> Unit // 상세 모델명 선택 완료 콜백
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val selectedManufacturer = uiState.selectedManufacturer
-    val carNameList = uiState.carNameList // List<String>
+    val selectedCarName = uiState.selectedModel // 차명 (예: 쏘나타)
+    val modelNameList = uiState.modelNameList // 상세 모델명 리스트
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (selectedManufacturer.isNotEmpty()) "$selectedManufacturer 차명 선택" else "차명 선택",
+                        text = if (selectedCarName.isNotEmpty()) "$selectedCarName 상세 모델" else "상세 모델 선택",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -52,39 +52,20 @@ fun SelectModelScreen(
         },
         containerColor = Color.White
     ) { paddingValues ->
-        if (uiState.isLoadingCarNames) {
+        if (uiState.isLoadingModelNames) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
             }
-        } else if (carNameList.isEmpty() && selectedManufacturer.isNotEmpty() && !uiState.isLoadingCarNames) {
+        } else if (modelNameList.isEmpty() && selectedCarName.isNotEmpty() && !uiState.isLoadingModelNames) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "${selectedManufacturer}의 차량 모델 정보가 없습니다.\n다른 제조사를 선택해보세요.",
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
-                )
-            }
-        } else if (selectedManufacturer.isEmpty()) {
-             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "먼저 제조사를 선택해주세요.",
+                    text = "${selectedCarName}의 세부 모델 정보가 없습니다.",
                     textAlign = TextAlign.Center
                 )
             }
@@ -94,10 +75,10 @@ fun SelectModelScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                items(carNameList) { carName ->
-                    ModelRow(carName = carName) {
-                        viewModel.updateSelectedModel(carName) // updateSelectedCarName -> updateSelectedModel
-                        onModelSelected()
+                items(modelNameList) { modelName ->
+                    ModelNameRow(modelName = modelName) {
+                        viewModel.updateSelectedModelName(modelName)
+                        onModelNameSelected()
                     }
                     HorizontalDivider(
                         color = Grey_100,
@@ -110,7 +91,7 @@ fun SelectModelScreen(
 }
 
 @Composable
-fun ModelRow(carName: String, onClick: () -> Unit) {
+fun ModelNameRow(modelName: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,7 +100,7 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = carName,
+            text = modelName,
             fontSize = 16.sp,
             color = Color.Black
         )
@@ -128,15 +109,16 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
 
 //@Preview(showBackground = true)
 //@Composable
-//fun SelectModelScreenPreview() {
+//fun SelectModelNameScreenPreview() {
 //    AppTheme {
-//        val dummyManufacturer = "현대"
-//        val dummyCarNames = listOf("쏘나타", "그랜저", "아반떼", "투싼")
+//        // This is a simplified preview and won't reflect real ViewModel state
+//        val dummyCarName = "투싼"
+//        val dummyModelNames = listOf("뉴투싼", "뉴투싼iX", "신형투싼", "올뉴투싼", "투싼", "투싼iX")
 //
 //        Scaffold(
 //            topBar = {
 //                TopAppBar(
-//                    title = { Text("$dummyManufacturer 모델 선택", fontWeight = FontWeight.Bold) },
+//                    title = { Text("$dummyCarName 상세 모델", fontWeight = FontWeight.Bold) },
 //                    navigationIcon = {
 //                        IconButton(onClick = {}) {
 //                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -151,8 +133,8 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
 //                    .fillMaxSize()
 //                    .padding(paddingValues)
 //            ) {
-//                items(dummyCarNames) { carName ->
-//                    ModelRow(carName = carName) {}
+//                items(dummyModelNames) { modelName ->
+//                    ModelNameRow(modelName = modelName) {}
 //                    HorizontalDivider(
 //                        color = Grey_100,
 //                        modifier = Modifier.padding(horizontal = 16.dp)

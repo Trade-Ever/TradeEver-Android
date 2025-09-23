@@ -86,12 +86,12 @@ class AuctionDetailViewModel(
     }
 
     // 입찰 함수 추가
-    fun placeBid(auctionId: Int, bidPrice: Long, bidderId: Int) {
+    fun placeBid(auctionId: Int, bidPrice: Long) {
         viewModelScope.launch {
             _bidResult.value = null // 초기화
-
+            Log.d("AuctionDetailViewModel", "입찰 요청: auctionId=$auctionId, bidPrice=$bidPrice")
             try {
-                auctionRepository.placeBid(auctionId, bidPrice, bidderId)
+                auctionRepository.placeBid(auctionId, bidPrice)
                     .collect { result ->
                         _bidResult.value = result
 

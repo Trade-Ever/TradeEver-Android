@@ -5,7 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface AuctionApi {
-    @POST("api/auctions/bid")
+    @POST("api/auctions/bids")
     suspend fun placeBid(@Body request: BidRequest): BaseResponse<BidData>
 }
 
@@ -34,5 +34,5 @@ data class BidData(
 data class BidRequest(
     val auctionId: Int,
     val bidPrice: Long,
-    val bidderId: Int
+
 )

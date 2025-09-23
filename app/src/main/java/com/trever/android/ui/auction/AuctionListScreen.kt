@@ -34,6 +34,9 @@ import com.trever.android.domain.model.AuctionCar
 import java.util.concurrent.TimeUnit
 import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.theme.backgroundColor
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 //@Composable
@@ -88,6 +91,8 @@ fun AuctionListScreen(
 ) {
     val cs = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
+
+
 
     // 당겨서 새로고침 상태
     var refreshing by remember { mutableStateOf(false) }

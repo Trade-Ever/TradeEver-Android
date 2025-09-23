@@ -48,7 +48,7 @@ fun MainScreen(
                         parentNavController.navigate("buy/detail/$carId")  // 여기에서 네비게이션 처리
                     },
                     onToggleLike = { /* 좋아요 처리 */ },
-                    onSearchClick = { /* 검색 화면으로 이동 */ }
+                    onSearchClick = { parentNavController.navigate("search") }
                 )
             }
 
