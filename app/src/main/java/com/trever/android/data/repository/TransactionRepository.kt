@@ -17,15 +17,20 @@ class TransactionRepository(private val transactionApi: TransactionApi) {
      */
     suspend fun getSalesHistory(): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         try {
+            Log.d("TransactionRepository", "판매 내역 로드를 시작합니다.")
             val response = transactionApi.getSalesHistory()
+            Log.d("TransactionRepository", "서버 응답: $response") // 서버 응답 전체를 로그로 출력
+
             if (response.success) {
                 val domainModels = response.data.map { it.toDomainModel() }
+                Log.d("TransactionRepository", "판매 내역 파싱 성공: ${domainModels.size}개")
                 Result.success(domainModels)
             } else {
+                Log.e("TransactionRepository", "판매 내역 API 실패: ${response.message}")
                 Result.failure(Exception(response.message))
             }
         } catch (e: Exception) {
-            Log.e("TransactionRepository", "판매 내역 로드 실패", e)
+            Log.e("TransactionRepository", "판매 내역 로드 중 예외 발생", e)
             Result.failure(e)
         }
     }

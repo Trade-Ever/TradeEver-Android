@@ -5,6 +5,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuctionApi
 import com.trever.android.data.remote.AuthApi
+import com.trever.android.data.remote.TransactionApi
 import com.trever.android.data.remote.VehicleApi
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -28,6 +29,9 @@ object ApiClient {
         private set
 
     lateinit var auctionApi: AuctionApi
+        private set
+
+    lateinit var transactionApi: TransactionApi
         private set
 
 
@@ -84,6 +88,7 @@ object ApiClient {
             .build()
 
         vehicleApi = retrofit.create(VehicleApi::class.java)
+        transactionApi = retrofit.create(TransactionApi::class.java)
 
 
 

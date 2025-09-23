@@ -74,56 +74,45 @@ android {
 }
 
 dependencies {
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
-//    implementation("androidx.compose.material:material-icons-extended:<최신_버전>")
+    // Compose Material (M2) - Pull-to-refresh를 위해 1.6.8 버전 유지
+    implementation("androidx.compose.material:material:1.6.8")
     implementation("androidx.compose.material:material-icons-extended")
 
-    implementation("androidx.compose.material:material-icons-core:1.6.8")
-    implementation("androidx.compose.material:material-icons-extended")
-
+    // Compose Material3 (M3)
     implementation("androidx.compose.material3:material3:1.3.2")
 
-    // Navigation-Compose
+    // ViewModel, Navigation, Coil 등
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
-
-    // Activity Compose - 1.9.2 버전 직접 명시 삭제하여 충돌 해결
-    // implementation("androidx.activity:activity-compose:1.9.2")
     implementation("io.coil-kt:coil-compose:2.6.0")
-
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
-
     implementation("androidx.compose.ui:ui-text")
 
+    // Network (OkHttp, Retrofit, Serialization)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // Import the Firebase BoM
+    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
-
-
-    // TODO: Add the dependencies for Firebase products you want to use
-    // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
-
     implementation("com.google.firebase:firebase-database-ktx:20.3.0")
-
-    implementation("androidx.compose.material:material:1.5.4")
 
     // 구글 로그인
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
-    // Koin 의존성 추가
+    // Koin
     implementation("io.insert-koin:koin-core:3.5.0")
     implementation("io.insert-koin:koin-android:3.5.0")
     implementation("io.insert-koin:koin-androidx-compose:3.5.0")
 
-
+    // 기본 라이브러리 (libs 카탈로그 사용)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -131,8 +120,9 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
+
+    // 테스트 라이브러리
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
