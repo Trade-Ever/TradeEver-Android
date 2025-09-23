@@ -34,19 +34,23 @@ class MyPageRepository(private val myPageApi: MyPageApi) {
     }
 
     /**
-     * "찜한 차량" 목록을 서버에서 가져옵니다. (캐시 해결을 위한 주석 추가)
+     * "찜한 차량" 목록을 서버에서 가져옵니다.
      */
     suspend fun getLikedCars(): Result<List<AuctionCar>> = withContext(Dispatchers.IO) {
         try {
+            Log.d("MyPageRepository", "찜 목록 조회 API 호출 시작")
             val response = myPageApi.getLikedCars()
+            Log.d("MyPageRepository", "찜 목록 조회 응답: $response")
+
             if (response.success) {
                 val domainModels = response.data.map { it.toAuctionCar() }
                 Result.success(domainModels)
             } else {
+                Log.e("MyPageRepository", "찜 목록 API 조회 실패: ${response.message}")
                 Result.failure(Exception(response.message))
             }
         } catch (e: Exception) {
-            Log.e("MyPageRepository", "찜한 차량 로드 실패", e)
+            Log.e("MyPageRepository", "찜 목록 조회 중 예외 발생", e)
             Result.failure(e)
         }
     }

@@ -3,15 +3,12 @@ package com.trever.android.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.trever.android.data.remote.toAuctionCar
 import com.trever.android.data.remote.toSearchCarItem
 import com.trever.android.ui.auction.AuctionDetailScreen
 import com.trever.android.ui.auction.BidHistoryScreen
@@ -19,20 +16,18 @@ import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.auth.LoginScreen
 import com.trever.android.ui.auth.ProfileInputScreen
 import com.trever.android.ui.buy.BuyDetailScreen
-import com.trever.android.ui.myPage.screens.LikedCarsScreen
+//import com.trever.android.ui.main.MainScreen
 import com.trever.android.ui.myPage.screens.MyAccountScreen
 import com.trever.android.ui.myPage.screens.PrivacyPolicyScreen
 import com.trever.android.ui.myPage.screens.RecentlyViewedCarsScreen
 import com.trever.android.ui.myPage.screens.TermsScreen
-import com.trever.android.ui.myPage.screens.TransactionHistoryScreen // 통합 스크린 임포트
+import com.trever.android.ui.myPage.screens.TransactionHistoryScreen
 import com.trever.android.ui.search.SearchResultScreen
 import com.trever.android.ui.search.SearchScreen
 import com.trever.android.ui.search.SearchSelectCarModelScreen
 import com.trever.android.ui.search.SearchSelectCarNameScreen
 import com.trever.android.ui.search.SearchSelectManufacturerScreen
 import com.trever.android.ui.search.SearchViewModel
-import org.koin.androidx.compose.koinViewModel
-
 import com.trever.android.ui.sellcar.SellListingScreen
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -42,8 +37,7 @@ const val ROUTE_BUY_DETAIL = "buy/detail/{carId}"
 
 // MyPage Sub-Screen Routes
 const val ROUTE_MYPAGE_ACCOUNT = "myPage/account"
-const val ROUTE_MYPAGE_RECENTLY_VIEWED = "myPage/recentlyViewed"
-const val ROUTE_MYPAGE_LIKED_CARS = "myPage/likedCars"
+const val ROUTE_MYPAGE_RECENTLY_VIEWED = "myPage/recentlyViewed/{initialTabIndex}" // 탭 인덱스 인자 추가
 const val ROUTE_MYPAGE_SALES_HISTORY = "myPage/salesHistory"
 const val ROUTE_MYPAGE_PURCHASE_HISTORY = "myPage/purchaseHistory"
 const val ROUTE_MYPAGE_TERMS = "myPage/terms"
@@ -88,8 +82,6 @@ fun AppNavHost(
             )
         }
 
-
-
         composable(
             route = "search?manufacturer={manufacturer}&carName={carName}&carModel={carModel}",
             arguments = listOf(
@@ -98,9 +90,6 @@ fun AppNavHost(
                 navArgument("carModel") { nullable = true; defaultValue = "" }
             )
         ) { backStackEntry ->
-
-
-
             SearchScreen(
                 viewModel = searchViewModel,
                 onShowResults = { navController.navigate("search/results") },
@@ -114,7 +103,6 @@ fun AppNavHost(
         }
 
         composable("search/selectManufacturer") {
-
             SearchSelectManufacturerScreen(
                 viewModel = searchViewModel,
                 onSystemBack = { navController.popBackStack() },
@@ -207,7 +195,6 @@ fun AppNavHost(
             )
         }
 
-        // ▼ 바텀바 없는 풀스크린들
         composable(
             route = ROUTE_AUCTION_DETAIL,
             arguments = listOf(
@@ -262,18 +249,23 @@ fun AppNavHost(
         composable(ROUTE_MYPAGE_ACCOUNT) {
             MyAccountScreen(navController = navController)
         }
-        composable(ROUTE_MYPAGE_RECENTLY_VIEWED) {
-            RecentlyViewedCarsScreen(navController = navController)
-        }
-        composable(ROUTE_MYPAGE_LIKED_CARS) {
-            LikedCarsScreen(navController = navController)
+        composable(
+            route = ROUTE_MYPAGE_RECENTLY_VIEWED,
+            arguments = listOf(navArgument("initialTabIndex") {
+                type = NavType.IntType
+                defaultValue = 0
+            })
+        ) { backStackEntry ->
+            val initialTabIndex = backStackEntry.arguments?.getInt("initialTabIndex") ?: 0
+            RecentlyViewedCarsScreen(
+                navController = navController,
+                initialTabIndex = initialTabIndex
+            )
         }
         composable(ROUTE_MYPAGE_SALES_HISTORY) {
-            // 판매 내역 클릭 시, 통합 스크린을 0번 탭(판매)으로 시작
             TransactionHistoryScreen(navController = navController, initialTabIndex = 0)
         }
         composable(ROUTE_MYPAGE_PURCHASE_HISTORY) {
-            // 구매 내역 클릭 시, 통합 스크린을 1번 탭(구매)으로 시작
             TransactionHistoryScreen(navController = navController, initialTabIndex = 1)
         }
         composable(ROUTE_MYPAGE_TERMS) {
@@ -294,15 +286,5 @@ fun AppNavHost(
                 }
             )
         }
-
     }
-}
-
-@Composable
-fun LoginScreenWrapper(onLoginSuccess: () -> Unit) {
-    val viewModel: AuthViewModel = koinViewModel()
-    LoginScreen(
-        viewModel = viewModel,
-        onLoginSuccess = onLoginSuccess
-    )
 }

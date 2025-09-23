@@ -93,7 +93,7 @@ fun SellEntryScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.purple_car_78),
+                            painter = painterResource(id = R.drawable.purple_car_80),
                             contentDescription = "차량 등록 배경",
                             modifier = Modifier.matchParentSize(),
                             contentScale = ContentScale.Fit

@@ -71,10 +71,11 @@ fun SellCarPlateNumberScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
                         onClick = { sellCarViewModel.resetPlateNumberCheck() },
-                        modifier = Modifier.fillMaxWidth(),
+                        // Remove fillMaxWidth() to make it compact
+                        modifier = Modifier,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB)),
-                        contentPadding = PaddingValues(vertical = 16.dp)
+                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 40.dp) // Add horizontal padding
                     ) {
                         Text(
                             text = "확인",

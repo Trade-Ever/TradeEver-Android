@@ -29,9 +29,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.trever.android.R
 import com.trever.android.data.remote.UserInfo
 import com.trever.android.ui.myPage.components.ProfileEditSheetContent
-import com.trever.android.ui.myPage.components.TransactionSheetContent // 바텀시트 임포트
-import com.trever.android.ui.myPage.components.formatAmountToManwon // 금액 포맷팅 함수 임포트
-import com.trever.android.ui.navigation.ROUTE_MYPAGE_LIKED_CARS
+import com.trever.android.ui.myPage.components.TransactionSheetContent
+import com.trever.android.ui.myPage.components.formatAmountToManwon
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PRIVACY_POLICY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PURCHASE_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_RECENTLY_VIEWED
@@ -55,24 +54,20 @@ fun MyPageScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // 프로필 수정 바텀시트 상태
     val profileSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showProfileBottomSheet by remember { mutableStateOf(false) }
 
-    // 충전 바텀시트 상태
     val chargeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showChargeBottomSheet by remember { mutableStateOf(false) }
 
-    // 출금 바텀시트 상태
     val withdrawSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showWithdrawBottomSheet by remember { mutableStateOf(false) }
 
-    // 프로필 수정 바텀시트
     if (showProfileBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showProfileBottomSheet = false },
             sheetState = profileSheetState,
-            containerColor = Color.White // 프로필 바텀시트 배경색도 흰색으로 통일 (선택 사항)
+            containerColor = Color.White
         ) {
             ProfileEditSheetContent(
                 initialName = userProfile?.name ?: "",
@@ -99,17 +94,15 @@ fun MyPageScreen(
         }
     }
 
-    // 충전 바텀시트
     if (showChargeBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showChargeBottomSheet = false },
             sheetState = chargeSheetState,
-            containerColor = Color.White // 바텀시트 컨테이너 색상을 흰색으로 설정
-            // modifier = Modifier.fillMaxHeight(0.9f) // 높이 고정 제거
+            containerColor = Color.White
         ) {
             TransactionSheetContent(
                 title = "얼마나 충전할까요?",
-                bankName = "내 은행", // 서버에서 은행정보 아직 안받으니 임시 표시
+                bankName = "내 은행",
                 accountNumber = "계좌번호",
                 bankLogoResId = R.drawable.ic_bank_placeholder,
                 preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
@@ -127,13 +120,11 @@ fun MyPageScreen(
         }
     }
 
-    // 출금 바텀시트
     if (showWithdrawBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showWithdrawBottomSheet = false },
             sheetState = withdrawSheetState,
-            containerColor = Color.White // 바텀시트 컨테이너 색상을 흰색으로 설정
-            // modifier = Modifier.fillMaxHeight(0.9f) // 높이 고정 제거
+            containerColor = Color.White
         ) {
             TransactionSheetContent(
                 title = "얼마나 출금할까요?",
@@ -190,8 +181,8 @@ fun MyPageScreen(
                 MyPageMenuGroup(
                     title = "나의 활동",
                     items = listOf(
-                        MyPageActionItem("최근 본 차") { navController.navigate(ROUTE_MYPAGE_RECENTLY_VIEWED) },
-                        MyPageActionItem("찜한 차") { navController.navigate(ROUTE_MYPAGE_LIKED_CARS) }
+                        MyPageActionItem("최근 본 차") { navController.navigate("myPage/recentlyViewed/0") },
+                        MyPageActionItem("찜한 차") { navController.navigate("myPage/recentlyViewed/1") }
                     )
                 )
             }
@@ -343,23 +334,6 @@ fun AccountSection(
         }
     }
 }
-
-/*
-@Composable
-fun AccountActionButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        )
-    ) {
-        Text(text, fontWeight = FontWeight.Medium)
-    }
-}
-*/
 
 data class MyPageActionItem(val title: String, val isLogout: Boolean = false, val action: () -> Unit)
 

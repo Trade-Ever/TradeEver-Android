@@ -32,14 +32,17 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun RecentlyViewedCarsScreen(
     navController: NavController,
-    viewModel: MyPageViewModel = koinViewModel()
+    viewModel: MyPageViewModel = koinViewModel(),
+    initialTabIndex: Int = 0 // <-- 탭 인덱스를 외부에서 받을 수 있도록 파라미터 추가
 ) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    // remember 상태를 initialTabIndex로 초기화
+    var selectedTabIndex by remember { mutableStateOf(initialTabIndex) }
     val tabs = listOf("최근", "찜")
 
     val recentlyViewedCars by viewModel.recentlyViewedCars.collectAsState()
     val likedCars by viewModel.likedCars.collectAsState()
 
+    // 화면이 나타나거나 탭이 변경될 때 데이터를 로드
     LaunchedEffect(selectedTabIndex) {
         when (selectedTabIndex) {
             0 -> viewModel.loadRecentlyViewedCars()
@@ -76,6 +79,7 @@ fun RecentlyViewedCarsScreen(
                 }
             }
 
+            // 선택된 탭에 따라 다른 컨텐츠 표시
             when (selectedTabIndex) {
                 0 -> {
                     if (recentlyViewedCars.isEmpty()) {
@@ -118,7 +122,7 @@ private fun CarList(cars: List<RecentlyViewedCar>, navController: NavController)
                 startAtMillis = 0L, // 임시값 추가
                 endsAtMillis = 0L,
                 liked = false,
-                auctionId = if(car.isAuction) car.id.toLongOrNull() else null, 
+                auctionId = if(car.isAuction) car.id.toLongOrNull() else null,
                 transactionType = if(car.isAuction) "경매" else "일반"
             )
 
@@ -168,5 +172,13 @@ private fun EmptyState(message: String) {
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RecentlyViewedCarsScreenPreview() {
+    AppTheme {
+        RecentlyViewedCarsScreen(navController = rememberNavController(), initialTabIndex = 1)
     }
 }

@@ -53,7 +53,7 @@ class MyPageViewModel(
 
     init {
         loadRecentlyViewedCars()
-        // loadLikedCars() // TODO: 찜하기 기능 구현 후 주석 해제
+        loadLikedCars()
         loadProfile()
         refreshBalance()
     }
@@ -67,10 +67,11 @@ class MyPageViewModel(
     }
 
     fun loadLikedCars() {
-        // TODO: 찜한 차량 목록 불러오기 API 구현 필요
-        Log.d("MyPageViewModel", "loadLikedCars() 호출되었으나, 기능이 아직 구현되지 않았습니다.")
-        // 현재는 비어있는 리스트를 반환하도록 처리
-        _likedCars.value = emptyList()
+        viewModelScope.launch {
+            myPageRepository.getLikedCars()
+                .onSuccess { cars -> _likedCars.value = cars }
+                .onFailure { e -> Log.e("MyPageViewModel", "찜한 차량 로드 실패", e) }
+        }
     }
 
     fun loadProfile() {
