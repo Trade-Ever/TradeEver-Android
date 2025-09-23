@@ -52,6 +52,24 @@ fun VehicleDto.toAuctionCar(): AuctionCar {
     )
 }
 
+fun VehicleSummaryDto.toAuctionCar(): AuctionCar {
+    return AuctionCar(
+        id = id.toString(),
+        title = carName ?: "",
+        year = year_value ?: 0,
+        mileageKm = mileage ?: 0,
+        imageUrl = representativePhotoUrl ?: "",
+        tags = createTagsFromOptions(mainOptions ?: emptyList()),
+        mainOptions = mainOptions ?: emptyList(),
+        currentPriceWon = price ?: 0L,
+        // TODO: API 응답에 경매 종료 시간이 없으므로 임시값 사용
+        endsAtMillis = System.currentTimeMillis() + 86400000,
+        startAtMillis = System.currentTimeMillis(),
+        liked = isFavorite ?: false,
+        auctionId = auctionId ?: 0
+    )
+}
+
 private fun createTagsFromOptions(options: List<String>): List<Tag> {
     val tags = mutableListOf<Tag>()
     if (options.contains("내비게이션")) tags.add(Tag.CERTIFIED)

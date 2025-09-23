@@ -1,47 +1,94 @@
 package com.trever.android
 
-
 import android.app.Application
+import com.google.gson.Gson
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.trever.android.data.auth.TokenStore
+import com.trever.android.data.network.AuthInterceptor
+import com.trever.android.data.network.TokenAuthenticator
 import com.trever.android.data.remote.AuthApi
+import com.trever.android.data.remote.MyPageApi
+import com.trever.android.data.remote.TransactionApi
+import com.trever.android.data.remote.VehicleApi
 import com.trever.android.data.repository.AuthRepository
+import com.trever.android.data.repository.MyPageRepository
+import com.trever.android.data.repository.TransactionRepository
+import com.trever.android.data.repository.VehicleRepository
 import com.trever.android.ui.auth.AuthViewModel
+import com.trever.android.ui.myPage.MyPageViewModel
+import com.trever.android.ui.myPage.TransactionViewModel
 import com.trever.android.ui.search.SearchViewModel
+import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import retrofit2.Retrofit
+import java.util.concurrent.TimeUnit
 
 class TreverApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
             androidContext(this@TreverApplication)
-            modules(authModule,viewModelModule)
+            modules(appModule)
         }
     }
 }
 
-val authModule = module {
-    single { TokenStore(get()) }
-    single<AuthApi> {
-        val contentType = "application/json".toMediaType()
-        Retrofit.Builder()
-            .baseUrl("http://54.180.107.111:8080/") // 실제 API 주소로 변경
+val appModule = module {
 
-            .addConverterFactory(Json.asConverterFactory(contentType))
+    // --- Network Layer ---
+    single { HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY } }
+
+    single {
+        val refreshRetrofit = Retrofit.Builder()
+            .baseUrl("http://54.180.107.111:8080/")
+            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+            .client(OkHttpClient())
             .build()
-            .create(AuthApi::class.java)
+        val refreshAuthApi = refreshRetrofit.create(AuthApi::class.java)
+
+        OkHttpClient.Builder()
+            .addInterceptor(get<HttpLoggingInterceptor>()) 
+            .addInterceptor(AuthInterceptor(get()))
+            .authenticator(TokenAuthenticator(get(), refreshAuthApi))
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
     }
 
-    single { AuthRepository(get(), get(), get()) }
-    viewModel { AuthViewModel(get()) }
-}
+    single<Retrofit> {
+        Retrofit.Builder()
+            .baseUrl("http://54.180.107.111:8080/")
+            .client(get<OkHttpClient>())
+            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
 
-val viewModelModule = module {
-    viewModel { SearchViewModel() }
+    // --- API Interfaces ---
+    single<AuthApi> { get<Retrofit>().create(AuthApi::class.java) }
+    single<VehicleApi> { get<Retrofit>().create(VehicleApi::class.java) }
+    single<MyPageApi> { get<Retrofit>().create(MyPageApi::class.java) }
+    single<TransactionApi> { get<Retrofit>().create(TransactionApi::class.java) }
+
+    // --- Data Layer ---
+    single { Gson() }
+    single { TokenStore(androidContext()) }
+    single { AuthRepository(get(), get(), get()) }
+    single { MyPageRepository(get()) }
+    single { VehicleRepository(get(), androidContext(), get()) }
+    single { TransactionRepository(get()) }
+
+    // --- UI Layer (ViewModels) ---
+    viewModel { AuthViewModel(get()) }
+    viewModel { MyPageViewModel(get(), get()) }
+    viewModel { TransactionViewModel(get()) }
+    viewModel { SellEntryViewModel(get()) }
+    viewModel { SearchViewModel() } // SearchViewModel 추가
 }

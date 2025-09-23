@@ -8,8 +8,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,8 +30,8 @@ import com.trever.android.R // Placeholder 이미지용
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditSheetContent(
-    initialName: String = "채은정", // 초기값 설정
-    initialPhoneNumber: String = "010-1234-5678", // 초기값 설정
+    initialName: String = "채은정",
+    initialPhoneNumber: String = "010-1234-5678",
     initialAddress: String = "",
     initialBirthday: String = "",
     initialProfileImageUri: Uri? = null,
@@ -46,24 +48,30 @@ fun ProfileEditSheetContent(
         onResult = { uri -> profileImageUri = uri }
     )
 
+    // 스크롤 상태 추가
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)) // ModalBottomSheet 가 배경을 제공
-            .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp), // 하단 패딩 증가
+            .imePadding() // ✅ 키보드 올라올 때 자동 패딩
+            .verticalScroll(scrollState) // ✅ 스크롤 가능
+            .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "프로필 수정", 
-            style = MaterialTheme.typography.titleLarge, 
-            modifier = Modifier.padding(bottom = 24.dp).align(Alignment.Start)
+            text = "프로필 수정",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+                .padding(bottom = 24.dp)
+                .align(Alignment.Start)
         )
 
         Image(
             painter = if (profileImageUri != null) {
                 rememberAsyncImagePainter(model = profileImageUri)
             } else {
-                painterResource(id = R.drawable.profile_placeholder) // Placeholder 이미지 확인 필요
+                painterResource(id = R.drawable.profile_placeholder)
             },
             contentDescription = "프로필 이미지",
             contentScale = ContentScale.Crop,
@@ -84,14 +92,14 @@ fun ProfileEditSheetContent(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { 
+            onClick = {
                 onSaveClicked(name, phoneNumber, address, birthday, profileImageUri)
-             },
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE)) // 예시 색상
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
         ) {
             Text("저장", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }

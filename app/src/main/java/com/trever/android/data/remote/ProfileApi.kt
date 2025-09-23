@@ -48,6 +48,7 @@ data class UserProfile(
     val birthDate: String? = null,
     val profileImageUrl: String? = null,
     val balance: Long? = null
+)
 
 @Serializable
 data class ProfileCompleteRequest(

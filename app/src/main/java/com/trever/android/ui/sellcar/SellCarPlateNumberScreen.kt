@@ -19,23 +19,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-//import com.trever.android.ui.auction.AppFilledButton
+import androidx.compose.ui.window.Dialog
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
-//import com.trever.android.ui.components.AppFilledButton
-//
-//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // ViewModel import
-//import com.trever.android.ui.sellcar.viewmodel.SellCarUiState // UiState import
 import com.trever.android.ui.theme.backgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellCarPlateNumberScreen(
     sellCarViewModel: SellCarViewModel,
-    onSystemBack: () -> Unit, // 시스템 뒤로가기 (ArrowBack 아이콘용)
-    onStepBack: () -> Unit,   // 단계별 이전 (하단 "이전" 버튼용)
+    onSystemBack: () -> Unit,
+    onStepBack: () -> Unit,
     onNextClicked: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
@@ -45,6 +40,52 @@ fun SellCarPlateNumberScreen(
     LaunchedEffect(uiState.plateNumber) {
         if (plateNumber != uiState.plateNumber) {
             plateNumber = uiState.plateNumber
+        }
+    }
+
+    // 차량 번호 중복 시 알림창
+    if (uiState.plateNumberExists == true) {
+        Dialog(onDismissRequest = { sellCarViewModel.resetPlateNumberCheck() }) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "차량 번호 중복",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "이미 등록된 차량 번호입니다.다른 번호를 입력해주세요.",
+                        fontSize = 14.sp,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = { sellCarViewModel.resetPlateNumberCheck() },
+                        // Remove fillMaxWidth() to make it compact
+                        modifier = Modifier,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB)),
+                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 40.dp) // Add horizontal padding
+                    ) {
+                        Text(
+                            text = "확인",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -167,15 +208,27 @@ fun SellCarPlateNumberScreen(
                 Button(
                     onClick = {
                         sellCarViewModel.updatePlateNumber(plateNumber)
-                        onNextClicked()
+                        sellCarViewModel.checkPlateNumberDuplication { isDuplicate ->
+                            if (!isDuplicate) {
+                                onNextClicked()
+                            }
+                        }
                     },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB)),
-                    enabled = plateNumber.isNotBlank(),
+                    enabled = plateNumber.isNotBlank() && !uiState.isPlateNumberChecking,
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text(text = "다음", fontWeight = FontWeight.Bold)
+                    if (uiState.isPlateNumberChecking) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = "다음", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }

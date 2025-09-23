@@ -33,12 +33,13 @@ class ProfileRepository(
         }
     }
 
-    // ✅ 프로필 수정 (UserInfo 보냄)
     suspend fun updateProfile(userInfo: UserInfo, imageUri: Uri?): Result<String> =
         withContext(Dispatchers.IO) {
             try {
+                Log.d("ProfileRepository", "프로필 업데이트 요청: $userInfo, 이미지 URI: $imageUri")
+
                 val json = gson.toJson(userInfo)
-                val userInfoBody = json.toRequestBody("text/plain".toMediaTypeOrNull())
+                val userInfoBody = json.toRequestBody("application/json".toMediaTypeOrNull())
 
                 val imagePart = if (imageUri != null && context != null) {
                     val fileName = "profile_${System.currentTimeMillis()}.jpg"
@@ -49,10 +50,16 @@ class ProfileRepository(
 
                 val response = api.updateProfile(userInfoBody, imagePart)
 
-                if (response.success) Result.success("프로필 수정 성공")
-                else Result.failure(Exception(response.message ?: "프로필 수정 실패"))
+                Log.d("ProfileRepository", "프로필 업데이트 응답: $response")
+
+                if (response.success) {
+                    Result.success("프로필 수정 성공")
+                } else {
+                    Log.e("ProfileRepository", "프로필 업데이트 API 실패: ${response.message}")
+                    Result.failure(Exception(response.message ?: "프로필 수정 실패"))
+                }
             } catch (e: Exception) {
-                Log.e("ProfileRepository", "Error updating profile", e)
+                Log.e("ProfileRepository", "프로필 업데이트 중 예외 발생", e)
                 Result.failure(e)
             }
         }

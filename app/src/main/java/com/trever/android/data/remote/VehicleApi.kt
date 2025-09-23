@@ -1,13 +1,9 @@
 package com.trever.android.data.remote
 
-import com.trever.android.domain.model.AuctionCar
-import com.trever.android.domain.model.CarRegistrationRequest
 import com.trever.android.domain.model.Tag
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -17,6 +13,9 @@ import retrofit2.http.Query
 
 interface VehicleApi {
 
+    @GET("api/vehicles/check-car-number")
+    suspend fun checkCarNumber(@Query("carNumber") carNumber: String): ApiResponse<CarNumberCheckDto>
+
     @GET("api/vehicles")
     suspend fun listVehicles(
         @Query("page") page: Int,
@@ -24,12 +23,12 @@ interface VehicleApi {
         @Query("isAuction") isAuction: Boolean? = null
     ): ApiResponse<VehicleListResponse>
 
-    // 신규: 내 등록 매물 리스트 API
-    @GET("api/vehicles/my")
-    suspend fun listMyVehicles(
+    @GET("api/vehicles/my-vehicles")
+    suspend fun getMyVehicles(
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20 // 충분한 개수를 가져오도록 기본값 설정
-    ): ApiResponse<VehicleListResponse>
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String? = null
+    ): ApiResponse<MyVehiclesResponse>
 
     @GET("api/cars/manufacturers")
     suspend fun getManufacturersByCategory(
@@ -68,6 +67,11 @@ interface VehicleApi {
     suspend fun getVehicleDetail(@Path("id") id: String): ApiResponse<VehicleDetailResponse>
 }
 
+@Serializable
+data class CarNumberCheckDto(
+    val carNumber: String,
+    val exists: Boolean
+)
 
 @Serializable
 data class ApiResponse<T>(
@@ -83,6 +87,39 @@ data class VehicleListResponse(
     val totalCount: Int,
     val pageNumber: Int,
     val pageSize: Int
+)
+
+// 스웨거 응답 형식에 맞게 단일 data 객체로 수정
+@Serializable
+data class MyVehiclesResponse(
+    val vehicles: List<VehicleSummaryDto>,
+    val totalCount: Int,
+    val pageNumber: Int,
+    val pageSize: Int
+)
+
+@Serializable
+data class VehicleSummaryDto(
+    val id: Long,
+    val carName: String?,
+    val carNumber: String?,
+    val manufacturer: String?,
+    val model: String?,
+    val year_value: Int?,
+    val mileage: Int?,
+    val transmission: String?,
+    val vehicleStatus: String?,
+    val fuelType: String?,
+    val price: Long?,
+    val isAuction: String?,
+    val auctionId: Long?,
+    val representativePhotoUrl: String?,
+    val favoriteCount: Int?,
+    val createdAt: String?,
+    val isFavorite: Boolean?,
+    val vehicleTypeName: String?,
+    val mainOptions: List<String>?,
+    val totalOptionsCount: Int?
 )
 
 @Serializable
