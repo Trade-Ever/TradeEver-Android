@@ -230,13 +230,3 @@ private fun FloatingSearchButton(
         }
     }
 }
-@Composable
-private fun sampleAuctions(): List<AuctionCar> {
-    val now = System.currentTimeMillis()
-    val demoImage = "https://dimg.donga.com/wps/EVLOUNGE/IMAGE/2024/02/06/123417778.1.jpg"
-    return listOf(
-        AuctionCar("1", "Taycan GTS", 2024, 3850, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  141_900_000, now + TimeUnit.HOURS.toMillis(26),true,0),
-        AuctionCar("2", "Taycan GTS", 2024, 3858, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  30_000_000, now + TimeUnit.HOURS.toMillis(5) + TimeUnit.MINUTES.toMillis(15)),
-        AuctionCar("3", "Taycan GTS", 2024, 3858, demoImage, emptyList(),listOf("내비게이션", "어라운드뷰"),  141_900_000, now + TimeUnit.MINUTES.toMillis(45))
-    )
-}

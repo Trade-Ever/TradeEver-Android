@@ -7,6 +7,7 @@ import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuthApi
 import com.trever.android.data.repository.AuthRepository
 import com.trever.android.ui.auth.AuthViewModel
+import com.trever.android.ui.search.SearchViewModel
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import org.koin.android.ext.koin.androidContext
@@ -20,7 +21,7 @@ class TreverApplication : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@TreverApplication)
-            modules(authModule)
+            modules(authModule,viewModelModule)
         }
     }
 }
@@ -39,4 +40,8 @@ val authModule = module {
 
     single { AuthRepository(get(), get(), get()) }
     viewModel { AuthViewModel(get()) }
+}
+
+val viewModelModule = module {
+    viewModel { SearchViewModel() }
 }

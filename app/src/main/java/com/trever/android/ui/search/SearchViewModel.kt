@@ -1,0 +1,178 @@
+package com.trever.android.ui.search
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+
+import com.trever.android.data.network.ApiClient
+import com.trever.android.data.remote.CarModel
+import com.trever.android.data.remote.CarName
+import com.trever.android.data.remote.ManufacturerCategory
+import com.trever.android.data.remote.SearchApi
+import com.trever.android.data.remote.VehicleSearchRequest
+import com.trever.android.data.remote.VehicleSearchResponse
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlin.text.toInt
+
+class SearchViewModel(
+
+) : ViewModel() {
+
+    val searchText = MutableStateFlow("")
+
+    val yearRange = MutableStateFlow<ClosedFloatingPointRange<Float>?>(null)
+    val distanceRange = MutableStateFlow<ClosedFloatingPointRange<Float>?>(null)
+    val priceRange = MutableStateFlow<ClosedFloatingPointRange<Float>?>(null)
+    val selectedType = MutableStateFlow<String?>(null)
+    val selectedManufacturer = MutableStateFlow<String?>(null)
+    val selectedCarName = MutableStateFlow<String?>(null)
+    val selectedCarModel = MutableStateFlow<String?>(null)
+    private val api: SearchApi = ApiClient.searchApi
+    private val _recentSearches = MutableStateFlow<List<String>>(emptyList())
+    val recentSearches: StateFlow<List<String>> = _recentSearches
+
+    private val _manufacturerCategories = MutableStateFlow<List<ManufacturerCategory>>(emptyList())
+    val manufacturerCategories: StateFlow<List<ManufacturerCategory>> = _manufacturerCategories
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    init {
+        viewModelScope.launch {
+            yearRange.collectLatest { checkAndTriggerSearch() }
+        }
+        viewModelScope.launch {
+            distanceRange.collectLatest { checkAndTriggerSearch() }
+        }
+        viewModelScope.launch {
+            priceRange.collectLatest { checkAndTriggerSearch() }
+        }
+        viewModelScope.launch {
+            selectedType.collectLatest { checkAndTriggerSearch() }
+        }
+    }
+
+    private fun checkAndTriggerSearch() {
+        // 모든 값이 null이 아니고, 실제로 유효할 때만 검색 실행
+        if (
+            yearRange.value != null &&
+            distanceRange.value != null &&
+            priceRange.value != null &&
+            selectedType.value != null
+        ) {
+            triggerSearchIfReady()
+        }
+    }
+
+    private val carTypeMapReverse = mapOf(
+        "대형" to "LARGE",
+        "중형" to "MID_SIZE",
+        "준중형" to "SEMI_MID_SIZE",
+        "소형" to "SMALL",
+        "스포츠" to "SPORTS",
+        "SUV" to "SUV",
+        "승합차" to "VAN",
+        "경차" to "COMPACT"
+    )
+
+    private fun triggerSearchIfReady() {
+        val request = VehicleSearchRequest(
+            keyword = searchText.value, // 만약 StateFlow로 관리 중이라면
+            manufacturer = selectedManufacturer.value?.takeIf { it.isNotEmpty() },
+            carName = selectedCarName.value?.takeIf { it.isNotEmpty() },
+            carModel = selectedCarModel.value?.takeIf { it.isNotEmpty() },
+            yearStart = yearRange.value?.start?.toInt(),
+            yearEnd = yearRange.value?.endInclusive?.toInt(),
+            mileageStart = distanceRange.value?.start?.toInt(),
+            mileageEnd = distanceRange.value?.endInclusive?.toInt(),
+            priceStart = priceRange.value?.start?.toInt()?.times(100),
+            priceEnd = priceRange.value?.endInclusive?.toInt()?.times(100),
+            vehicleType = selectedType.value?.let { carTypeMapReverse[it] },
+            page = 0,
+            size = 10
+        )
+        Log.d("SearchViewModel", "request: $request")
+        searchVehicles(request)
+    }
+
+
+
+    private val _searchResult = MutableStateFlow<VehicleSearchResponse?>(null)
+    val searchResult: StateFlow<VehicleSearchResponse?> = _searchResult
+
+    fun searchVehicles(request: VehicleSearchRequest) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = api.searchVehicles(request)
+                Log.d("SearchViewModel", "searchVehicles: $response")
+                if (response.success) {
+                    _searchResult.value = response.data
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private val _carModels = MutableStateFlow<List<CarModel>>(emptyList())
+    val carModels: StateFlow<List<CarModel>> = _carModels
+
+    fun fetchCarModels(manufacturer: String, carName: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = api.getCarModels(manufacturer, carName)
+                if (response.success) {
+                    _carModels.value = response.data
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private val _carNames = MutableStateFlow<List<CarName>>(emptyList())
+    val carNames: StateFlow<List<CarName>> = _carNames
+
+    fun fetchCarNames(manufacturer: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = api.getCarNames(manufacturer)
+                if (response.success) {
+                    _carNames.value = response.data
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun fetchRecentSearches() {
+        viewModelScope.launch {
+            val response = api.getRecentSearches()
+            if (response.success) {
+                _recentSearches.value = response.data
+            }
+        }
+    }
+
+    fun fetchManufacturers() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = api.getManufacturers()
+                if (response.success) {
+                    _manufacturerCategories.value = response.data
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+}
+
