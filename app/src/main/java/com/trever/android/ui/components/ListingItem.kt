@@ -140,6 +140,18 @@ fun ListingItem(
                         fontSize = 18.sp
                     )
 
+//                    if (showAuctionMeta) {
+//                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                            Icon(
+//                                painter = painterResource(id = R.drawable.gavel_1),
+//                                contentDescription = "경매",
+//                                tint = Color.Unspecified,
+//                                modifier = Modifier.size(16.dp)
+//                            )
+//                            Spacer(Modifier.width(4.dp))
+//                            CountdownText(car.endsAtMillis)
+//                        }
+//                    }
                     if (showAuctionMeta) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -149,7 +161,7 @@ fun ListingItem(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(Modifier.width(4.dp))
-                            CountdownText(car.endsAtMillis)
+                            CountdownText(car.startAtMillis, car.endsAtMillis)
                         }
                     }
                 }
@@ -260,14 +272,49 @@ private fun TagsWithPrice(
         }
     }
 }
-@Composable
-private fun CountdownText(endsAtMillis: Long) {
-    var remain by remember(endsAtMillis) { mutableStateOf(endsAtMillis - System.currentTimeMillis()) }
+//@Composable
+//private fun CountdownText(endsAtMillis: Long) {
+//    var remain by remember(endsAtMillis) { mutableStateOf(endsAtMillis - System.currentTimeMillis()) }
+//
+//    LaunchedEffect(endsAtMillis) {
+//        while (remain > 0) {
+//            kotlinx.coroutines.delay(1000)
+//            remain = endsAtMillis - System.currentTimeMillis()
+//        }
+//        remain = 0
+//    }
+//
+//    val d = TimeUnit.MILLISECONDS.toDays(remain.coerceAtLeast(0))
+//    val h = TimeUnit.MILLISECONDS.toHours(remain.coerceAtLeast(0)) % 24
+//    val m = TimeUnit.MILLISECONDS.toMinutes(remain.coerceAtLeast(0)) % 60
+//    val s = TimeUnit.MILLISECONDS.toSeconds(remain.coerceAtLeast(0)) % 60
+//
+//    val text = when {
+//        d > 0 -> "${d}일 ${h}시간 ${m}분"
+//        h > 0 -> "${h}시간 ${m}분"
+//        m >= 10 -> "${m}분"
+//        m > 0 -> "${m}분 ${s}초"
+//        else -> "${s}초"
+//    }
+//
+//    Text(
+//        text = text,
+//        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+//        color = Red_1
+//    )
+//}
 
-    LaunchedEffect(endsAtMillis) {
+@Composable
+private fun CountdownText(startAtMillis: Long, endsAtMillis: Long) {
+    val now = System.currentTimeMillis()
+    val isBeforeStart = now < startAtMillis
+    val targetMillis = if (isBeforeStart) startAtMillis else endsAtMillis
+    var remain by remember(targetMillis) { mutableStateOf(targetMillis - now) }
+
+    LaunchedEffect(targetMillis) {
         while (remain > 0) {
             kotlinx.coroutines.delay(1000)
-            remain = endsAtMillis - System.currentTimeMillis()
+            remain = targetMillis - System.currentTimeMillis()
         }
         remain = 0
     }
@@ -277,17 +324,20 @@ private fun CountdownText(endsAtMillis: Long) {
     val m = TimeUnit.MILLISECONDS.toMinutes(remain.coerceAtLeast(0)) % 60
     val s = TimeUnit.MILLISECONDS.toSeconds(remain.coerceAtLeast(0)) % 60
 
+    val label = if (isBeforeStart) "시작까지" else "종료까지"
     val text = when {
-        d > 0 -> "${d}일 ${h}시간 ${m}분"
-        h > 0 -> "${h}시간 ${m}분"
-        m >= 10 -> "${m}분"
-        m > 0 -> "${m}분 ${s}초"
-        else -> "${s}초"
+        d > 0 -> "$label ${d}일 ${h}시간 ${m}분"
+        h > 0 -> "$label ${h}시간 ${m}분"
+        m >= 10 -> "$label ${m}분"
+        m > 0 -> "$label ${m}분 ${s}초"
+        else -> "$label ${s}초"
     }
+
+    val color = if (isBeforeStart) Color(0xFF1976D2) else Red_1 // 파란색(Blue 700), 종료는 기존 빨간색
 
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-        color = Red_1
+        color = color
     )
 }

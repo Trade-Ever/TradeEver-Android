@@ -201,6 +201,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
             mileageKm = currentState.mileage.filter { it.isDigit() }.toIntOrNull() ?: 0,
             currentPriceWon = currentState.price.filter { it.isDigit() }.toLongOrNull() ?: 0L,
             endsAtMillis = currentState.transactionEndDateMillis ?: (System.currentTimeMillis() + TimeUnit.DAYS.toMillis(7)),
+            startAtMillis = currentState.transactionStartDateMillis ?: System.currentTimeMillis(),
             liked = false,
             manufacturer = currentState.selectedManufacturer.ifEmpty { null },
             model = currentState.selectedModel.ifEmpty { null },

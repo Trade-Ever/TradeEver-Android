@@ -43,12 +43,17 @@ class AuctionRepository(
         return auctions.map { auctionCar ->
             val firebaseAuction = firebaseAuctions[auctionCar.auctionId.toString()]
             if (firebaseAuction != null) {
+                val startAtMillis = parseFirebaseDateToMillis(firebaseAuction.startAt)
+                val endsAtMillis = parseFirebaseDateToMillis(firebaseAuction.endAt)
+                Log.d("AuctionRepository", "auctionId=${auctionCar.auctionId}, startAt=${firebaseAuction.startAt}, startAtMillis=$startAtMillis, endAt=${firebaseAuction.endAt}, endsAtMillis=$endsAtMillis")
                 // Firebase 데이터로 업데이트
                 auctionCar.copy(
                     currentPriceWon = firebaseAuction.currentBidPrice.takeIf { it > 0 }
                         ?: firebaseAuction.startPrice,
                     // firebaseAuction.endAt이 이제 Long 타입이므로 직접 사용
-                    endsAtMillis = parseFirebaseDateToMillis(firebaseAuction.endAt)
+                    endsAtMillis = parseFirebaseDateToMillis(firebaseAuction.endAt),
+                    startAtMillis = parseFirebaseDateToMillis(firebaseAuction.startAt)
+
                 )
             } else {
                 auctionCar
@@ -82,18 +87,22 @@ class AuctionRepository(
 
     // 이 함수는 FirebaseAuction의 endAt을 처리하는 데 직접 사용되지 않을 수 있지만,
     // 다른 곳에서 문자열 날짜 파싱이 필요할 수 있으므로 유지합니다.
-    private fun parseFirebaseDateToMillis(dateString: String): Long {
-        return try {
-            val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            // dateString이 '.'을 포함하지 않을 수 있으므로 substringBefore의 두 번째 인자 추가
-            val dateToParse = dateString.substringBefore('.', dateString)
-            val date = format.parse(dateToParse)
-            date?.time ?: (System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1))
-        } catch (e: Exception) {
-            Log.e("AuctionRepository", "Date parsing failed for: $dateString", e)
-            // 현재 시간 + 1일을 기본값으로 설정
-            System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)
+    private fun parseFirebaseDateToMillis(dateStr: String?): Long {
+        if (dateStr.isNullOrBlank()) return 0L
+        val patterns = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm"
+        )
+        for (pattern in patterns) {
+            try {
+                val sdf = java.text.SimpleDateFormat(pattern, java.util.Locale.getDefault())
+                sdf.timeZone = java.util.TimeZone.getTimeZone("Asia/Seoul")
+                return sdf.parse(dateStr)?.time ?: throw IllegalArgumentException("Null date")
+            } catch (e: java.text.ParseException) {
+                // 다음 패턴 시도
+            }
         }
+        throw java.text.ParseException("Unparseable date: \"$dateStr\"", 0)
     }
 
     suspend fun getAuctionById(auctionId: String): FirebaseAuction? = suspendCoroutine { continuation ->
@@ -109,9 +118,9 @@ class AuctionRepository(
         })
     }
 
-    suspend fun placeBid(auctionId: Int, bidPrice: Long, bidderId: Int): Flow<Result<BidData>> = flow {
+    suspend fun placeBid(auctionId: Int, bidPrice: Long): Flow<Result<BidData>> = flow {
         try {
-            val request = BidRequest(auctionId, bidPrice, bidderId)
+            val request = BidRequest(auctionId, bidPrice)
             val response = auctionApi.placeBid(request)
 
             if (response.success) {
@@ -119,9 +128,11 @@ class AuctionRepository(
                     emit(Result.success(it))
                 } ?: emit(Result.failure(Exception("입찰 데이터가 null입니다")))
             } else {
+                Log.e("AuctionRepository", "입찰 실패 response: $response")
                 emit(Result.failure(Exception(response.message)))
             }
         } catch (e: Exception) {
+            Log.e("AuctionRepository", "입찰 요청 중 예외 발생", e)
             emit(Result.failure(e))
         }
     }
