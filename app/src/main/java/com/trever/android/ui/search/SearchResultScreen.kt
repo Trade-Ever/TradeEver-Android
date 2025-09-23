@@ -1,0 +1,235 @@
+package com.trever.android.ui.search
+
+// app/src/main/java/com/trever/android/ui/search/SearchResultScreen.kt
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.trever.android.data.remote.toAuctionCarForDisplay
+import com.trever.android.data.remote.toSearchCarItem
+import com.trever.android.ui.components.ListingItem
+import com.trever.android.domain.model.AuctionCar
+import com.trever.android.domain.model.SearchCarItem
+import com.trever.android.domain.model.toAuctionCar
+import com.trever.android.domain.model.toAuctionCarForDisplay
+import com.trever.android.ui.theme.G_200
+import com.trever.android.ui.theme.backgroundColor
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchResultScreen(
+    viewModel: SearchViewModel,
+    cars: List<SearchCarItem>,
+    onBack: () -> Unit,
+    onCarClick: (AuctionCar) -> Unit,
+    onToggleLike: (AuctionCar) -> Unit,
+    selectedPriceRange: String,
+
+    selectedDistance: String,
+
+    selectedSort: String,
+    onSortClick: () -> Unit,
+    yearRange: ClosedFloatingPointRange<Float>?,
+    distanceRange: ClosedFloatingPointRange<Float>?,
+    priceRange: ClosedFloatingPointRange<Float>?,
+    selectedType: String?,
+    onYearRangeClick: () -> Unit,
+    onDistanceClick: () -> Unit,
+    onPriceRangeClick: () -> Unit,
+    onTypeClick: () -> Unit,
+) {
+    val cs = MaterialTheme.colorScheme
+    var showBottomSheet by remember { mutableStateOf<String?>(null) }
+    val cars = viewModel.searchResult.collectAsState().value?.vehicles?.map { it.toSearchCarItem() } ?: emptyList()
+    val yearRange = viewModel.yearRange.collectAsState().value
+    val distanceRange = viewModel.distanceRange.collectAsState().value
+    val priceRange = viewModel.priceRange.collectAsState().value
+    val selectedType = viewModel.selectedType.collectAsState().value
+
+    // 범위 표시 함수
+    fun formatDistance(range: ClosedFloatingPointRange<Float>?): String =
+        if (range == null) "주행거리"
+        else "${range.start.toInt()}km ~ ${range.endInclusive.toInt()}km"
+
+    fun formatRange(range: ClosedFloatingPointRange<Float>?, unit: String): String {
+        return if (range == null) unit else "${range.start.toInt()}$unit ~ ${range.endInclusive.toInt()}$unit"
+    }
+    Scaffold(
+        containerColor = cs.backgroundColor,
+
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = cs.backgroundColor
+                ),
+                title = { Text("검색결과") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(Modifier.padding(innerPadding)) {
+            // 필터/정렬 영역
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { showBottomSheet = "price" },
+                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+
+                        contentColor = if (priceRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (priceRange == null) "가격"
+                        else "${priceRange.start.toInt() * 100}만원 ~ ${priceRange.endInclusive.toInt() * 100}만원",
+                        color = if (priceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    onClick = { showBottomSheet = "distance" },
+                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+
+                        contentColor = if (distanceRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (distanceRange == null) "주행거리"
+                        else "${String.format("%,d", distanceRange.start.toInt())}km ~ ${String.format("%,d", distanceRange.endInclusive.toInt())}km",
+                        color = if (distanceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    onClick = { showBottomSheet = "year" },
+                    border = BorderStroke(1.dp, if (yearRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+
+                        contentColor = if (yearRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (yearRange == null) "연식"
+                        else "${yearRange.start.toInt()}년 ~ ${yearRange.endInclusive.toInt()}년",
+                        color = if (yearRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    onClick = { showBottomSheet = "type" },
+                    border = BorderStroke(1.dp, if (selectedType != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+
+                        contentColor = if (selectedType != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        selectedType ?: "차종",
+                        color = if (selectedType != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+            }
+
+            // 차량 리스트
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(cars) { car ->
+                    when (car) {
+                        is SearchCarItem.Auction -> ListingItem(
+                            car = car.toAuctionCar(),
+                            onClick = { onCarClick(car.toAuctionCar()) },
+                            onToggleLike = { onToggleLike(car.toAuctionCar()) },
+                            tags = car.mainOptions,
+                            priceLabel = "최고 입찰가",
+                            showBadge = true,
+                            showAuctionMeta = true
+                        )
+                        is SearchCarItem.General -> ListingItem(
+                            car = car.toAuctionCarForDisplay(),
+                            onClick = { onCarClick(car.toAuctionCarForDisplay()) },
+                            onToggleLike = { onToggleLike(car.toAuctionCarForDisplay()) },
+                            tags = car.mainOptions,
+                            priceLabel = "",
+                            showBadge = false,
+                            showAuctionMeta = false
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+            when (showBottomSheet) {
+                "price" -> RangeSelectBottomSheet(
+                    title = "가격을 선택해 주세요",
+                    unit = "만원",
+                    valueRange = 0f..300f,
+                    steps = 31,
+                    initialRange = priceRange ?: (0f..300f),
+                    onDismiss = { showBottomSheet = null },
+                    onConfirm = {
+                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
+                        viewModel.priceRange.value = it
+                        showBottomSheet = null
+                    }
+                )
+                "distance" -> RangeSelectBottomSheet(
+                    title = "주행 거리를 선택해 주세요",
+                    unit = "km",
+                    valueRange = 0f..300_000f,
+                    steps = 31,
+                    initialRange = distanceRange ?: (0f..300_000f),
+                    onDismiss = { showBottomSheet = null },
+                    onConfirm = {
+                        viewModel.distanceRange.value = it
+                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
+                        showBottomSheet = null
+                    }
+                )
+                "year" -> RangeSelectBottomSheet(
+                    title = "연식을 선택해 주세요",
+                    unit = "년",
+                    valueRange = 1998f..2025f,
+                    steps = 28,
+                    initialRange = yearRange ?: (1998f..2025f),
+                    onDismiss = { showBottomSheet = null },
+                    onConfirm = {
+                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
+                        viewModel.yearRange.value = it
+                        showBottomSheet = null
+                    }
+                )
+                "type" -> CarTypeSelectBottomSheet(
+                    selectedType = selectedType,
+                    onDismiss = { showBottomSheet = null },
+                    onConfirm = {
+                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
+                        viewModel.selectedType.value = it
+                        showBottomSheet = null
+                    }
+                )
+            }
+        }
+    }
+}

@@ -7,6 +7,8 @@ import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.Part
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 interface ProfileApi {
 
@@ -21,6 +23,9 @@ interface ProfileApi {
         @Part("userInfo") userInfo: RequestBody,
         @Part profileImage: MultipartBody.Part? = null
     ): ApiBaseResponse<Unit>
+  
+    @POST("api/v1/users/me/complete")
+    suspend fun completeProfile(@Body request: ProfileCompleteRequest): ProfileCompleteResponse
     }
 
 // 프로필 수정 요청 DTO
@@ -43,4 +48,18 @@ data class UserProfile(
     val birthDate: String? = null,
     val profileImageUrl: String? = null,
     val balance: Long? = null
+
+@Serializable
+data class ProfileCompleteRequest(
+    val name: String,
+    val phone: String,
+    val locationCity: String,
+    val birthDate: String
+)
+
+@Serializable
+data class ProfileCompleteResponse(
+    val status: Int,
+    val success: Boolean,
+    val message: String
 )

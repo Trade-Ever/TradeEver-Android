@@ -2,19 +2,18 @@ package com.trever.android.data.remote
 
 import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.CarRegistrationRequest
-import com.trever.android.domain.model.Tag // Tag가 실제로 사용되지 않는다면 제거 고려
-import kotlinx.serialization.SerialName // 사용되지 않는다면 제거 고려
+import com.trever.android.domain.model.Tag
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.Body // 사용되지 않는다면 제거 고려
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
-// import kotlin.toString // 일반적으로 불필요
 
 interface VehicleApi {
 
@@ -25,18 +24,38 @@ interface VehicleApi {
         @Query("isAuction") isAuction: Boolean? = null
     ): ApiResponse<VehicleListResponse>
 
-    // (신규) category를 파라미터로 받는 새 제조사 목록 조회 함수
+    // 신규: 내 등록 매물 리스트 API
+    @GET("api/vehicles/my")
+    suspend fun listMyVehicles(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20 // 충분한 개수를 가져오도록 기본값 설정
+    ): ApiResponse<VehicleListResponse>
+
     @GET("api/cars/manufacturers")
     suspend fun getManufacturersByCategory(
         @Query("category") category: String
     ): ApiResponse<List<String>>
 
-    // 차명 목록 조회 API 변경
     @GET("api/cars/carnames")
     suspend fun getCarNames(
         @Query("category") category: String,
         @Query("manufacturer") manufacturer: String
     ): ApiResponse<List<String>>
+
+    @GET("api/cars/modelnames")
+    suspend fun getModelNames(
+        @Query("category") category: String,
+        @Query("manufacturer") manufacturer: String,
+        @Query("carName") carName: String
+    ): ApiResponse<List<String>>
+
+    @GET("api/cars/years")
+    suspend fun getYears(
+        @Query("category") category: String,
+        @Query("manufacturer") manufacturer: String,
+        @Query("carName") carName: String,
+        @Query("modelName") modelName: String
+    ): ApiResponse<List<Int>>
 
     @Multipart
     @POST("api/vehicles")
@@ -58,7 +77,6 @@ data class ApiResponse<T>(
     val data: T
 )
 
-// 차량 목록 응답 모델
 @Serializable
 data class VehicleListResponse(
     val vehicles: List<VehicleDto>,
@@ -67,15 +85,13 @@ data class VehicleListResponse(
     val pageSize: Int
 )
 
-// 차량 정보 DTO
-
 @Serializable
 data class VehicleDto(
     val id: Long,
     val carName: String? = null,
     val manufacturer: String? = null,
     val model: String? = null,
-    val year_value: Int? = null,  // 반드시 Int?로 선언되어야 함
+    val year_value: Int? = null,
     val mileage: Int? = null,
     val transmission: String? = null,
     val fuelType: String? = null,
@@ -85,7 +101,7 @@ data class VehicleDto(
     val representativePhotoUrl: String? = null,
     val locationAddress: String? = null,
     val favoriteCount: Int? = null,
-    val createdAt: String? = null,  // 현재 문자열로 처리 중인데 Long으로 바꿔주세요
+    val createdAt: String? = null,
     val vehicleTypeName: String? = null,
     val mainOptions: List<String>? = null,
     val totalOptionsCount: Int? = null
@@ -105,13 +121,15 @@ data class VehicleDetailResponse(
     val transmission: String? = null,
     val accidentHistory: String? = null,
     val accidentDescription: String? = null,
+    val isSeller: Boolean? = null,
+    val favorite: Boolean? = null,
     val engineCc: Int? = null,
     val horsepower: Int? = null,
     val color: String? = null,
     val price: Long? = null,
     val isAuction: String? = null,
     val vehicleStatus: String? = null,
-    val auctionId: String? = null,
+    val auctionId: Long? = null,
     val favoriteCount: Int? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null,
@@ -128,18 +146,12 @@ data class PhotoResponse(
     val photoUrl: String
 )
 
-
-// 도메인 모델로 변환 확장 함수
-
 private fun createTagsFromOptions(options: List<String>): List<Tag> {
     val tags = mutableListOf<Tag>()
 
     if (options.contains("내비게이션")) {
         tags.add(Tag.CERTIFIED)
     }
-
-    // 추가 태그 로직은 비즈니스 요구사항에 맞게 구현
-    // 예: 신규 매물인 경우 NEW 태그 추가
 
     return tags
 }

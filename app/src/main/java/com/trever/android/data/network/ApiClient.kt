@@ -6,6 +6,7 @@ import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuctionApi
 import com.trever.android.data.remote.AuthApi
 import com.trever.android.data.remote.ProfileApi
+import com.trever.android.data.remote.SearchApi
 import com.trever.android.data.remote.VehicleApi
 import com.trever.android.data.remote.WalletApi
 import kotlinx.serialization.json.Json
@@ -33,6 +34,12 @@ object ApiClient {
         private set
 
     lateinit var walletApi: WalletApi
+        private set
+
+    lateinit var profileApi: ProfileApi
+        private set
+
+    lateinit var searchApi: SearchApi
         private set
 
     lateinit var profileApi: ProfileApi
@@ -75,7 +82,7 @@ object ApiClient {
 
         authApi = retrofitForAuth.create(AuthApi::class.java)
 
-        auctionApi = retrofitForAuth.create(AuctionApi::class.java)
+
 
         // (2) 인증 인터셉터/리프레시 인증자 부착한 클라이언트 & Retrofit (CarApi 등)
         val authedClient = baseClient.newBuilder()
@@ -92,6 +99,9 @@ object ApiClient {
         vehicleApi = retrofit.create(VehicleApi::class.java)
         walletApi = retrofit.create(WalletApi::class.java)
         profileApi = retrofit.create(ProfileApi::class.java)
+        profileApi = retrofit.create(ProfileApi::class.java)
+        searchApi = retrofit.create(SearchApi::class.java)
+        auctionApi = retrofit.create(AuctionApi::class.java)
 
 
     }

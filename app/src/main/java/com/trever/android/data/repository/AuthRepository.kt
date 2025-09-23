@@ -9,15 +9,22 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.trever.android.BuildConfig
 import com.trever.android.data.auth.TokenStore
+import com.trever.android.data.network.ApiClient
 import com.trever.android.data.remote.AuthApi
 
 import com.trever.android.data.remote.GoogleLoginRequest
+import com.trever.android.data.remote.ProfileApi
+import com.trever.android.data.remote.ProfileCompleteRequest
+import com.trever.android.data.remote.ProfileCompleteResponse
 
 class AuthRepository(
     private val tokenStore: TokenStore,
     private val authApi: AuthApi,
-    private val context: Context
+    private val context: Context,
+
 ) {
+    private val profileApi: ProfileApi
+        get() = ApiClient.profileApi
     private val googleSignInClient: GoogleSignInClient by lazy {
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -33,15 +40,31 @@ class AuthRepository(
         return googleSignInClient.signInIntent
     }
 
-    suspend fun handleGoogleSignInResult(idToken: String): Result<Unit> {
+    suspend fun handleGoogleSignInResult(idToken: String): Result<Boolean> {
         Log.d("AuthRepository", "Google ID Token: $idToken") // 토큰 값 로그 출력
         return try {
             val response = authApi.googleLogin(GoogleLoginRequest(idToken))
             tokenStore.saveTokens(response.data.accessToken, response.data.refreshToken)
 
-            Result.success(Unit)
+            Result.success(response.data.profileComplete)
         } catch (e: Exception) {
             Log.e("AuthRepository", "로그인 실패12: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun completeProfile(
+        name: String,
+        phone: String,
+        locationCity: String,
+        birthDate: String
+    ): Result<ProfileCompleteResponse> {
+        return try {
+            val response = profileApi.completeProfile(
+                ProfileCompleteRequest(name, phone, locationCity, birthDate)
+            )
+            Result.success(response)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

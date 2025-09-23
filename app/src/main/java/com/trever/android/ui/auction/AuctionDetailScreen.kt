@@ -111,6 +111,20 @@ fun AuctionDetailScreen(
                 // API 응답 데이터를 UI 모델로 변환
                 val detailUi = state.vehicle.toAuctionDetailUi()
 
+//                // 판매자 정보 추출
+//                val sellerUi = SellerUi(
+//                    name = state.vehicle.sellerName ?: "",
+//                    id = state.vehicle.sellerId?.toString() ?: "",
+//                    addr = state.vehicle.sellerLocationCity ?: "",
+//                    regDate = "", // 필요시 추가
+//                    validDate = "", // 필요시 추가
+//                    count = 0, // 필요시 추가
+//                    response = 0, // 필요시 추가
+//                    avatarUrl = state.vehicle.sellerProfileImageUrl
+//                )
+//
+//                val isSeller = state.vehicle.isSeller == true
+
                 // 입찰 내역을 UI 모델에 통합
                 val bidUiList = bids.map { bid ->
                     BidUi(
@@ -284,9 +298,9 @@ fun AuctionDetailScreen(
             onConfirm = { newBid ->
                 // auctionId, 새 입찰가, 사용자 ID로 API 호출
                 val auctionIdInt = auctionId.toIntOrNull() ?: 0
-                val userId = 33 // TODO: 실제 사용자 ID로 대체 (UserManager 등에서 가져오기)
 
-                viewModel.placeBid(auctionIdInt, newBid, userId)
+
+                viewModel.placeBid(auctionIdInt, newBid)
                 // 여기서는 즉시 닫지 않고, 결과에 따라 LaunchedEffect에서 처리
             },
             onDismiss = { showBidSheet = false }
