@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter 
 import com.trever.android.R
+import com.trever.android.data.remote.UserInfo
 import com.trever.android.ui.myPage.components.ProfileEditSheetContent 
 import com.trever.android.ui.myPage.components.TransactionSheetContent // 바텀시트 임포트
 import com.trever.android.ui.myPage.components.formatAmountToManwon // 금액 포맷팅 함수 임포트
@@ -50,7 +51,7 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = viewModel()
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
-    val accountInfo by viewModel.accountInfo.collectAsState()
+    val balance by viewModel.balance.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -74,13 +75,19 @@ fun MyPageScreen(
             containerColor = Color.White // 프로필 바텀시트 배경색도 흰색으로 통일 (선택 사항)
         ) {
             ProfileEditSheetContent(
-                initialName = userProfile.nickname,
-                initialPhoneNumber = userProfile.phoneNumber ?: "",
-                initialAddress = userProfile.address ?: "",
-                initialBirthday = userProfile.birthday ?: "",
-                initialProfileImageUri = userProfile.profileImageUrl?.let { Uri.parse(it) },
+                initialName = userProfile?.name ?: "",
+                initialPhoneNumber = userProfile?.phone ?: "",
+                initialAddress = userProfile?.locationCity ?: "",
+                initialBirthday = userProfile?.birthDate ?: "",
+                initialProfileImageUri = userProfile?.profileImageUrl?.let { Uri.parse(it) },
                 onSaveClicked = { name, phone, address, birthday, imageUri ->
-                    viewModel.updateUserProfile(name, phone.ifEmpty { null }, address.ifEmpty { null }, birthday.ifEmpty { null }, imageUri?.toString())
+                    val userInfo = UserInfo(
+                        name = name,
+                        phone = phone.ifEmpty { null },
+                        locationCity = address.ifEmpty { null },
+                        birthDate = birthday.ifEmpty { null }
+                    )
+                    viewModel.updateProfile(userInfo, imageUri)
                     scope.launch {
                         profileSheetState.hide()
                     }.invokeOnCompletion {
@@ -102,13 +109,13 @@ fun MyPageScreen(
         ) {
             TransactionSheetContent(
                 title = "얼마나 충전할까요?",
-                bankName = accountInfo.bankName ?: "알 수 없는 은행",
-                accountNumber = accountInfo.accountNumber,
-                bankLogoResId = R.drawable.ic_bank_placeholder, // TODO: 실제 은행 로고로 교체
+                bankName = "내 은행", // 서버에서 은행정보 아직 안받으니 임시 표시
+                accountNumber = "계좌번호",
+                bankLogoResId = R.drawable.ic_bank_placeholder,
                 preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
                 actionButtonText = "충전하기",
                 onActionClick = { amount ->
-                    viewModel.charge(amount) 
+                    viewModel.deposit(amount)
                     scope.launch {
                         chargeSheetState.hide()
                     }.invokeOnCompletion {
@@ -130,13 +137,13 @@ fun MyPageScreen(
         ) {
             TransactionSheetContent(
                 title = "얼마나 출금할까요?",
-                bankName = accountInfo.bankName ?: "알 수 없는 은행",
-                accountNumber = accountInfo.accountNumber,
-                bankLogoResId = R.drawable.ic_bank_placeholder, // TODO: 실제 은행 로고로 교체
+                bankName = "내 은행",
+                accountNumber = "계좌번호",
+                bankLogoResId = R.drawable.ic_bank_placeholder,
                 preSetAmounts = listOf(10000L, 50000L, 100000L, 500000L, 1000000L),
                 actionButtonText = "출금하기",
                 onActionClick = { amount ->
-                    viewModel.withdraw(amount) 
+                    viewModel.withdraw(amount)
                     scope.launch {
                         withdrawSheetState.hide()
                     }.invokeOnCompletion {
@@ -163,17 +170,17 @@ fun MyPageScreen(
 
             item {
                 ProfileSection(
-                    nickname = userProfile.nickname,
-                    email = userProfile.email,
-                    profileImageUrl = userProfile.profileImageUrl,
+                    nickname = userProfile?.name ?: "닉네임",
+                    email = userProfile?.phone ?: "-",
+                    profileImageUrl = userProfile?.profileImageUrl,
                     onProfileClick = { showProfileBottomSheet = true }
                 )
             }
 
             item {
                 AccountSection(
-                    accountTitle = accountInfo.accountName ?: "내 계좌", 
-                    balance = accountInfo.balance, 
+                    accountTitle = "내 지갑",
+                    balance = balance ?: 0L,
                     onChargeClick = { showChargeBottomSheet = true },
                     onWithdrawClick = { showWithdrawBottomSheet = true }
                 )
