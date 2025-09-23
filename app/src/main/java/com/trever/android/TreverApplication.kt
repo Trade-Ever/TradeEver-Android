@@ -17,6 +17,7 @@ import com.trever.android.data.repository.VehicleRepository
 import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.myPage.MyPageViewModel
 import com.trever.android.ui.myPage.TransactionViewModel // ViewModel 위치 변경에 따른 import 경로 수정
+import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -87,4 +88,5 @@ val appModule = module {
     viewModel { AuthViewModel(get()) }
     viewModel { MyPageViewModel(get(), get()) }
     viewModel { TransactionViewModel(get()) }
+    viewModel { SellEntryViewModel(get()) }
 }

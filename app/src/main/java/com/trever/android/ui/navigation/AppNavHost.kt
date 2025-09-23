@@ -51,8 +51,7 @@ fun AppNavHost(
     ) {
         composable("main") {
             MainScreen(
-                parentNavController = navController,
-                sellCarViewModel = sellCarViewModel
+                parentNavController = navController
             )
         }
 

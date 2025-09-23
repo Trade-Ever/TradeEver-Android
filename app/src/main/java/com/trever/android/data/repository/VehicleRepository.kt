@@ -26,6 +26,22 @@ class VehicleRepository(
     private val context: Context? = null,
     private val gson: Gson = Gson()
 ) {
+    suspend fun getMyVehicles(page: Int = 0, size: Int = 10): Result<MyVehiclesResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getMyVehicles(page, size)
+                if (response.success) {
+                    Result.success(response.data)
+                } else {
+                    Result.failure(Exception(response.message))
+                }
+            } catch (e: Exception) {
+                Log.e("VehicleRepository", "Error fetching my vehicles", e)
+                Result.failure(e)
+            }
+        }
+    }
+
     suspend fun getAuctions(
         page: Int = 0,
         size: Int = 10,

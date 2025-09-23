@@ -86,8 +86,8 @@ dependencies {
     // Navigation-Compose
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // Activity Compose
-    implementation("androidx.activity:activity-compose:1.9.2")
+    // Activity Compose - 1.9.2 버전 직접 명시 삭제하여 충돌 해결
+    // implementation("androidx.activity:activity-compose:1.9.2")
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")

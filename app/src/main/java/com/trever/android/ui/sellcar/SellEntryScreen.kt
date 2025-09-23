@@ -23,12 +23,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.trever.android.R
+import com.trever.android.data.remote.toAuctionCar
 import com.trever.android.domain.model.AuctionCar
 import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.navigation.ROUTE_SELL_FLOW
-import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Red_1
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AuctionBadge(modifier: Modifier = Modifier) {
@@ -46,9 +48,10 @@ fun AuctionBadge(modifier: Modifier = Modifier) {
 @Composable
 fun SellEntryScreen(
     parentNavController: NavHostController,
-    sellCarViewModel: SellCarViewModel
+    sellEntryViewModel: SellEntryViewModel = koinViewModel()
 ) {
-    val registeredCars by sellCarViewModel.registeredCars.collectAsState()
+    val uiState by sellEntryViewModel.uiState.collectAsState()
+    val registeredCars = uiState.myVehicles.map { it.toAuctionCar() }
 
     Scaffold(
         containerColor = Color.White
@@ -63,27 +66,21 @@ fun SellEntryScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp), // 이미지 컨테이너 높이
+                        .height(200.dp), // 이미지 컨테이너 높이
                     contentAlignment = Alignment.Center
                 ) {
-                    // 배경 차량 이미지
                     Image(
-                        painter = painterResource(id = R.drawable.purple_car_22),
+                        painter = painterResource(id = R.drawable.purple_car_44),
                         contentDescription = "차량 등록 배경",
-                        modifier = Modifier
-                            .matchParentSize(), // 부모 Box 크기에 이미지를 맞춤
-                        // Crop -> Fit 으로 변경하여 이미지 잘림 없이 전체가 보이도록 수정
+                        modifier = Modifier.matchParentSize(),
                         contentScale = ContentScale.Fit
                     )
-
-                    // 번호판 모양 버튼
                     Button(
                         onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            // offset 값을 조절해 버튼을 번호판 위치로 이동
                             .offset(y = (-50).dp),
-                        shape = RoundedCornerShape(4.dp), // 번호판 모양
+                        shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
                             contentColor = Color.Black
@@ -100,25 +97,49 @@ fun SellEntryScreen(
                 }
             }
 
-            // 2. "내가 등록한 차량" 타이틀 또는 목록이 없을 때의 메시지
+            // 2. "내가 등록한 차량" 타이틀 또는 상태 메시지
             item {
-                if (registeredCars.isEmpty()) {
-                    Text(
-                        text = "아직 등록된 차량이 없어요.\n지금 바로 내 차 정보를 등록해보세요!",
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 48.dp)
-                    )
-                } else {
-                    Text(
-                        text = "내가 등록한 차량",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
-                    )
+                when {
+                    uiState.isLoading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    uiState.error != null -> {
+                        Text(
+                            text = uiState.error ?: "알 수 없는 오류가 발생했습니다.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = Color.Red,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 48.dp)
+                        )
+                    }
+                    registeredCars.isEmpty() -> {
+                        Text(
+                            text = "아직 등록된 차량이 없어요. 지금 바로 내 차 정보를 등록해보세요!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 48.dp)
+                        )
+                    }
+                    else -> {
+                        Text(
+                            text = "내가 등록한 차량",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
+                        )
+                    }
                 }
             }
 
@@ -131,10 +152,8 @@ fun SellEntryScreen(
                             car = car,
                             onClick = { /* TODO: 등록된 차량 상세 화면으로 이동 */ },
                             onToggleLike = { /* TODO: 찜하기 로직 */ },
-                            // transactionType에 따라 경매/일반 매물 UI 분기
                             showBadge = isAuction,
                             showAuctionMeta = isAuction,
-                            // 일반 매물일 경우 "판매 가격"으로 표시 (예시)
                             priceLabel = if (isAuction) "최고 입찰가" else "판매 가격"
                         )
                     }
