@@ -22,9 +22,11 @@ import java.util.concurrent.TimeUnit
 data class SellCarUiState(
     val currentStep: Int = 1,
     val plateNumber: String = "",
+    val isPlateNumberChecking: Boolean = false, // 번호판 중복 확인 중 상태
+    val plateNumberExists: Boolean? = null, // 중복 확인 결과 (true: 중복, false: 사용 가능, null: 확인 전)
     val selectedManufacturer: String = "",
-    val selectedModel: String = "", // '차명' (예: 쏘나타)
-    val selectedModelName: String = "", // '상세 모델명' (예: DN8)
+    val selectedModel: String = "",
+    val selectedModelName: String = "",
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     val selectedCarType: String = "",
     val mileage: String = "",
@@ -48,8 +50,8 @@ data class SellCarUiState(
     val isLoadingCarNames: Boolean = false,
     val modelNameList: List<String> = emptyList(),
     val isLoadingModelNames: Boolean = false,
-    val yearList: List<Int> = emptyList(), // 연식 리스트 추가
-    val isLoadingYears: Boolean = false // 연식 로딩 상태 추가
+    val yearList: List<Int> = emptyList(),
+    val isLoadingYears: Boolean = false
 )
 
 class SellCarViewModel(application: Application) : AndroidViewModel(application) {
@@ -62,6 +64,29 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         loadManufacturers()
+    }
+
+    fun checkPlateNumberDuplication(onResult: (isDuplicate: Boolean) -> Unit) {
+        val plateNumber = _uiState.value.plateNumber
+        if (plateNumber.isBlank()) return
+
+        _uiState.update { it.copy(isPlateNumberChecking = true) }
+        viewModelScope.launch {
+            repository.checkCarNumber(plateNumber)
+                .onSuccess { isDuplicate ->
+                    _uiState.update { it.copy(isPlateNumberChecking = false, plateNumberExists = isDuplicate) }
+                    onResult(isDuplicate)
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isPlateNumberChecking = false, plateNumberExists = null) }
+                    onResult(false) // API 실패 시 중복이 아닌 것으로 간주하여 일단 플로우는 진행
+                    Log.e("SellCarViewModel", "Failed to check plate number duplication", it)
+                }
+        }
+    }
+
+    fun resetPlateNumberCheck() {
+        _uiState.update { it.copy(plateNumberExists = null) }
     }
 
     // --- 상태 업데이트 함수들 ---

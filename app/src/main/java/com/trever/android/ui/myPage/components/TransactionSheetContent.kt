@@ -5,9 +5,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,16 +50,22 @@ fun TransactionSheetContent(
         directInputAmountText.toLongOrNull() ?: 0L
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .imePadding() // ✅ 키보드 올라올 때 여백 확보
+            .verticalScroll(scrollState) // ✅ 스크롤 가능하게
             .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 24.dp).align(Alignment.Start)
+            modifier = Modifier
+                .padding(bottom = 24.dp)
+                .align(Alignment.Start)
         )
 
         Row(
@@ -73,12 +81,21 @@ fun TransactionSheetContent(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = bankName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Text(text = accountNumber, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = bankName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = accountNumber,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -93,7 +110,7 @@ fun TransactionSheetContent(
                     AmountButton(
                         amount = amount,
                         isSelected = visuallySelectedButtonAmount == amount,
-                        onClick = { 
+                        onClick = {
                             directInputAmountText = amount.toString()
                             visuallySelectedButtonAmount = amount
                         },
@@ -110,10 +127,10 @@ fun TransactionSheetContent(
                 val filteredText = newText.filter { char -> char.isDigit() }
                 directInputAmountText = filteredText
                 val longValue = filteredText.toLongOrNull()
-                if (longValue != null && preSetAmounts.contains(longValue)) {
-                    visuallySelectedButtonAmount = longValue
+                visuallySelectedButtonAmount = if (longValue != null && preSetAmounts.contains(longValue)) {
+                    longValue
                 } else {
-                    visuallySelectedButtonAmount = null
+                    null
                 }
             },
             modifier = Modifier.fillMaxWidth(),
