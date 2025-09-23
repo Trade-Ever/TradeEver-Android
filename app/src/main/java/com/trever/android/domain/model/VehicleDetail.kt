@@ -8,6 +8,7 @@ import kotlin.toString
 data class VehicleDetail(
     val id: String,
     val title: String,
+    val carName: String,
     val description: String,
     val year: Int,
     val mileage: Int,
@@ -17,11 +18,17 @@ data class VehicleDetail(
     val horsepower: Int,
     val color: String,
     val price: Long,
+    val sellerPhone: String?,
+    val vehicleStatus: String?,
     val accidentHistory: Boolean,
     val accidentDescription: String,
     val photos: List<String>,
     val options: List<String>,
-    val sellerInfo: SellerInfo
+    val isSeller: Boolean, // 본인 매물 여부
+    val sellerId: String?,
+    val sellerName: String?,
+    val sellerLocationCity: String?,
+    val sellerProfileImageUrl: String?
 )
 
 data class SellerInfo(

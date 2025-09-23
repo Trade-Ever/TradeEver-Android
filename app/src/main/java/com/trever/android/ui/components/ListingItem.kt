@@ -326,6 +326,7 @@ private fun CountdownText(startAtMillis: Long, endsAtMillis: Long) {
 
     val label = if (isBeforeStart) "시작까지" else "종료까지"
     val text = when {
+        remain <= 0L -> "종료"
         d > 0 -> "$label ${d}일 ${h}시간 ${m}분"
         h > 0 -> "$label ${h}시간 ${m}분"
         m >= 10 -> "$label ${m}분"
@@ -333,7 +334,7 @@ private fun CountdownText(startAtMillis: Long, endsAtMillis: Long) {
         else -> "$label ${s}초"
     }
 
-    val color = if (isBeforeStart) Color(0xFF1976D2) else Red_1 // 파란색(Blue 700), 종료는 기존 빨간색
+    val color = if (isBeforeStart) Color(0xFF1976D2) else Red_1
 
     Text(
         text = text,

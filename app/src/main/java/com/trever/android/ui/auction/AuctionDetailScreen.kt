@@ -32,8 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import coil.compose.AsyncImage
 import com.trever.android.data.remote.toAuctionDetailUi
+
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AuctionBadge
 import com.trever.android.ui.components.DetailContent
@@ -46,6 +48,7 @@ import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.backgroundColor
 import kotlinx.coroutines.launch
+
 
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -82,6 +85,8 @@ fun AuctionDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+
+
     // 화면 진입시 데이터 로드
     LaunchedEffect(carId) {
         viewModel.loadVehicleDetail(carId, auctionId)
@@ -111,19 +116,18 @@ fun AuctionDetailScreen(
                 // API 응답 데이터를 UI 모델로 변환
                 val detailUi = state.vehicle.toAuctionDetailUi()
 
-//                // 판매자 정보 추출
-//                val sellerUi = SellerUi(
-//                    name = state.vehicle.sellerName ?: "",
-//                    id = state.vehicle.sellerId?.toString() ?: "",
-//                    addr = state.vehicle.sellerLocationCity ?: "",
-//                    regDate = "", // 필요시 추가
-//                    validDate = "", // 필요시 추가
-//                    count = 0, // 필요시 추가
-//                    response = 0, // 필요시 추가
-//                    avatarUrl = state.vehicle.sellerProfileImageUrl
-//                )
-//
-//                val isSeller = state.vehicle.isSeller == true
+
+                // 판매자 정보 추출
+                val sellerUi = SellerUi(
+                    name = state.vehicle.sellerName ?: "",
+                    id = state.vehicle.sellerId?.toString() ?: "",
+                    addr = state.vehicle.sellerLocationCity ?: "",
+
+                    avatarUrl = state.vehicle.sellerProfileImageUrl
+                )
+
+                val isSeller = state.vehicle.isSeller == true
+
 
                 // 입찰 내역을 UI 모델에 통합
                 val bidUiList = bids.map { bid ->
@@ -138,6 +142,7 @@ fun AuctionDetailScreen(
                 // 최상위 입찰자 정보 가져오기
                 val topBidder = bids.maxByOrNull { it.bidPrice }
 
+
                 // currentBidPrice가 null 또는 0이면 startPrice 사용
                 val currentPrice = if ((topBidder?.bidPrice ?: 0L) > 0L) {
                     topBidder?.bidPrice ?: 0L
@@ -146,65 +151,76 @@ fun AuctionDetailScreen(
                 }
                 val currentPriceText = formatKoreanWon(currentPrice)
 
+                val now = System.currentTimeMillis()
+                val startAtMillis = auction?.startAt?.takeIf { !it.isNullOrBlank() }?.let { parseDateTimeToMillis(it) } ?: Long.MAX_VALUE
+                val endAtMillis = auction?.endAt?.takeIf { !it.isNullOrBlank() }?.let { parseDateTimeToMillis(it) } ?: 0L
+
+                val isBeforeStart = now < startAtMillis
+                val isAfterEnd = now > endAtMillis
+                val bidEnabled = !isSeller && !isBeforeStart && !isAfterEnd
+
+                Log.d("AuctionDetail", "now=$now, startAtMillis=$startAtMillis, endAtMillis=$endAtMillis, bidEnabled=$bidEnabled")
+
                 // 시작가 텍스트
                 val startPrice = auction?.startPrice ?: detailUi.priceWon
                 val startPriceText = "시작가 ${formatKoreanWon(startPrice)}"
 
-                val endAtMillis = auction?.endAt?.let { endAt ->
-                    try {
-                        Log.d("AuctionDetail", "원본 종료 시간: $endAt")
-
-                        // 시간 문자열에서 나노초 부분 처리 (가변적인 길이 처리)
-                        val simplified = if (endAt.contains(".")) {
-                            val parts = endAt.split(".")
-                            val base = parts[0]
-                            val decimal = parts[1].replace("Z", "") // Z 제거
-                                .take(3) // 밀리초 3자리만 사용
-                            "$base.$decimal${if (endAt.endsWith("Z")) "Z" else ""}"
-                        } else {
-                            endAt
-                        }
-
-                        Log.d("AuctionDetail", "단순화된 종료 시간: $simplified")
-
-                        // 여러 날짜 포맷을 시도
-                        val formats = listOf(
-                            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                            "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                            "yyyy-MM-dd'T'HH:mm:ss"
-                        )
-
-                        var parsedTime: Long? = null
-                        for (pattern in formats) {
-                            try {
-                                val inputFormat = SimpleDateFormat(pattern, Locale.getDefault())
-                                // 서버에서 오는 시간이 이미 로컬 시간이므로 UTC 설정 제거
-                                // inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-
-                                val date = inputFormat.parse(simplified)
-                                if (date != null) {
-                                    parsedTime = date.time
-                                    Log.d("AuctionDetail", "성공적으로 파싱됨: $pattern, 결과: ${Date(parsedTime)}")
-                                    break
-                                }
-                            } catch (e: Exception) {
-                                Log.e("AuctionDetail", "패턴 실패: $pattern - ${e.message}")
-                            }
-                        }
-
-                        parsedTime ?: run {
-                            Log.e("AuctionDetail", "모든 날짜 패턴으로 파싱 실패")
-                            System.currentTimeMillis() + 24 * 60 * 60 * 1000 // 기본값
-                        }
-                    } catch (e: Exception) {
-                        Log.e("AuctionDetail", "날짜 파싱 오류: ${e.message}")
-                        System.currentTimeMillis() + 24 * 60 * 60 * 1000
-                    }
-                } ?: (System.currentTimeMillis() + 24 * 60 * 60 * 1000)
+//                val endAtMillis = auction?.endAt?.let { endAt ->
+//                    try {
+//                        Log.d("AuctionDetail", "원본 종료 시간: $endAt")
+//
+//                        // 시간 문자열에서 나노초 부분 처리 (가변적인 길이 처리)
+//                        val simplified = if (endAt.contains(".")) {
+//                            val parts = endAt.split(".")
+//                            val base = parts[0]
+//                            val decimal = parts[1].replace("Z", "") // Z 제거
+//                                .take(3) // 밀리초 3자리만 사용
+//                            "$base.$decimal${if (endAt.endsWith("Z")) "Z" else ""}"
+//                        } else {
+//                            endAt
+//                        }
+//
+//                        Log.d("AuctionDetail", "단순화된 종료 시간: $simplified")
+//
+//                        // 여러 날짜 포맷을 시도
+//                        val formats = listOf(
+//                            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+//                            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+//                            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+//                            "yyyy-MM-dd'T'HH:mm:ss"
+//                        )
+//
+//                        var parsedTime: Long? = null
+//                        for (pattern in formats) {
+//                            try {
+//                                val inputFormat = SimpleDateFormat(pattern, Locale.getDefault())
+//                                // 서버에서 오는 시간이 이미 로컬 시간이므로 UTC 설정 제거
+//                                // inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+//
+//                                val date = inputFormat.parse(simplified)
+//                                if (date != null) {
+//                                    parsedTime = date.time
+//                                    Log.d("AuctionDetail", "성공적으로 파싱됨: $pattern, 결과: ${Date(parsedTime)}")
+//                                    break
+//                                }
+//                            } catch (e: Exception) {
+//                                Log.e("AuctionDetail", "패턴 실패: $pattern - ${e.message}")
+//                            }
+//                        }
+//
+//                        parsedTime ?: run {
+//                            Log.e("AuctionDetail", "모든 날짜 패턴으로 파싱 실패")
+//                            System.currentTimeMillis() + 24 * 60 * 60 * 1000 // 기본값
+//                        }
+//                    } catch (e: Exception) {
+//                        Log.e("AuctionDetail", "날짜 파싱 오류: ${e.message}")
+//                        System.currentTimeMillis() + 24 * 60 * 60 * 1000
+//                    }
+//                } ?: (System.currentTimeMillis() + 24 * 60 * 60 * 1000)
 
                 DetailContent(
-                    item = detailUi.copy(bids = bidUiList),
+
+                    item = detailUi.copy(bids = bidUiList, seller = sellerUi, priceWon = currentPrice, priceWonText = currentPriceText),
                     onBack = onBack,
                     badge = { AuctionBadge() },
                     showBidSection = true,
@@ -216,11 +232,11 @@ fun AuctionDetailScreen(
                             topBidderName = topBidder?.bidderName,
                             topBidderAvatarUrl = topBidder?.bidderAvatarUrl,
                             onBid = {
-                                // 버튼 클릭시 이전 입찰 결과 초기화 후 바텀시트 표시
                                 viewModel.resetBidResult()
                                 showBidSheet = true
                             },
-                            endAtMillis = endAtMillis
+                            endAtMillis = endAtMillis,
+                            bidEnabled = bidEnabled,
                         )
                     }
                 )
@@ -607,7 +623,8 @@ private fun BottomActionBar(
     topBidderAvatarUrl: String? = null,
     onBid: () -> Unit,
     modifier: Modifier = Modifier,
-    endAtMillis: Long = 0
+    endAtMillis: Long = 0,
+    bidEnabled: Boolean = true, // 추가
 ) {
     val cs = MaterialTheme.colorScheme
     val green = Color(0xFF00C364)
@@ -699,6 +716,7 @@ private fun BottomActionBar(
                 AppFilledButton(
                     text = "상위 입찰",
                     onClick = onBid,
+                    enabled = bidEnabled, // 적용
                     modifier = Modifier.height(50.dp).widthIn(min = 140.dp),
                        // <- onPrimary 권장
                 )
@@ -715,6 +733,7 @@ private fun BottomActionBar(
 /* ------------------------------------ */
 
 data class AuctionDetailUi(
+    val carName: String,
     val images: List<String>,
     val liked: Boolean,
     val title: String,
@@ -735,60 +754,16 @@ data class BidUi(
     val amountText: String,
     val timeText: String,
     val avatarUrl: String? = null,   // ⬅️ 추가
-)
-data class SellerUi(val name: String, val id: String, val addr: String, val regDate: String, val validDate: String, val count: Int, val response: Int,val avatarUrl: String? = null)
 
-/* 샘플 */
-private fun demoDetail() = AuctionDetailUi(
-    images = listOf(
-        "https://picsum.photos/id/1018/1600/900",
-        "https://picsum.photos/id/1015/1600/900",
-        "https://picsum.photos/id/1020/1600/900",
-        "https://picsum.photos/id/1024/1600/900",
-        "https://picsum.photos/id/1033/1600/900",
-    ),
-    liked = false,
-    title = "테슬라 Model X AWD",
-    subTitle = "2024년 · 3.5만km",
-    priceWon = 125_000_000,
-    priceWonText = "1억 2,500만원",
-    startPriceText = "시작가 1억 5,000만원",
-    likeCount = 32,
-    remainText = "1시간 15분",
-    specs = listOf(
-        "연료" to "전기",
-        "변속기" to "자동",
-        "배기량(cc)" to "엔진없음",
-        "마력" to "252마력",
-        "색상" to "미드나잇 실버",
-        "기타 정보" to listOf(
-            "열선시트(앞좌석)", "글라스 루프", "내비게이션(정품)",
-            "열선핸들", "전동시트(앞좌석)", "메모리시트(운전석)",
-            "전동식 트렁크", "통풍시트(앞좌석)", "전동시트(뒷좌석)", "열선시트(뒷좌석)", "FSD"
-        ).joinToString("\n"),
-        "사고 이력" to "있음",
-        "사고 설명" to "내차 피해 (1건)"
-    ),
-    notice = "2열 캡틴 시트가 장착된 6인승 차량입니다.\n" +
-            "\n" +
-            "FSD(Full Self Driving) 옵션이 탑재된 차량입니다.\n" +
-            "\n" +
-            "열선 핸들, 열선 시트(1열 및 2열), 통풍 시트(1열)가 탑재되어 쾌적한 주행이 가능한 차량입니다 .",
-    bids = listOf(
-        BidUi("홍길동", "1억 2,500만원", "2025-09-15 18:15"),
-        BidUi("오광운", "1억 2,000만원", "2025-09-15 18:15"),
-        BidUi("최상근", "1억 1,000만원", "2025-09-15 18:15"),
-    ),
-    seller = SellerUi(
-        name = "김판매",
-        id = "seller123",
-        addr = "경기 수원시 영통구",
-        regDate = "2025.09.12",
-        validDate = "2025.09.16",
-        count = 39,
-        response = 96
-    )
 )
+data class SellerUi(
+    val name: String,
+    val id: String,
+    val addr: String,
+    val avatarUrl: String? = null,
+    val phoneNumber: String? = null
+)
+/* 샘플 */
 
 @Composable
 private fun CountdownText(endsAtMillis: Long) {
@@ -808,6 +783,7 @@ private fun CountdownText(endsAtMillis: Long) {
     val s = TimeUnit.MILLISECONDS.toSeconds(remain.coerceAtLeast(0)) % 60
 
     val text = when {
+        remain <= 0L -> "종료"
         d > 0 -> "${d}일 ${h}시간 ${m}분"
         h > 0 -> "${h}시간 ${m}분"
         m >= 10 -> "${m}분"
@@ -822,6 +798,31 @@ private fun CountdownText(endsAtMillis: Long) {
     )
 }
 
+private fun parseDateTimeToMillis(dateTimeStr: String): Long {
+    val formats = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss",
+        "yyyy-MM-dd'T'HH:mm" // 추가
+    )
+    val simplified = if (dateTimeStr.contains(".")) {
+        val parts = dateTimeStr.split(".")
+        val base = parts[0]
+        val decimal = parts[1].replace("Z", "").take(3)
+        "$base.$decimal${if (dateTimeStr.endsWith("Z")) "Z" else ""}"
+    } else {
+        dateTimeStr
+    }
+    for (pattern in formats) {
+        try {
+            val sdf = java.text.SimpleDateFormat(pattern, java.util.Locale.getDefault())
+            val date = sdf.parse(simplified)
+            if (date != null) return date.time
+        } catch (_: Exception) {}
+    }
+    return System.currentTimeMillis()
+}
 
 
 

@@ -9,6 +9,7 @@ import com.trever.android.domain.model.VehicleSummary
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.compareTo
 
 class BuyListViewModel : ViewModel() {
     private val repository = VehicleRepository(ApiClient.vehicleApi)
@@ -37,25 +38,23 @@ class BuyListViewModel : ViewModel() {
         viewModelScope.launch {
             repository.getVehicles(currentPage)
                 .onSuccess { vehicles ->
+                    val uniqueVehicles = vehicles.distinctBy { it.id }
                     val currentState = _uiState.value
                     val newState = if (currentState is BuyListUiState.Success && !isRefresh) {
-                        // 기존 목록에 새로운 아이템 추가
                         currentState.copy(
-                            vehicles = currentState.vehicles + vehicles,
+                            vehicles = (currentState.vehicles + uniqueVehicles).distinctBy { it.id },
                             currentPage = currentPage,
-                            hasMorePages = vehicles.isNotEmpty() && vehicles.size == 10
+                            hasMorePages = uniqueVehicles.isNotEmpty() && uniqueVehicles.size == 10
                         )
                     } else {
-                        // 새로운 목록 설정
                         BuyListUiState.Success(
-                            vehicles = vehicles,
+                            vehicles = uniqueVehicles,
                             currentPage = currentPage,
-                            hasMorePages = vehicles.isNotEmpty() && vehicles.size == 10
+                            hasMorePages = uniqueVehicles.isNotEmpty() && uniqueVehicles.size == 10
                         )
                     }
-
                     _uiState.value = newState
-                    isLastPage = vehicles.isEmpty() || vehicles.size < 10
+                    isLastPage = uniqueVehicles.isEmpty() || uniqueVehicles.size < 10
                 }
                 .onFailure { error ->
                     Log.e("BuyListViewModel", "Error loading vehicles", error)
