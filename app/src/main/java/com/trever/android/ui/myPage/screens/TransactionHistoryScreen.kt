@@ -36,7 +36,7 @@ fun TransactionHistoryScreen(
     initialTabIndex: Int = 0 // 시작 탭을 외부에서 지정할 수 있도록 파라미터 추가
 ) {
     var selectedTabIndex by remember { mutableStateOf(initialTabIndex) } // 파라미터로 초기 상태 지정
-    val tabs = listOf("판매 내역", "구매 내역")
+    val tabs = listOf("판매", "구매")
 
     val transactions by viewModel.transactions.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -68,10 +68,17 @@ fun TransactionHistoryScreen(
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
+                    val isSelected = selectedTabIndex == index
                     Tab(
-                        selected = selectedTabIndex == index,
+                        selected = isSelected,
                         onClick = { selectedTabIndex = index },
-                        text = { Text(text = title) }
+                        text = {
+                            Text(
+                                text = title,
+                                // isSelected 값에 따라 텍스트 색상을 동적으로 변경
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                            )
+                        }
                     )
                 }
             }

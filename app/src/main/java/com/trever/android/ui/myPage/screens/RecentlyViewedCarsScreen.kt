@@ -71,10 +71,17 @@ fun RecentlyViewedCarsScreen(
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
+                    val isSelected = selectedTabIndex == index
                     Tab(
-                        selected = selectedTabIndex == index,
+                        selected = isSelected,
                         onClick = { selectedTabIndex = index },
-                        text = { Text(text = title) }
+                        text = {
+                            Text(
+                                text = title,
+                                // isSelected 값에 따라 텍스트 색상을 동적으로 변경
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                            )
+                        }
                     )
                 }
             }

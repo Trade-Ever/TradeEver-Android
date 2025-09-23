@@ -16,8 +16,9 @@ import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.auth.LoginScreen
 import com.trever.android.ui.auth.ProfileInputScreen
 import com.trever.android.ui.buy.BuyDetailScreen
-//import com.trever.android.ui.main.MainScreen
 import com.trever.android.ui.myPage.screens.MyAccountScreen
+//import com.trever.android.ui.main.MainScreen
+//import com.trever.android.ui.myPage.screens.MyAccountScreen
 import com.trever.android.ui.myPage.screens.PrivacyPolicyScreen
 import com.trever.android.ui.myPage.screens.RecentlyViewedCarsScreen
 import com.trever.android.ui.myPage.screens.TermsScreen
