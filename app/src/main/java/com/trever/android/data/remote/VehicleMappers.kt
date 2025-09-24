@@ -17,13 +17,13 @@ import kotlin.toString
 fun VehicleDetail.toBuyDetailUi(): AuctionDetailUi {
     return AuctionDetailUi(
         images = photos,
-        liked = false,
+        liked = liked,
         title = title,
         subTitle = "${year}년 · ${formatMileage(mileage)}",
         priceWon = price ?: 0L,
         priceWonText = formatKoreanWon(price ?: 0L),
         startPriceText = "",
-        likeCount = 0,
+        likeCount = favoriteCount,
         remainText = "",
         specs = createSpecsList(),
         notice = description,
@@ -57,7 +57,8 @@ fun VehicleDto.toDomain(): VehicleSummary = VehicleSummary(
     createdAt = createdAt ?: "",
     vehicleTypeName = vehicleTypeName ?: "",
     mainOptions = mainOptions ?: emptyList(),
-    totalOptionsCount = totalOptionsCount ?: 0
+    totalOptionsCount = totalOptionsCount ?: 0,
+    liked = isFavorite ?: false // isFavorite 필드 매핑 추가
 )
 
 fun VehicleDto.toAuctionCar(): AuctionCar {
@@ -72,9 +73,8 @@ fun VehicleDto.toAuctionCar(): AuctionCar {
         currentPriceWon = price ?: 0L,
         endsAtMillis = System.currentTimeMillis() + 86400000,
         startAtMillis = System.currentTimeMillis() + 86400000,
-        liked = false,
+        liked = isFavorite ?: false,
         auctionId = auctionId ?: 0,
-        // isAuction 값을 기반으로 transactionType 설정
         transactionType = if (isAuction.equals("true", ignoreCase = true) || isAuction.equals("경매", ignoreCase = true)) "경매" else "일반"
     )
 }
@@ -151,7 +151,9 @@ fun VehicleDetailResponse.toVehicleDetail(): VehicleDetail {
         sellerLocationCity = sellerLocationCity, // ← 여기!
         sellerProfileImageUrl = sellerProfileImageUrl,
         sellerPhone = sellerPhone,
-        vehicleStatus = vehicleStatus
+        vehicleStatus = vehicleStatus,
+        liked = favorite ?: false,
+        favoriteCount = favoriteCount ?: 0
     )
 }
 
@@ -174,7 +176,8 @@ fun VehicleDto.toVehicleSummary(): VehicleSummary {
         createdAt = createdAt ?: "",
         vehicleTypeName = vehicleTypeName,
         mainOptions = mainOptions ?: emptyList(),
-        totalOptionsCount = totalOptionsCount ?: 0
+        totalOptionsCount = totalOptionsCount ?: 0,
+        liked = isFavorite ?: false // isFavorite 필드 매핑 추가
     )
 }
 
@@ -190,7 +193,7 @@ fun VehicleSummary.toAuctionCarForDisplay(): AuctionCar {
         currentPriceWon = priceWon ?: 0L,
         endsAtMillis = 0L, // 경매 종료 시간
         startAtMillis = 0L,
-        liked = false,
+        liked = liked,
         auctionId = auctionId ?: 0,
         transactionType = if (isAuction) "경매" else "일반" // VehicleSummary의 isAuction (Boolean) 사용
     )
@@ -364,13 +367,13 @@ private fun formatMileage(mileageKm: Int): String {
 fun VehicleDetail.toAuctionDetailUi(): AuctionDetailUi {
     return AuctionDetailUi(
         images = photos,
-        liked = false,
+        liked = liked,
         title = title,
         subTitle = "${year}년 · ${formatMileage(mileage)}",
         priceWon = price ?: 0L,
         priceWonText = formatKoreanWon(price ?: 0L),
         startPriceText = "", // 필요시 채우기
-        likeCount = 0,
+        likeCount = favoriteCount,
         remainText = "",
         specs = createSpecsList(),
         notice = description,

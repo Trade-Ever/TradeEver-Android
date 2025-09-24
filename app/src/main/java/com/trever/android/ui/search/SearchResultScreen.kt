@@ -1,6 +1,5 @@
-package com.trever.android.ui.search
+import com.trever.android.ui.search.RangeSelectBottomSheet
 
-// app/src/main/java/com/trever/android/ui/search/SearchResultScreen.kt
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
@@ -25,6 +24,8 @@ import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.SearchCarItem
 import com.trever.android.domain.model.toAuctionCar
 import com.trever.android.domain.model.toAuctionCarForDisplay
+import com.trever.android.ui.search.CarTypeSelectBottomSheet
+import com.trever.android.ui.search.SearchViewModel
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
 
@@ -34,12 +35,10 @@ fun SearchResultScreen(
     viewModel: SearchViewModel,
     cars: List<SearchCarItem>,
     onBack: () -> Unit,
-    onCarClick: (AuctionCar) -> Unit,
+    onCarClick: (SearchCarItem) -> Unit,
     onToggleLike: (AuctionCar) -> Unit,
     selectedPriceRange: String,
-
     selectedDistance: String,
-
     selectedSort: String,
     onSortClick: () -> Unit,
     yearRange: ClosedFloatingPointRange<Float>?,
@@ -59,7 +58,6 @@ fun SearchResultScreen(
     val priceRange = viewModel.priceRange.collectAsState().value
     val selectedType = viewModel.selectedType.collectAsState().value
 
-    // 범위 표시 함수
     fun formatDistance(range: ClosedFloatingPointRange<Float>?): String =
         if (range == null) "주행거리"
         else "${range.start.toInt()}km ~ ${range.endInclusive.toInt()}km"
@@ -69,7 +67,6 @@ fun SearchResultScreen(
     }
     Scaffold(
         containerColor = cs.backgroundColor,
-
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -97,7 +94,6 @@ fun SearchResultScreen(
                     onClick = { showBottomSheet = "price" },
                     border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
-
                         contentColor = if (priceRange != null) cs.primary else Color.Black
                     )
                 ) {
@@ -111,7 +107,6 @@ fun SearchResultScreen(
                     onClick = { showBottomSheet = "distance" },
                     border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
-
                         contentColor = if (distanceRange != null) cs.primary else Color.Black
                     )
                 ) {
@@ -125,7 +120,6 @@ fun SearchResultScreen(
                     onClick = { showBottomSheet = "year" },
                     border = BorderStroke(1.dp, if (yearRange != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
-
                         contentColor = if (yearRange != null) cs.primary else Color.Black
                     )
                 ) {
@@ -139,7 +133,6 @@ fun SearchResultScreen(
                     onClick = { showBottomSheet = "type" },
                     border = BorderStroke(1.dp, if (selectedType != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
-
                         contentColor = if (selectedType != null) cs.primary else Color.Black
                     )
                 ) {
@@ -160,7 +153,7 @@ fun SearchResultScreen(
                     when (car) {
                         is SearchCarItem.Auction -> ListingItem(
                             car = car.toAuctionCar(),
-                            onClick = { onCarClick(car.toAuctionCar()) },
+                            onClick = { onCarClick(car) }, // SearchCarItem 그대로 넘김
                             onToggleLike = { onToggleLike(car.toAuctionCar()) },
                             tags = car.mainOptions,
                             priceLabel = "최고 입찰가",
@@ -169,7 +162,7 @@ fun SearchResultScreen(
                         )
                         is SearchCarItem.General -> ListingItem(
                             car = car.toAuctionCarForDisplay(),
-                            onClick = { onCarClick(car.toAuctionCarForDisplay()) },
+                            onClick = { onCarClick(car) }, // SearchCarItem 그대로 넘김
                             onToggleLike = { onToggleLike(car.toAuctionCarForDisplay()) },
                             tags = car.mainOptions,
                             priceLabel = "",
@@ -189,7 +182,6 @@ fun SearchResultScreen(
                     initialRange = priceRange ?: (0f..300f),
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         viewModel.priceRange.value = it
                         showBottomSheet = null
                     }
@@ -203,7 +195,6 @@ fun SearchResultScreen(
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
                         viewModel.distanceRange.value = it
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         showBottomSheet = null
                     }
                 )
@@ -215,7 +206,6 @@ fun SearchResultScreen(
                     initialRange = yearRange ?: (1998f..2025f),
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         viewModel.yearRange.value = it
                         showBottomSheet = null
                     }
@@ -224,7 +214,6 @@ fun SearchResultScreen(
                     selectedType = selectedType,
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         viewModel.selectedType.value = it
                         showBottomSheet = null
                     }

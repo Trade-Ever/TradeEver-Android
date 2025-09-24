@@ -9,14 +9,17 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.trever.android.ui.auction.AuctionListScreen
 import com.trever.android.ui.buy.BuyListScreen
 import com.trever.android.ui.myPage.MyPageScreen // MyPageScreen import 확인
@@ -25,13 +28,26 @@ import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.bottomBarUnselected
 
 
+
 @Composable
 fun MainScreen(
     parentNavController: NavHostController   // 상세로 갈 때 이걸 사용!
 ) {
     val innerNav = rememberNavController()
+    val systemUiController = rememberSystemUiController()
+    val cs = MaterialTheme.colorScheme
+    val statusBarColor = cs.backgroundColor
+
+    SideEffect {
+        // 상태바 색상 변경
+        systemUiController.setStatusBarColor(
+            color = statusBarColor, // 원하는 색상
+            darkIcons = true   // 글씨(아이콘) 색상 흰색으로
+        )
+    }
 
     Scaffold(
+
         bottomBar = { TreverBottomBar(innerNav) }
     ) { padding ->
         NavHost(
@@ -46,7 +62,8 @@ fun MainScreen(
                         parentNavController.navigate("buy/detail/$carId")  // 여기에서 네비게이션 처리
                     },
                     onToggleLike = { /* 좋아요 처리 */ },
-                    onSearchClick = { parentNavController.navigate("search") }
+                    onSearchClick = { parentNavController.navigate("search") },
+                    navController = parentNavController // parentNavController 전달
                 )
             }
 
@@ -63,7 +80,8 @@ fun MainScreen(
                 AuctionListScreen(
                     onItemClick = { carId,auctionId ->
                         parentNavController.navigate("auction/detail/$carId/$auctionId")
-                    }
+                    },
+
                 )
             }
 

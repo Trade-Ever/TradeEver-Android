@@ -44,6 +44,24 @@ class AuctionDetailViewModel(
     // 리스너를 저장하는 변수 추가
     private var bidsListener: ValueEventListener? = null
 
+    fun toggleLike(vehicleId: String) {
+        viewModelScope.launch {
+            val result = repository.toggleLike(vehicleId)
+            if (result.isSuccess) {
+                val currentState = _uiState.value
+                if (currentState is AuctionDetailUiState.Success) {
+                    val vehicle = currentState.vehicle
+                    val newLiked = !(vehicle.liked == true)
+                    val newCount = if (newLiked) (vehicle.favoriteCount ?: 0) + 1 else (vehicle.favoriteCount ?: 0) - 1
+                    val updated = vehicle.copy(liked = newLiked, favoriteCount = newCount)
+                    _uiState.value = AuctionDetailUiState.Success(updated)
+                }
+            } else {
+                // 필요시 에러 처리
+            }
+        }
+    }
+
     fun loadVehicleDetail(vehicleId: String,auctionId: String) {
         _uiState.value = AuctionDetailUiState.Loading
 

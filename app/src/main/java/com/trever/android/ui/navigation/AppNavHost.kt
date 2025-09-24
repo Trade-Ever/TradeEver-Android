@@ -1,5 +1,6 @@
 package com.trever.android.ui.navigation
 
+import SearchResultScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -10,12 +11,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.trever.android.data.remote.toSearchCarItem
+import com.trever.android.domain.model.SearchCarItem
 import com.trever.android.ui.auction.AuctionDetailScreen
 import com.trever.android.ui.auction.BidHistoryScreen
 import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.auth.LoginScreen
 import com.trever.android.ui.auth.ProfileInputScreen
 import com.trever.android.ui.buy.BuyDetailScreen
+import com.trever.android.ui.buy.ContractScreen
+//import com.trever.android.ui.main.MainScreen
 import com.trever.android.ui.myPage.screens.MyAccountScreen
 //import com.trever.android.ui.main.MainScreen
 //import com.trever.android.ui.myPage.screens.MyAccountScreen
@@ -23,7 +27,7 @@ import com.trever.android.ui.myPage.screens.PrivacyPolicyScreen
 import com.trever.android.ui.myPage.screens.RecentlyViewedCarsScreen
 import com.trever.android.ui.myPage.screens.TermsScreen
 import com.trever.android.ui.myPage.screens.TransactionHistoryScreen
-import com.trever.android.ui.search.SearchResultScreen
+
 import com.trever.android.ui.search.SearchScreen
 import com.trever.android.ui.search.SearchSelectCarModelScreen
 import com.trever.android.ui.search.SearchSelectCarNameScreen
@@ -168,7 +172,6 @@ fun AppNavHost(
                 }
             )
         }
-
         composable("search/results") {
             val searchResult by searchViewModel.searchResult.collectAsState()
             val cars = searchResult?.vehicles?.map { it.toSearchCarItem() } ?: emptyList()
@@ -181,7 +184,12 @@ fun AppNavHost(
                 viewModel = searchViewModel,
                 cars = cars,
                 onBack = { navController.popBackStack() },
-                onCarClick = { /* 상세 이동 */ },
+                onCarClick = { car ->
+                    when (car) {
+                        is SearchCarItem.Auction -> navController.navigate("auction/detail/${car.id}/${car.auctionId}")
+                        is SearchCarItem.General -> navController.navigate("buy/detail/${car.id}")
+                    }
+                },
                 onToggleLike = { /* 찜 처리 */ },
                 selectedPriceRange = "",
                 onPriceRangeClick = { /* 바텀시트 등 구현 */ },
@@ -211,6 +219,7 @@ fun AppNavHost(
             AuctionDetailScreen(
                 carId = carId,
                 auctionId = auctionId,
+                navController = navController,
                 onBack = { navController.popBackStack() },
                 onShowBidHistory = { id ->
                     navController.navigate("auction/bid-history/$auctionId")
@@ -237,7 +246,16 @@ fun AppNavHost(
             BuyDetailScreen(
                 carId = carId,
                 onBack = { navController.popBackStack() },
-                onBuy = { /* 구매 처리 로직 */ }
+                onBuy = { /* 구매 처리 로직 */ },
+                navController = navController
+            )
+        }
+
+        composable("contracts/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull() ?: return@composable
+            ContractScreen(
+                navController = navController,
+                contractId = id
             )
         }
 

@@ -65,6 +65,43 @@ class BuyListViewModel : ViewModel() {
         }
     }
 
+    fun applyLikeResult(result: LikeResult) {
+        val state = _uiState.value
+        if (state is BuyListUiState.Success) {
+            val carIdLong = result.carId.toLongOrNull()
+            val updated = state.vehicles.map { v ->
+                if (v.id == carIdLong) {
+                    v.copy(
+                        liked = result.liked,
+                        favoriteCount = result.favoriteCount  // Summary에 필드가 있으면 반영
+                    )
+                } else v
+            }
+            _uiState.value = state.copy(vehicles = updated)
+        }
+    }
+
+    fun toggleLike(carId: String) {
+        Log.d("BuyListViewModel", "toggleLike 호출됨: $carId")
+        viewModelScope.launch {
+            val result = repository.toggleLike(carId)
+            if (result.isSuccess) {
+                Log.d("BuyListViewModel", "toggleLike 성공: $carId")
+                val currentState = _uiState.value
+                if (currentState is BuyListUiState.Success) {
+                    val carIdLong = carId.toLongOrNull()
+                    val updatedVehicles = currentState.vehicles.map { vehicle ->
+                        if (vehicle.id == carIdLong) vehicle.copy(liked = !(vehicle.liked == true))
+                        else vehicle
+                    }
+                    _uiState.value = currentState.copy(vehicles = updatedVehicles)
+                }
+            } else {
+                Log.e("BuyListViewModel", "toggleLike 실패: $carId, ${result.exceptionOrNull()}")
+            }
+        }
+    }
+
     fun loadNextPage() {
         if (!isLoading && !isLastPage) {
             currentPage++
@@ -82,3 +119,9 @@ sealed class BuyListUiState {
     ) : BuyListUiState()
     data class Error(val message: String) : BuyListUiState()
 }
+
+data class LikeResult(
+    val carId: String,
+    val liked: Boolean,
+    val favoriteCount: Int
+)

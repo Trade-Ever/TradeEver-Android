@@ -56,16 +56,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.trever.android.R
 import com.trever.android.data.remote.toAuctionCarForDisplay
 
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.G_300
+import kotlin.toString
 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BuyListScreen(
+    navController: NavHostController,
     viewModel: BuyListViewModel = viewModel(),
     onItemClick: (String) -> Unit = {},
     onToggleLike: (String) -> Unit = {},
@@ -131,7 +134,7 @@ fun BuyListScreen(
                                 ListingItem(
                                     car = vehicle.toAuctionCarForDisplay(),
                                     onClick = { onItemClick(vehicle.id.toString()) },
-                                    onToggleLike = { onToggleLike(vehicle.id.toString()) },
+                                    onToggleLike = { viewModel.toggleLike(vehicle.id.toString()) },
                                     tags = vehicle.mainOptions ?: emptyList(),
                                     showBadge = false,
                                     showAuctionMeta = false,

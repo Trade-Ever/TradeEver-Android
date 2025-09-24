@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.trever.android.data.remote.toBuyDetailUi
 import com.trever.android.ui.auction.SellerUi
 import com.trever.android.ui.components.AppFilledButton
@@ -48,10 +49,13 @@ fun BuyDetailScreen(
     onBack: () -> Unit = {},
     onLike: () -> Unit = {},
     onInquiry: () -> Unit = {},
-    onBuy: () -> Unit = {}
+    onBuy: () -> Unit = {},
+    navController: NavHostController,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showInquirySheet by remember { mutableStateOf(false) }
+
+
 
     // 화면 진입시 데이터 로드
     LaunchedEffect(carId) {
@@ -61,7 +65,8 @@ fun BuyDetailScreen(
     var showBuySheet by remember { mutableStateOf(false) }
     var showBuyerSelectSheet by remember { mutableStateOf(false) }
     val buyerList by viewModel.buyerList.collectAsState()
-
+    var showContractSheet by remember { mutableStateOf(false) }
+    var contractIdForSheet by remember { mutableStateOf<Long?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -111,7 +116,13 @@ fun BuyDetailScreen(
                                     onInquiry = { showInquirySheet = true }
                                 )
                             }
-                        }
+                        },
+                        onToggleLike = { // 1) VM에 토글 수행
+                            viewModel.toggleLike(carId)
+
+                            // 2) 현재 UI 상태 기반으로 "토글 후" 값을 계산해서 결과 전달
+
+                            }
                     )
                     if (showInquirySheet) {
                         InquirySheet(
@@ -138,7 +149,29 @@ fun BuyDetailScreen(
                             onDismiss = { showBuySheet = false }
                         )
                     }
-                    // 3. 바텀시트(구매자 선택)
+//                    // 3. 바텀시트(구매자 선택)
+//                    if (showBuyerSelectSheet) {
+//                        val context = LocalContext.current
+//                        BuyerSelectSheet(
+//                            buyers = buyerList.map { it.buyerName },
+//                            onSelect = { selectedBuyerName ->
+//                                val selectedBuyer = buyerList.find { it.buyerName == selectedBuyerName }
+//                                selectedBuyer?.let {
+//                                    viewModel.selectBuyer(carId, it.buyerId) { success, message, response ->
+//                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//                                        Toast.makeText(context, "contractId: ${response?.contractId}", Toast.LENGTH_SHORT).show()
+//                                        if (success && response?.contractId != null) {
+//                                            navController.navigate("contracts/${response.contractId}")
+//                                        }
+//                                        // 필요시 showBuyerSelectSheet = false
+//                                    }
+//                                }
+//                                showBuyerSelectSheet = false
+//                            },
+//                            onDismiss = { showBuyerSelectSheet = false }
+//                        )
+//                    }
+
                     if (showBuyerSelectSheet) {
                         val context = LocalContext.current
                         BuyerSelectSheet(
@@ -148,12 +181,29 @@ fun BuyDetailScreen(
                                 selectedBuyer?.let {
                                     viewModel.selectBuyer(carId, it.buyerId) { success, message, response ->
                                         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                        // 필요시 response 활용
+                                        if (success && response?.contractId != null) {
+                                            // ⬇️ 여기서 네비게이션 대신 바텀시트 오픈
+                                            contractIdForSheet = response.contractId
+                                            showContractSheet = true
+                                        }
                                     }
                                 }
                                 showBuyerSelectSheet = false
                             },
                             onDismiss = { showBuyerSelectSheet = false }
+                        )
+                    }
+
+                    if (showContractSheet && contractIdForSheet != null) {
+                        ContractBottomSheet(
+                            open = showContractSheet,
+                            contractId = contractIdForSheet!!,
+                            onDismissRequest = {
+                                showContractSheet = false
+                                contractIdForSheet = null
+                                // 필요하면 목록 새로고침 등 후처리
+                                // viewModel.refresh()
+                            }
                         )
                     }
                 }

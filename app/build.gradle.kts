@@ -112,6 +112,8 @@ dependencies {
     implementation("io.insert-koin:koin-android:3.5.0")
     implementation("io.insert-koin:koin-androidx-compose:3.5.0")
 
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+
     // 기본 라이브러리 (libs 카탈로그 사용)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
