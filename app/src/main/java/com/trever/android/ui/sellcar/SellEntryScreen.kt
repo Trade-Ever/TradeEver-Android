@@ -74,137 +74,132 @@ fun SellEntryScreen(
         refreshing = isRefreshing,
         onRefresh = { sellEntryViewModel.fetchMyVehicles(isRefresh = true) }
     )
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.backgroundColor, // 배경색 흰색으로 변경
-        modifier = Modifier.statusBarsPadding() // 상태바 패딩 Scaffold 레벨로 이동
-    ) { paddingValues ->
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)
+            .background(MaterialTheme.colorScheme.backgroundColor)
+    ) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Scaffold로부터의 패딩 적용
-                .pullRefresh(pullRefreshState)
+            // .background(Color.White) // LazyColumn 자체의 배경보다 Scaffold 배경색 사용
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                // .background(Color.White) // LazyColumn 자체의 배경보다 Scaffold 배경색 사용
-            ) {
-                // 1. 상단 UI
-                item {
-                    Box(
+            // 1. 상단 UI
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.purple_car_78),
+                        contentDescription = "차량 등록 배경",
+                        modifier = Modifier.matchParentSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Button(
+                        onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(250.dp),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.purple_car_80),
-                            contentDescription = "차량 등록 배경",
-                            modifier = Modifier.matchParentSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                        Button(
-                            onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .offset(y = (-40).dp)
-                                .border(
-                                    width = 4.dp, // 테두리 두께 조정 (기존 4dp에서 변경된 경우 참고)
-                                    color = MaterialTheme.colorScheme.G_100,
-                                    shape = RoundedCornerShape(8.dp)
-                                ),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                                contentColor = MaterialTheme.colorScheme.textPrimaryColor,
+                            .align(Alignment.BottomCenter)
+                            .offset(y = (-40).dp)
+                            .border(
+                                width = 4.dp, // 테두리 두께 조정 (기존 4dp에서 변경된 경우 참고)
+                                color = MaterialTheme.colorScheme.G_100,
+                                shape = RoundedCornerShape(8.dp)
                             ),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                        ) {
-                            Text(
-                                text = "차량 등록하기",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 1.dp)
-                            )
-                        }
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                            contentColor = MaterialTheme.colorScheme.textPrimaryColor,
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                    ) {
+                        Text(
+                            text = "차량 등록하기",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 1.dp)
+                        )
                     }
-                }
-
-                // 2. "내가 등록한 차량" 타이틀 또는 상태 메시지
-                if (!isRefreshing || registeredCars.isNotEmpty()) { // 로딩 중이 아닐 때 또는 차가 있을 때
-                    item {
-                        when {
-                            uiState.error != null -> {
-                                Text(
-                                    text = uiState.error ?: "알 수 없는 오류가 발생했습니다.",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 48.dp)
-                                )
-                            }
-                            registeredCars.isEmpty() && !isRefreshing -> {
-                                Text(
-                                    text = "아직 등록된 차량이 없어요. 지금 바로 내 차 정보를 등록해보세요!",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.textSecondaryColor,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 48.dp)
-                                )
-                            }
-                            registeredCars.isNotEmpty() -> {
-                                Text(
-                                    text = "내가 등록한 차량",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.textPrimaryColor,
-                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 3. 등록된 차량 목록
-                if (registeredCars.isNotEmpty()) {
-                    items(registeredCars, key = { it.id }) { car ->
-                        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            val isRealAuction = car.auctionId != null && car.auctionId != 0L
-                            ListingItem(
-                                car = car,
-                                onClick = {
-                                    if (isRealAuction) {
-                                        parentNavController.navigate("auction/detail/${car.id}/${car.auctionId}")
-                                    } else {
-                                        parentNavController.navigate("buy/detail/${car.id}")
-                                    }
-                                },
-                                onToggleLike = { /* 찜하기 로직 */ },
-                                tags = car.mainOptions ?: emptyList(),
-                                showBadge = isRealAuction,
-                                showAuctionMeta = isRealAuction,
-                                priceLabel = if (isRealAuction) "최고 입찰가" else "판매 가격"
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(80.dp)) // 바텀 네비게이션 고려
                 }
             }
 
-            PullRefreshIndicator(
-                refreshing = isRefreshing,
-                state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                backgroundColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                contentColor = MaterialTheme.colorScheme.primary
-            )
+            // 2. "내가 등록한 차량" 타이틀 또는 상태 메시지
+            if (!isRefreshing || registeredCars.isNotEmpty()) { // 로딩 중이 아닐 때 또는 차가 있을 때
+                item {
+                    when {
+                        uiState.error != null -> {
+                            Text(
+                                text = uiState.error ?: "알 수 없는 오류가 발생했습니다.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 48.dp)
+                            )
+                        }
+                        registeredCars.isEmpty() && !isRefreshing -> {
+                            Text(
+                                text = "아직 등록된 차량이 없어요. 지금 바로 내 차 정보를 등록해보세요!",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.textSecondaryColor,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 48.dp)
+                            )
+                        }
+                        registeredCars.isNotEmpty() -> {
+                            Text(
+                                text = "내가 등록한 차량",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.textPrimaryColor,
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 3. 등록된 차량 목록
+            if (registeredCars.isNotEmpty()) {
+                items(registeredCars, key = { it.id }) { car ->
+                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        val isRealAuction = car.auctionId != null && car.auctionId != 0L
+                        ListingItem(
+                            car = car,
+                            onClick = {
+                                if (isRealAuction) {
+                                    parentNavController.navigate("auction/detail/${car.id}/${car.auctionId}")
+                                } else {
+                                    parentNavController.navigate("buy/detail/${car.id}")
+                                }
+                            },
+                            onToggleLike = { /* 찜하기 로직 */ },
+                            tags = car.mainOptions ?: emptyList(),
+                            showBadge = isRealAuction,
+                            showAuctionMeta = isRealAuction,
+                            priceLabel = if (isRealAuction) "최고 입찰가" else "판매 가격"
+                        )
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(80.dp)) // 바텀 네비게이션 고려
+            }
         }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            backgroundColor = MaterialTheme.colorScheme.cardBackgroundColor,
+            contentColor = MaterialTheme.colorScheme.primary
+        )
     }
 }
