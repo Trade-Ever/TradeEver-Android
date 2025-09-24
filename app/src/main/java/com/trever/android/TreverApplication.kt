@@ -14,6 +14,7 @@ import com.trever.android.data.repository.AuthRepository
 import com.trever.android.data.repository.MyPageRepository
 import com.trever.android.data.repository.TransactionRepository
 import com.trever.android.data.repository.VehicleRepository
+import com.trever.android.data.repository.AuctionRepository // AuctionRepository 임포트 추가
 import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.myPage.MyPageViewModel
 import com.trever.android.ui.myPage.TransactionViewModel
@@ -90,16 +91,20 @@ val appModule = module {
     // --- Data Layer ---
     single { Gson() } // Gson은 kotlinx.serialization과 별개
     single { TokenStore(androidContext()) } // TokenStore 정의
-    single { AuthRepository(get(), get(), get()) } // AuthRepository는 TokenStore, AuthApi, Context를 주입받음
+    // AuthRepository는 TokenStore, AuthApi, Context(AuthManager 통해)를 주입받도록 수정될 수 있음 (현재는 TokenStore, AuthApi, Context 직접)
+    // 만약 AuthManager를 통해 Context를 주입받는다면, AuthRepository(get(), get(), get<AuthManager>().context) 와 같이 사용
+    // 현재 코드에서는 AuthManager가 직접 사용되지 않고, TokenStore가 Context를 직접 받으므로 아래와 같이 유지
+    single { AuthRepository(get(), get(), androidContext()) } // AuthApi, TokenStore, Context
     single { MyPageRepository(get()) } // MyPageRepository는 MyPageApi를 주입받음
-    single { VehicleRepository(get(), androidContext(), get()) }
-    single { TransactionRepository(get()) }
+    single { VehicleRepository(get(), androidContext(), get()) } // VehicleApi, Context, Gson
+    single { TransactionRepository(get()) } // TransactionApi
+    single { AuctionRepository(get()) } // VehicleApi (ApiClient.vehicleApi와 동일) 주입
 
     // --- UI Layer (ViewModels) ---
-    viewModel { AuthViewModel(get()) }
-    // MyPageViewModel에 MyPageRepository, AuthRepository, TokenStore를 주입
-    viewModel { MyPageViewModel(get(), get(), get()) } 
-    viewModel { TransactionViewModel(get()) }
-    viewModel { SellEntryViewModel(get()) }
-    viewModel { SearchViewModel() }
+    viewModel { AuthViewModel(get()) } // AuthRepository
+    // MyPageViewModel에 MyPageRepository, AuthRepository, TokenStore, AuctionRepository를 주입
+    viewModel { MyPageViewModel(get(), get(), get(), get()) } 
+    viewModel { TransactionViewModel(get()) } // TransactionRepository
+    viewModel { SellEntryViewModel(get()) } // SellRepository 또는 VehicleRepository (기존 코드에서는 VehicleRepository 사용)
+    viewModel { SearchViewModel() } // 의존성 없음
 }

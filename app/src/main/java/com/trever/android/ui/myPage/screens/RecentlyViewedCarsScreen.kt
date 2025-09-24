@@ -21,8 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.trever.android.domain.model.AuctionCar
-import com.trever.android.domain.model.RecentlyViewedCar
+import com.trever.android.domain.model.AuctionCar // RecentlyViewedCar 임포트 제거 가능
 import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.myPage.MyPageViewModel
 import com.trever.android.ui.theme.AppTheme
@@ -33,14 +32,26 @@ import org.koin.androidx.compose.koinViewModel
 fun RecentlyViewedCarsScreen(
     navController: NavController,
     viewModel: MyPageViewModel = koinViewModel(),
-    initialTabIndex: Int = 0 // <-- 탭 인덱스를 외부에서 받을 수 있도록 파라미터 추가
+    initialTabIndex: Int = 0
 ) {
-    // remember 상태를 initialTabIndex로 초기화
     var selectedTabIndex by remember { mutableStateOf(initialTabIndex) }
     val tabs = listOf("최근", "찜")
 
+    // viewModel.recentlyViewedCars는 이제 StateFlow<List<AuctionCar>>를 직접 제공
     val recentlyViewedCars by viewModel.recentlyViewedCars.collectAsState()
-    val likedCars by viewModel.likedCars.collectAsState()
+    val likedCars by viewModel.likedCars.collectAsState() // 이것도 List<AuctionCar>
+
+    // 메시지 상태 관찰 (오류 메시지 등 표시용)
+    val message by viewModel.message.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            // 메시지를 보여준 후 ViewModel에서 메시지를 초기화하는 로직이 있다면 호출
+            // viewModel.clearMessage() // 예시
+        }
+    }
 
     // 화면이 나타나거나 탭이 변경될 때 데이터를 로드
     LaunchedEffect(selectedTabIndex) {
@@ -51,6 +62,7 @@ fun RecentlyViewedCarsScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }, // 스낵바 추가
         topBar = {
             TopAppBar(
                 title = { Text("나의 활동", fontWeight = FontWeight.SemiBold) },
@@ -62,7 +74,7 @@ fun RecentlyViewedCarsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        containerColor = Color(0xFFF0F0F0)
+        containerColor = Color(0xFFF0F0F0) // 배경색 약간 어둡게 유지
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             TabRow(
@@ -78,7 +90,6 @@ fun RecentlyViewedCarsScreen(
                         text = {
                             Text(
                                 text = title,
-                                // isSelected 값에 따라 텍스트 색상을 동적으로 변경
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
                             )
                         }
@@ -86,19 +97,20 @@ fun RecentlyViewedCarsScreen(
                 }
             }
 
-            // 선택된 탭에 따라 다른 컨텐츠 표시
             when (selectedTabIndex) {
-                0 -> {
+                0 -> { // 최근 본 차량
                     if (recentlyViewedCars.isEmpty()) {
                         EmptyState(message = "최근에 본 차량이 없습니다.")
                     } else {
+                        // CarList의 파라미터 타입이 List<AuctionCar>로 변경됨
                         CarList(cars = recentlyViewedCars, navController = navController)
                     }
                 }
-                1 -> {
+                1 -> { // 찜한 차량
                     if (likedCars.isEmpty()) {
                         EmptyState(message = "찜한 내역이 없습니다.")
                     } else {
+                        // LikedCarList는 이미 List<AuctionCar>를 사용하고 있었음
                         LikedCarList(cars = likedCars, navController = navController)
                     }
                 }
@@ -108,54 +120,29 @@ fun RecentlyViewedCarsScreen(
 }
 
 @Composable
-private fun CarList(cars: List<RecentlyViewedCar>, navController: NavController) {
+private fun CarList(cars: List<AuctionCar>, navController: NavController) { // 파라미터 타입 변경
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(all = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(cars, key = { it.id }) { car -> // car is RecentlyViewedCar
-            val effectiveTitle = if (!car.manufacturer.isNullOrBlank() && !car.model.isNullOrBlank()) {
-                "${car.manufacturer} ${car.model}"
-            } else {
-                car.title // car.title is from DTO's carName
-            }
-
-            val auctionCar = AuctionCar(
-                id = car.id,
-                title = effectiveTitle,
-                year = car.year,
-                mileageKm = car.mileageKm,
-                imageUrl = car.imageUrl,
-                currentPriceWon = car.priceWon,
-                manufacturer = car.manufacturer,
-                model = car.model,
-                tags = emptyList(), // This is List<Tag> (enum). Pass emptyList() as we don't have this info from RecentlyViewedCar.
-                mainOptions = car.mainOptions ?: emptyList(), // This is List<String> and is correctly used by ListingItem.
-                startAtMillis = 0L, // Placeholder, as RecentlyViewedCar doesn't have auction times
-                endsAtMillis = 0L,  // Placeholder
-                liked = car.isFavorite ?: false, // Uses isFavorite from RecentlyViewedCar
-                auctionId = if(car.isAuction) car.id.toLongOrNull() else null,
-                transactionType = if(car.isAuction) "경매" else "일반"
-            )
-            
-            val isAuctionDisplay = auctionCar.auctionId != null
+        items(cars, key = { it.id }) { car -> // 이제 car는 AuctionCar 타입
+            // AuctionCar 객체를 직접 사용하므로 별도의 변환 로직 불필요
+            val isAuctionDisplay = car.auctionId != null && car.auctionId != 0L
 
             ListingItem(
-                car = auctionCar,
-                onClick = { // auctionCar를 사용하여 네비게이션
-                    if (auctionCar.auctionId != null) {
-                        // 경매 매물일 경우: auction/detail/{carId}/{auctionId}로 이동
-                        navController.navigate("auction/detail/${auctionCar.id}/${auctionCar.auctionId}")
+                car = car, // AuctionCar 객체를 직접 전달
+                onClick = {
+                    if (isAuctionDisplay) {
+                        navController.navigate("auction/detail/${car.id}/${car.auctionId}")
                     } else {
-                        // 일반 매물일 경우: buy/detail/{carId}로 이동
-                        navController.navigate("buy/detail/${auctionCar.id}")
+                        navController.navigate("buy/detail/${car.id}")
                     }
                 },
-                onToggleLike = { /* TODO: 찜하기 로직 */ },
-                tags = auctionCar.mainOptions ?: emptyList(),
+                onToggleLike = { /* TODO: 찜하기 로직 (ViewModel과 연동 필요) */ },
+                tags = car.mainOptions ?: emptyList(), // AuctionCar의 mainOptions 사용
                 showBadge = isAuctionDisplay,
-                showAuctionMeta = isAuctionDisplay,
+                showAuctionMeta = isAuctionDisplay, // AuctionCar의 경매 정보 사용
                 priceLabel = if (isAuctionDisplay) "최고 입찰가" else "판매 가격"
             )
         }
@@ -169,20 +156,18 @@ private fun LikedCarList(cars: List<AuctionCar>, navController: NavController) {
         contentPadding = PaddingValues(all = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(cars, key = { it.id }) { car -> // car is AuctionCar
-            val isAuctionDisplay = car.auctionId != null
+        items(cars, key = { it.id }) { car -> // car는 이미 AuctionCar 타입
+            val isAuctionDisplay = car.auctionId != null && car.auctionId != 0L
             ListingItem(
                 car = car,
                 onClick = {
-                    if (car.auctionId != null) {
-                        // 경매 매물일 경우: auction/detail/{carId}/{auctionId}로 이동
+                    if (isAuctionDisplay) {
                         navController.navigate("auction/detail/${car.id}/${car.auctionId}")
                     } else {
-                        // 일반 매물일 경우: buy/detail/{carId}로 이동
                         navController.navigate("buy/detail/${car.id}")
                     }
                 },
-                onToggleLike = { /* TODO: 찜하기 로직 */ },
+                onToggleLike = { /* TODO: 찜하기 로직 (ViewModel과 연동 필요) */ },
                 tags = car.mainOptions ?: emptyList(),
                 showBadge = isAuctionDisplay,
                 showAuctionMeta = isAuctionDisplay,
@@ -213,6 +198,10 @@ private fun EmptyState(message: String) {
 @Composable
 fun RecentlyViewedCarsScreenPreview() {
     AppTheme {
-        RecentlyViewedCarsScreen(navController = rememberNavController(), initialTabIndex = 1)
+        // Preview에서는 ViewModel을 직접 생성하거나 Mock 데이터를 사용해야 합니다.
+        // koinViewModel()은 실제 앱 실행 시에만 작동합니다.
+        // val mockNavController = rememberNavController()
+        // val mockViewModel = MyPageViewModel(...) // Mock Repository들 필요
+        RecentlyViewedCarsScreen(navController = rememberNavController(), initialTabIndex = 0)
     }
 }
