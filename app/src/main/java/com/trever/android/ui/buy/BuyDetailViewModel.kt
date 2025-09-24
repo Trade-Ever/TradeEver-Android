@@ -78,6 +78,24 @@ class BuyDetailViewModel(
                 }
         }
     }
+
+    fun toggleLike(vehicleId: String) {
+        viewModelScope.launch {
+            val result = repository.toggleLike(vehicleId)
+            if (result.isSuccess) {
+                val currentState = _uiState.value
+                if (currentState is BuyDetailUiState.Success) {
+                    val vehicle = currentState.vehicle
+                    val newLiked = !(vehicle.liked == true)
+                    val newCount = if (newLiked) (vehicle.favoriteCount ?: 0) + 1 else (vehicle.favoriteCount ?: 0) - 1
+                    val updated = vehicle.copy(liked = newLiked, favoriteCount = newCount)
+                    _uiState.value = BuyDetailUiState.Success(updated)
+                }
+            } else {
+                // 에러 처리 필요시 추가
+            }
+        }
+    }
 }
 
 sealed class BuyDetailUiState {

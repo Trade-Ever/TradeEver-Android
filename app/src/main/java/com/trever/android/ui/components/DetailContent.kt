@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -89,7 +90,7 @@ fun DetailContent(
     showBidSection: Boolean,
     onMoreBids: (() -> Unit)?,
     bottomBar: (@Composable () -> Unit)? = null,
-
+    onToggleLike: () -> Unit,
 
 ) {
     val cs = MaterialTheme.colorScheme
@@ -119,7 +120,9 @@ fun DetailContent(
                     likeCount = item.likeCount,
                     priceColor = cs.Green,
                     badge = badge,
-                    carName = item.carName
+                    carName = item.carName,
+                    liked = item.liked,
+                    onToggleLike = onToggleLike
                 )
             }
             item {
@@ -176,7 +179,9 @@ private fun TitleSection(
     priceWon: Long,
     likeCount: Int,
     priceColor: Color = MaterialTheme.colorScheme.Green,
-    badge: (@Composable () -> Unit)? = { AuctionBadge() } // 기본은 경매 배지
+    badge: (@Composable () -> Unit)? = { AuctionBadge() } ,// 기본은 경매 배지
+    liked: Boolean,
+    onToggleLike: () -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
     Column(Modifier.padding(horizontal = 16.dp)) {
@@ -189,7 +194,12 @@ private fun TitleSection(
             )
             Text(text = "$likeCount", color = Color(0xFF9198A1))
             Spacer(Modifier.width(4.dp))
-            Icon(Icons.Default.FavoriteBorder, contentDescription = null, tint = Color(0xFF9198A1))
+            Icon(
+                imageVector = if (liked) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = null,
+                tint = if (liked) Color.Red else Color(0xFF9198A1),
+                modifier = Modifier.clickable { onToggleLike() }
+            )
         }
         Text(
             text = carName,
