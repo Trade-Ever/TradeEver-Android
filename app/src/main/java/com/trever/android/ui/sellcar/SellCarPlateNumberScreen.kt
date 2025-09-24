@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +50,7 @@ fun SellCarPlateNumberScreen(
         Dialog(onDismissRequest = { sellCarViewModel.resetPlateNumberCheck() }) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White
+                color = MaterialTheme.colorScheme.cardBackgroundColor
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -58,13 +60,13 @@ fun SellCarPlateNumberScreen(
                         text = "차량 번호 중복",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.textPrimaryColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "이미 등록된 차량 번호입니다.다른 번호를 입력해주세요.",
                         fontSize = 14.sp,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.textPrimaryColor,
                         textAlign = TextAlign.Center,
                         lineHeight = 22.sp
                     )
@@ -74,12 +76,12 @@ fun SellCarPlateNumberScreen(
                         // Remove fillMaxWidth() to make it compact
                         modifier = Modifier,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB)),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(vertical = 8.dp, horizontal = 40.dp) // Add horizontal padding
                     ) {
                         Text(
                             text = "확인",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.textPrimaryColor,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
@@ -136,7 +138,7 @@ fun SellCarPlateNumberScreen(
                     .height(80.dp),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color.Black),
-                color = Color.White
+                color = MaterialTheme.colorScheme.textPrimaryColor
             ) {
                 Row(
                     modifier = Modifier
@@ -154,7 +156,7 @@ fun SellCarPlateNumberScreen(
                         textStyle = TextStyle(
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.textPrimaryColor,
                             textAlign = TextAlign.Center
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -195,7 +197,7 @@ fun SellCarPlateNumberScreen(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
                         contentColor = Color.Black
                     ),
                     border = BorderStroke(1.dp, Color.LightGray),
@@ -223,7 +225,7 @@ fun SellCarPlateNumberScreen(
                     if (uiState.isPlateNumberChecking) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.textPrimaryColor,
                             strokeWidth = 2.dp
                         )
                     } else {

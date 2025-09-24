@@ -27,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Icon
@@ -65,6 +66,9 @@ import com.trever.android.ui.components.AppOutlinedButton
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import kotlin.collections.get
 
 
@@ -159,9 +163,9 @@ fun SearchScreen(
                             .padding(end = 20.dp) // 오른쪽 "취소" 공간 확보
                         .clip(RoundedCornerShape(22.dp)),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFFF3F8FF),
-                            unfocusedContainerColor = Color(0xFFF3F8FF),
-                            disabledContainerColor = Color(0xFFF3F8FF),
+                            focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                            disabledContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                         ),
@@ -181,13 +185,13 @@ fun SearchScreen(
                         viewModel.searchText.value = ""
                         onBack()
                     }) {
-                        Text("취소", color = Color(0xFF6C4DF4))
+                        Text("취소", color = MaterialTheme.colorScheme.primary)
                     }
                 },
 
             )
         },
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         bottomBar = {
             Row(
                 modifier = Modifier
@@ -243,7 +247,7 @@ fun SearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.backgroundColor)
 
     ) {
 
@@ -251,7 +255,7 @@ fun SearchScreen(
 
         Spacer(Modifier.height(30.dp))
         // 최근 검색
-        Text("최근 검색", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 16.dp))
+        Text("최근 검색", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.textPrimaryColor, modifier = Modifier.padding(start = 16.dp))
         Spacer(Modifier.height(8.dp))
         recentSearches.forEach { keyword ->
             Row(
@@ -263,12 +267,12 @@ fun SearchScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.search),
                     contentDescription = null,
-                    tint = cs.G_200
+                    tint = MaterialTheme.colorScheme.textSecondaryColor
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(keyword, color = cs.G_200, modifier = Modifier.weight(1f))
+                Text(keyword, color = MaterialTheme.colorScheme.textSecondaryColor, modifier = Modifier.weight(1f))
                 Icon(
-                    tint = cs.G_200,
+                    tint = MaterialTheme.colorScheme.textSecondaryColor,
                     painter = painterResource(id = R.drawable.close), // X 아이콘
                     contentDescription = null,
                     modifier = Modifier
@@ -276,7 +280,7 @@ fun SearchScreen(
                         .clickable { onClearRecent(keyword) }
                 )
             }
-            Divider(
+            HorizontalDivider(
                 color = cs.G_100,
                 thickness = 1.dp,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // Divider에는 padding 없음
@@ -285,7 +289,7 @@ fun SearchScreen(
         }
 
         Spacer(Modifier.height(30.dp))
-        Divider(
+        HorizontalDivider(
             color = cs.G_200,
             thickness = 1.dp,
             modifier = Modifier.fillMaxWidth() // Divider에는 padding 없음
@@ -396,8 +400,8 @@ private fun FilterRow(title: String, value: String, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, modifier = Modifier.weight(1f))
-        Text(value, color = Color(0xFF6C4DF4))
+        Text(title, color = MaterialTheme.colorScheme.textPrimaryColor, modifier = Modifier.weight(1f))
+        Text(value, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.width(8.dp))
         Icon(
             modifier = Modifier.size(18.dp),
@@ -407,7 +411,7 @@ private fun FilterRow(title: String, value: String, onClick: () -> Unit) {
         )
 
     }
-        Divider(color = MaterialTheme.colorScheme.G_100, thickness = 1.dp, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp))}
+        HorizontalDivider(color = MaterialTheme.colorScheme.G_100, thickness = 1.dp, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp))}
 }
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -456,7 +460,7 @@ fun RangeSelectBottomSheet(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(title, style = MaterialTheme.typography.titleLarge)
+            Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.textPrimaryColor)
             Spacer(Modifier.height(24.dp))
             RangeSlider(
                 value = range,
@@ -496,7 +500,8 @@ fun RangeSelectBottomSheet(
             Spacer(Modifier.height(8.dp))
             Text(
                 "${displayValue(range.start)} ~ ${displayValue(range.endInclusive)}",
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.textPrimaryColor
             )
             Spacer(Modifier.height(32.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -528,7 +533,7 @@ fun CarTypeSelectBottomSheet(
     var selected by remember { mutableStateOf(selectedType) }
 
     ModalBottomSheet(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
@@ -536,7 +541,7 @@ fun CarTypeSelectBottomSheet(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("차종을 선택해주세요", style = MaterialTheme.typography.titleLarge)
+            Text("차종을 선택해주세요", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.textPrimaryColor)
             Spacer(Modifier.height(32.dp))
             for (row in 0..1) {
                 Row(
@@ -576,9 +581,9 @@ fun CarTypeSelectBottomSheet(
                             Text(
                                 type,
                                 color = when {
-                                    !enabled -> Color(0xFFCCCCCC)
+                                    !enabled -> MaterialTheme.colorScheme.textSecondaryColor.copy(alpha = 0.5f)
                                     isSelected -> Color.White
-                                    else -> cs.G_200
+                                    else -> MaterialTheme.colorScheme.textPrimaryColor
                                 },
                                 style = MaterialTheme.typography.bodyLarge
                             )

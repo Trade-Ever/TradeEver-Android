@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +41,8 @@ fun SelectModelScreen(
                 title = {
                     Text(
                         text = if (selectedManufacturer.isNotEmpty()) "$selectedManufacturer 차명 선택" else "차명 선택",
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.textPrimaryColor
                     )
                 },
                 navigationIcon = {
@@ -47,10 +50,10 @@ fun SelectModelScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.backgroundColor
     ) { paddingValues ->
         if (uiState.isLoadingCarNames) {
             Box(
@@ -72,7 +75,8 @@ fun SelectModelScreen(
                 Text(
                     text = "${selectedManufacturer}의 차량 모델 정보가 없습니다.\n다른 제조사를 선택해보세요.",
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    lineHeight = 22.sp,
+                    color = MaterialTheme.colorScheme.textPrimaryColor
                 )
             }
         } else if (selectedManufacturer.isEmpty()) {
@@ -85,7 +89,8 @@ fun SelectModelScreen(
             ) {
                 Text(
                     text = "먼저 제조사를 선택해주세요.",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.textPrimaryColor
                 )
             }
         } else {
@@ -121,7 +126,7 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
         Text(
             text = carName,
             fontSize = 16.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.textPrimaryColor
         )
     }
 }
@@ -142,7 +147,7 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
 //                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
 //                        }
 //                    },
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
 //                )
 //            }
 //        ) { paddingValues ->

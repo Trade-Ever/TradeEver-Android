@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.trever.android.R // Placeholder 이미지용
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +63,7 @@ fun ProfileEditSheetContent(
         Text(
             text = "프로필 수정",
             style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.textPrimaryColor,
             modifier = Modifier
                 .padding(bottom = 24.dp)
                 .align(Alignment.Start)
@@ -99,7 +101,7 @@ fun ProfileEditSheetContent(
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("저장", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
@@ -118,6 +120,7 @@ private fun ProfileTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.textPrimaryColor,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         OutlinedTextField(

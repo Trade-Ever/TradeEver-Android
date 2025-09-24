@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,16 +45,16 @@ fun SelectYearScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("$titleText 연식 선택", fontWeight = FontWeight.Bold) },
+                title = { Text("$titleText 연식 선택", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.textPrimaryColor) },
                 navigationIcon = {
                     IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.backgroundColor
     ) { paddingValues ->
         if (uiState.isLoadingYears) {
             Box(
@@ -69,7 +71,8 @@ fun SelectYearScreen(
                 Text(
                     text = "선택하신 모델의 연식 정보가 없습니다.",
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    lineHeight = 22.sp,
+                    color = MaterialTheme.colorScheme.textPrimaryColor
                 )
             }
         } else {
@@ -100,7 +103,7 @@ fun YearRow(year: String, onClick: () -> Unit) {
             .padding(vertical = 16.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "$year 년", fontSize = 16.sp, color = Color.Black)
+        Text(text = "$year 년", fontSize = 16.sp, color = MaterialTheme.colorScheme.textPrimaryColor)
     }
 }
 
@@ -119,7 +122,7 @@ fun YearRow(year: String, onClick: () -> Unit) {
 //                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
 //                        }
 //                    },
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
 //                )
 //            }
 //        ) { paddingValues ->

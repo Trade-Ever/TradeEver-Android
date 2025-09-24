@@ -26,8 +26,10 @@ import com.trever.android.domain.model.toAuctionCar
 import com.trever.android.domain.model.toAuctionCarForDisplay
 import com.trever.android.ui.search.CarTypeSelectBottomSheet
 import com.trever.android.ui.search.SearchViewModel
+import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,10 +74,10 @@ fun SearchResultScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = cs.backgroundColor
                 ),
-                title = { Text("검색결과") },
+                title = { Text("검색결과", color = MaterialTheme.colorScheme.textPrimaryColor) },
                 actions = {
                     TextButton(onClick = onBack) {
-                        Text("나가기", color = Color(0xFF6C4DF4))
+                        Text("나가기", color = MaterialTheme.colorScheme.primary)
                     }
                 }
             )
@@ -98,59 +100,59 @@ fun SearchResultScreen(
                     modifier = Modifier
                         .height(36.dp),
                     onClick = { showBottomSheet = "year" },
-                    border = BorderStroke(1.dp, if (yearRange != null) cs.primary else cs.G_200),
+                    border = BorderStroke(1.dp, if (yearRange != null) cs.primary else MaterialTheme.colorScheme.G_100),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (yearRange != null) cs.primary else Color.Black
+                        contentColor = if (yearRange != null) cs.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 ) {
                     Text(
                         if (yearRange == null) "연식"
                         else "${yearRange.start.toInt()}년 ~ ${yearRange.endInclusive.toInt()}년",
-                        color = if (yearRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                        color = if (yearRange != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 }
                 OutlinedButton(
                     modifier = Modifier
                         .height(36.dp),
                     onClick = { showBottomSheet = "type" },
-                    border = BorderStroke(1.dp, if (selectedType != null) cs.primary else cs.G_200),
+                    border = BorderStroke(1.dp, if (selectedType != null) cs.primary else MaterialTheme.colorScheme.G_100),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (selectedType != null) cs.primary else Color.Black
+                        contentColor = if (selectedType != null) cs.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 ) {
                     Text(
                         selectedType ?: "차종",
-                        color = if (selectedType != null) Color(0xFF6C4DF4) else Color.Unspecified
+                        color = if (selectedType != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 }
                 OutlinedButton(
                     modifier = Modifier
                         .height(36.dp),
                     onClick = { showBottomSheet = "distance" },
-                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
+                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else MaterialTheme.colorScheme.G_100),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (distanceRange != null) cs.primary else Color.Black
+                        contentColor = if (distanceRange != null) cs.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 ) {
                     Text(
                         if (distanceRange == null) "주행거리"
                         else "${String.format("%,d", distanceRange.start.toInt())}km ~ ${String.format("%,d", distanceRange.endInclusive.toInt())}km",
-                        color = if (distanceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                        color = if (distanceRange != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 }
                 OutlinedButton(
                     modifier = Modifier
                         .height(36.dp),
                     onClick = { showBottomSheet = "price" },
-                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
+                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else MaterialTheme.colorScheme.G_100),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (priceRange != null) cs.primary else Color.Black
+                        contentColor = if (priceRange != null) cs.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 ) {
                     Text(
                         if (priceRange == null) "가격"
                         else "${priceRange.start.toInt() * 100}만원 ~ ${priceRange.endInclusive.toInt() * 100}만원",
-                        color = if (priceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                        color = if (priceRange != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textPrimaryColor
                     )
                 }
             }
