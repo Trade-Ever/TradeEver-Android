@@ -12,7 +12,8 @@ data class Transaction(
     val finalPrice: Long,
     val status: String,
     val createdAt: String,
-    val contractPdfUrl: String?
+    val contractPdfUrl: String?,
+    val contractId: Long  // <--- 이 필드를 여기에 꼭 추가해주세요! (또는 Long?)
     // 필요하다면 DTO에 있던 contractId도 추가할 수 있습니다.
     // val contractId: Long?
 )
