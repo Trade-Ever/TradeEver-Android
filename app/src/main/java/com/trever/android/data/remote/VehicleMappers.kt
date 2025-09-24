@@ -208,7 +208,7 @@ fun Vehicle.toSearchCarItem(): SearchCarItem =
             mileageKm = this.mileage ?: 0,
             imageUrl = this.representativePhotoUrl,
             liked = this.isFavorite ?: false,
-            currentPriceWon = (this.price ?: 0) * 10000L,
+            currentPriceWon = (this.price ?: 0).toLong(),
             endsAtMillis = 0L, // 실제 종료 시간 필요시 매핑
             startAtMillis = 0L,
             mainOptions = this.mainOptions ?: emptyList(),
@@ -222,7 +222,7 @@ fun Vehicle.toSearchCarItem(): SearchCarItem =
             mileageKm = this.mileage ?: 0,
             imageUrl = this.representativePhotoUrl,
             liked = this.isFavorite ?: false,
-            priceWon = (this.price ?: 0) * 10000L,
+            priceWon = (this.price ?: 0).toLong(),
             mainOptions = this.mainOptions ?: emptyList()
         )
     }
