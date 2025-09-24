@@ -40,6 +40,7 @@ import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
 // import com.trever.android.ui.navigation.ROUTE_SEARCH // 이전 경로, 현재 "main"으로 대체
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.Grey_100
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
