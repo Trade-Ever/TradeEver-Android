@@ -36,6 +36,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         ApiClient.init(applicationContext)
 
+
+
         // ViewModel 인스턴스 생성
         sellCarViewModel = ViewModelProvider(this)[SellCarViewModel::class.java]
 

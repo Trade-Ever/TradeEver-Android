@@ -11,7 +11,7 @@ data class AuctionCar(
     val currentPriceWon: Long,
     val endsAtMillis: Long,      // 마감 시간 (epoch millis)
     val startAtMillis: Long,
-    val liked: Boolean = false,
+    val liked: Boolean?,
     val auctionId: Long?= null,
     // 아래 3개 프로퍼티 추가
     val manufacturer: String? = null,

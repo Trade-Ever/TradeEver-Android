@@ -28,7 +28,9 @@ data class VehicleDetail(
     val sellerId: String?,
     val sellerName: String?,
     val sellerLocationCity: String?,
-    val sellerProfileImageUrl: String?
+    val sellerProfileImageUrl: String?,
+    val liked: Boolean,
+    val favoriteCount: Int,
 )
 
 data class SellerInfo(

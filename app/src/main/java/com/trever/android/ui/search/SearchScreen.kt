@@ -228,7 +228,7 @@ fun SearchScreen(
                         // 검색 결과 화면으로 이동 (예: navController.navigate("search/results"))
                     },
                     modifier = Modifier.weight(1f),
-                    text = "매불 보기"
+                    text = "매물 보기"
                 )
             }
         }
@@ -277,7 +277,7 @@ fun SearchScreen(
             )
 
         }
-        Spacer(Modifier.height(70.dp))
+        Spacer(Modifier.height(30.dp))
         // 필터 목록
         FilterRow(
             "제조사 · 모델",
