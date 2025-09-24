@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -111,6 +113,7 @@ fun BuyListScreen(
                         CircularProgressIndicator()
                     }
                 }
+
                 is BuyListUiState.Success -> {
                     Box(
                         modifier = Modifier
@@ -125,7 +128,7 @@ fun BuyListScreen(
                                 top = searchBarHdp + 30.dp,
                                 bottom = 10.dp
                             ),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
                             items(state.vehicles, key = { it.id }) { vehicle ->
                                 ListingItem(
@@ -167,6 +170,7 @@ fun BuyListScreen(
                         )
                     }
                 }
+
                 is BuyListUiState.Error -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -187,9 +191,11 @@ fun BuyListScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp)
                 .zIndex(1f)
                 .onSizeChanged { searchBarH = it.height }
+                .statusBarsPadding()
         )
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FloatingSearchButton(

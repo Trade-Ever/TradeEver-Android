@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
-import com.trever.android.ui.theme.Grey_100
+import com.trever.android.ui.theme.G_100
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +84,7 @@ fun SelectYearScreen(
                         viewModel.updateSelectedYear(year)
                         onYearSelected()
                     }
-                    HorizontalDivider(color = Grey_100)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.G_100)
                 }
             }
         }
@@ -131,7 +131,7 @@ fun YearRow(year: String, onClick: () -> Unit) {
 //            ) {
 //                items(dummyYears) { year ->
 //                    YearRow(year = year.toString()) {}
-//                    HorizontalDivider(color = Grey_100)
+//                    HorizontalDivider(color = MaterialTheme.colorScheme.G_100)
 //                }
 //            }
 //        }

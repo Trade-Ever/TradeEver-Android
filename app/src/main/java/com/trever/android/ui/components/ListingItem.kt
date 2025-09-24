@@ -43,12 +43,14 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.trever.android.R
 import com.trever.android.domain.model.AuctionCar
+import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.G_300
 
 
-import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.Red_1
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.utils.formatMileage
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
@@ -72,9 +74,9 @@ fun ListingItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = cs.backgroundColor),
+        colors = CardDefaults.cardColors(containerColor = cs.cardBackgroundColor),
         border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(Grey_100)
+            brush = androidx.compose.ui.graphics.SolidColor(cs.G_100)
         )
     ) {
         Column(Modifier.fillMaxWidth()) {
@@ -119,7 +121,11 @@ fun ListingItem(
                         if (car.liked) {
                             Icon(Icons.Default.Favorite, contentDescription = "찜 해제", tint = Red_1)
                         } else {
-                            Icon(Icons.Default.FavoriteBorder, contentDescription = "찜하기", tint = cs.onSurface)
+                            Icon(
+                                Icons.Default.FavoriteBorder,
+                                contentDescription = "찜하기",
+                                tint = cs.onSurface
+                            )
                         }
                     }
                 }
@@ -189,8 +195,8 @@ private fun formatKoreanWon(amount: Long): String {
     val 만 = (amount % 100_000_000) / 10_000
 
     return buildString {
-        if (억 > 0) append("${억}억 ")
-        if (만 > 0) append("${만}만원")
+        if (억 > 0) append("${dec.format(억)}억 ")
+        if (만 > 0) append("${dec.format(만)}만원")
         if (억 == 0L && 만 == 0L) append("0원")
     }.trim()
 }
@@ -201,16 +207,17 @@ private fun formatKm(km: Int) = dec.format(km)
 
 @Composable
 fun TagChip(text: String) {
+    val cs = MaterialTheme.colorScheme
     Text(
         text = text,
-        color = Grey_400,
+        color = cs.G_300,
         style = MaterialTheme.typography.bodySmall.copy(
             fontWeight = FontWeight.Bold,  // 글씨 굵게
             fontSize = 10.sp
         ),
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(Grey_100)
+            .background(cs.G_100)
             .padding(horizontal = 4.dp, vertical = 2.dp)
     )
 }

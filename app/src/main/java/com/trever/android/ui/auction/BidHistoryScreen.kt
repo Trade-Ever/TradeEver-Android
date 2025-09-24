@@ -48,7 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.trever.android.domain.model.BidUi2
-import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.G_300
@@ -139,7 +138,7 @@ private fun BidHistoryRow(
             } else {
                 Surface(
                     shape = CircleShape,
-                    color = Grey_100,
+                    color = MaterialTheme.colorScheme.G_100,
                     modifier = Modifier.size(28.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {

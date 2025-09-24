@@ -39,6 +39,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -74,24 +75,26 @@ import com.trever.android.ui.auction.SellerUi
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.G_300
 import com.trever.android.ui.theme.Green
-import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.noticeContainer
 import com.trever.android.ui.theme.noticeOutline
+import com.trever.android.ui.theme.textPrimaryColor
 import kotlinx.coroutines.launch
 import kotlin.collections.forEach
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun DetailContent(
     item: AuctionDetailUi,
     onBack: () -> Unit,
-    badge: @Composable () -> Unit,
+    badge: @Composable (() -> Unit)?,
     showBidSection: Boolean,
     onMoreBids: (() -> Unit)?,
-    bottomBar: (@Composable () -> Unit)? = null,
+    bottomBar: @Composable (() -> Unit)? = null,
 
 
-) {
+    ) {
     val cs = MaterialTheme.colorScheme
     var bottomBarHeightPx by remember { mutableStateOf(0) }
     val bottomBarHeightDp = with(LocalDensity.current) { bottomBarHeightPx.toDp() }
@@ -153,7 +156,11 @@ fun DetailContent(
                 .clickable { onBack() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back", tint = Color.White)
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "back",
+                tint = Color.White
+            )
         }
 
         if (bottomBar != null) {
@@ -196,7 +203,7 @@ private fun TitleSection(
             color = cs.onSurface,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
 
-        )
+            )
         Spacer(Modifier.height(2.dp))
         Text(text = subTitle, color = Color(0xFF9198A1))
 
@@ -225,7 +232,8 @@ private fun SpecColumnOrdered(
     specs: List<Pair<String, String>>,
     modifier: Modifier = Modifier
 ) {
-    val order = listOf("연료", "변속기", "배기량(cc)", "마력", "색상", "기타 정보", "사고 이력", "사고 설명")
+//    val order = listOf("연료", "변속기", "배기량(cc)", "마력", "색상", "기타정보", "사고이력", "사고설명")
+    val order = listOf("연료", "변속기", "배기량(cc)", "마력", "색상", "차종", "사고이력", "사고설명", "기타정보")
     val map = remember(specs) { specs.toMap() }
 
     Column(
@@ -246,11 +254,12 @@ private fun SpecColumnOrdered(
 private fun ImageHeader(
     images: List<String>,
 
-) {
+    ) {
     var showViewer by remember { mutableStateOf(false) }
     var viewerIndex by remember { mutableStateOf(0) }
 
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { images.size.coerceAtLeast(1) })
+    val pagerState =
+        rememberPagerState(initialPage = 0, pageCount = { images.size.coerceAtLeast(1) })
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
     Box(
@@ -304,7 +313,7 @@ private fun NoticeCard(text: String) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(cs.noticeContainer)
-            .border(1.dp,cs.noticeOutline, RoundedCornerShape(12.dp))
+            .border(1.dp, cs.noticeOutline, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
         Text(text = text, color = cs.onSurface)
@@ -416,6 +425,7 @@ private fun AnimatedBidsList(bids: List<BidUi>) {
         }
     }
 }
+
 @Composable
 private fun SellerSection(
     seller: SellerUi,
@@ -448,11 +458,11 @@ private fun SellerSection(
                             modifier = Modifier
                                 .size(46.dp)
                                 .clip(CircleShape)
-                                .background(Grey_100),
+                                .background(MaterialTheme.colorScheme.G_100),
                             contentAlignment = Alignment.Center
                         ) { Text(seller.name.take(1)) }
                     }
-                }
+                },
             )
             Spacer(Modifier.height(8.dp))
 
@@ -463,8 +473,8 @@ private fun SellerSection(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val keyW = 72.dp
-                KeyValueLine(key = "판매자", value = seller.name,       keyWidth = keyW)
-                KeyValueLine(key = "주소",     value = seller.addr,     keyWidth = keyW)
+                KeyValueLine(key = "판매자", value = seller.name, keyWidth = keyW)
+                KeyValueLine(key = "판매자 주소", value = seller.addr, keyWidth = keyW)
                 Spacer(Modifier.height(4.dp))
 //                KeyValueLine(key = "등록일",   value = seller.,  keyWidth = keyW)
 //                KeyValueLine(key = "수정일",   value = seller.validDate, keyWidth = keyW)
@@ -478,11 +488,12 @@ private fun formatKoreanWon(amount: Long): String {
     val eok = amount / 100_000_000
     val man = (amount % 100_000_000) / 10_000
     return buildString {
-        if (eok > 0) append("${eok}억 ")
-        if (man > 0) append("${man}만원")
+        if (eok > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(eok)}억 ")
+        if (man > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(man)}만원")
         if (eok == 0L && man == 0L) append("0원")
     }.trim()
 }
+
 @Composable
 private fun KeyValueLine(
     key: String,
@@ -502,6 +513,7 @@ private fun KeyValueLine(
         Text(
             text = value,                               // \n 그대로 표시
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.textPrimaryColor,
             modifier = Modifier.weight(1f)
         )
     }
@@ -550,7 +562,11 @@ private fun FullScreenImageViewer(
                     .clickable { onClose() },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "close", tint = Color.White)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "close",
+                    tint = Color.White
+                )
             }
 
             PagerDotsIndicator(
@@ -582,8 +598,7 @@ private fun BidRowPill(
         Row(
             modifier = Modifier
                 .clickable { /* TODO: 클릭 액션 */ }
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-            ,
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 아바타 (이미지 있으면 이미지, 없으면 이니셜)
@@ -601,7 +616,7 @@ private fun BidRowPill(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(Grey_100),
+                        .background(MaterialTheme.colorScheme.G_100),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -674,7 +689,7 @@ private fun SectionHeader(
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.textPrimaryColor)
         Spacer(Modifier.weight(1f))
 
         when {
@@ -687,7 +702,11 @@ private fun SectionHeader(
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(actionText, color = actionTint, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        actionText,
+                        color = MaterialTheme.colorScheme.textPrimaryColor,
+                        style = MaterialTheme.typography.labelLarge
+                    )
                     if (actionIconRes != null) {
                         Spacer(Modifier.width(4.dp))
                         Icon(
@@ -743,7 +762,10 @@ private fun ZoomableImage(
                                 Offset.Zero
                             } else {
                                 // 중앙 기준으로 약간 당겨주는 정도
-                                (offset + (tap - Offset(containerSize.width / 2f, containerSize.height / 2f)) / 2f)
+                                (offset + (tap - Offset(
+                                    containerSize.width / 2f,
+                                    containerSize.height / 2f
+                                )) / 2f)
                             }
                             offset = clampOffset(offset, containerSize, scale)
                             onScaleChanged(scale)

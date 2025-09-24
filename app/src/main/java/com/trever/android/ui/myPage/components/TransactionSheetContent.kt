@@ -28,7 +28,7 @@ import java.util.Locale
 
 fun formatAmountToManwon(amount: Long): String {
     if (amount < 10000) return "${NumberFormat.getNumberInstance(Locale.KOREA).format(amount)}원"
-    return "${amount / 10000}만원"
+    return "${NumberFormat.getNumberInstance(Locale.KOREA).format(amount / 10000)}만원"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

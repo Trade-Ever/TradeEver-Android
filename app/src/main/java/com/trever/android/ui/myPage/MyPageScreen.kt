@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,7 +38,7 @@ import com.trever.android.ui.navigation.ROUTE_MYPAGE_RECENTLY_VIEWED
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
 import com.trever.android.ui.theme.AppTheme
-import com.trever.android.ui.theme.Grey_100
+import com.trever.android.ui.theme.G_100
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
@@ -154,6 +155,7 @@ fun MyPageScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .statusBarsPadding()
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -258,7 +260,7 @@ fun ProfileSection(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(Grey_100),
+                    .background(MaterialTheme.colorScheme.G_100),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(16.dp))

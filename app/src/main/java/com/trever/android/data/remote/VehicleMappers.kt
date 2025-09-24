@@ -13,6 +13,8 @@ import com.trever.android.ui.auction.SellerUi
 import kotlin.div
 
 import kotlin.toString
+import java.text.NumberFormat
+import java.util.Locale
 
 fun VehicleDetail.toBuyDetailUi(): AuctionDetailUi {
     return AuctionDetailUi(
@@ -145,7 +147,8 @@ fun VehicleDetailResponse.toVehicleDetail(): VehicleDetail {
         sellerLocationCity = sellerLocationCity, // ← 여기!
         sellerProfileImageUrl = sellerProfileImageUrl,
         sellerPhone = sellerPhone,
-        vehicleStatus = vehicleStatus
+        vehicleStatus = vehicleStatus,
+        vehicleTypeName = vehicleTypeName
     )
 }
 
@@ -310,15 +313,16 @@ private fun VehicleDetail.createSpecsList(): List<Pair<String, String>> {
     specs.add("배기량(cc)" to (engineCc?.toString() ?: "")) // displacement 대신 engineCc 사용
     specs.add("마력" to (horsepower?.toString() ?: "")) // 타입 변환 수정
     specs.add("색상" to (color ?: ""))
+    specs.add("차종" to (vehicleTypeName ?: ""))
 
-    val optionsText = options?.joinToString("\n") ?: ""
-    if (optionsText.isNotEmpty()) {
-        specs.add("기타 정보" to optionsText)
+    specs.add("사고이력" to (if (accidentHistory == true) "있음" else "없음")) // Boolean 타입 처리
+    if (!accidentDescription.isNullOrBlank()) {
+        specs.add("사고설명" to accidentDescription)
     }
 
-    specs.add("사고 이력" to (if (accidentHistory == true) "있음" else "없음")) // Boolean 타입 처리
-    if (!accidentDescription.isNullOrBlank()) {
-        specs.add("사고 설명" to accidentDescription)
+    val optionsText = options?.joinToString(", ") ?: ""
+    if (optionsText.isNotEmpty()) {
+        specs.add("기타정보" to optionsText)
     }
 
     return specs
@@ -329,8 +333,8 @@ private fun formatKoreanWon(amount: Long): String {
     val 만 = (amount % 100_000_000) / 10_000
 
     return buildString {
-        if (억 > 0) append("${억}억 ")
-        if (만 > 0) append("${만}만원")
+        if (억 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(억)}억 ")
+        if (만 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(만)}만원")
         if (억 == 0L && 만 == 0L) append("0원")
     }.trim()
 }

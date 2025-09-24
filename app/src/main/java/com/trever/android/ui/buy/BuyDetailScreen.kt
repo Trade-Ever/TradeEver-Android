@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -16,12 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.unit.dp
-import com.trever.android.ui.auction.AuctionDetailUi
+import java.text.NumberFormat
+import java.util.Locale
 import com.trever.android.ui.components.DetailContent
-import com.trever.android.ui.components.SellingBadge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,10 +29,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.data.remote.toBuyDetailUi
-import com.trever.android.ui.auction.SellerUi
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AppOutlinedButton
 import com.trever.android.ui.theme.G_200
@@ -89,15 +84,14 @@ fun BuyDetailScreen(
                     DetailContent(
                         item = detailUi,
                         onBack = onBack,
-                        badge = { SellingBadge() },  // 구매 뱃지
+                        badge = null,  // 뱃지 제거
                         showBidSection = false,  // 입찰 섹션 표시 안 함
                         onMoreBids = null,       // 입찰 내역 보기 기능 비활성화
                         bottomBar = {
                             if (isSoldOut) {
                                 // 판매완료 표시만
                                 SoldOutBottomActionBar()
-                            }
-                            else if (isSeller) {
+                            } else if (isSeller) {
                                 SellerBottomActionBar(
                                     onComplete = {
                                         viewModel.loadBuyRequests(carId)
@@ -144,9 +138,13 @@ fun BuyDetailScreen(
                         BuyerSelectSheet(
                             buyers = buyerList.map { it.buyerName },
                             onSelect = { selectedBuyerName ->
-                                val selectedBuyer = buyerList.find { it.buyerName == selectedBuyerName }
+                                val selectedBuyer =
+                                    buyerList.find { it.buyerName == selectedBuyerName }
                                 selectedBuyer?.let {
-                                    viewModel.selectBuyer(carId, it.buyerId) { success, message, response ->
+                                    viewModel.selectBuyer(
+                                        carId,
+                                        it.buyerId
+                                    ) { success, message, response ->
                                         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                         // 필요시 response 활용
                                     }
@@ -216,20 +214,22 @@ private fun SellerBottomActionBar(
         contentColor = cs.onSurface,
         tonalElevation = 2.dp,
         shadowElevation = 12.dp
-    ) { Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(16.dp)
     ) {
-        AppOutlinedButton(
-            text = "판매완료로 변경하기",
-            onClick = onComplete,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(16.dp)
+        ) {
+            AppOutlinedButton(
+                text = "판매완료로 변경하기",
+                onClick = onComplete,
+                modifier = Modifier
+                    .fillMaxWidth()
 
-        )
-    }}
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -289,6 +289,7 @@ private fun BuyerSelectSheet(
         }
     }
 }
+
 @Composable
 private fun BuyBottomActionBar(
     price: String,
@@ -323,7 +324,7 @@ private fun BuyBottomActionBar(
                     modifier = Modifier.weight(1f),
                     height = 48.dp,
 
-                )
+                    )
 
                 // 구매하기 버튼 - 채워진 스타일
                 AppFilledButton(
@@ -489,8 +490,10 @@ private fun BuyConfirmSheet(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("구매 신청", style = MaterialTheme.typography.titleMedium)
+            Text("구매 신청", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
+            Text("이 매물을 구매 신청하시겠습니까?", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(32.dp))
 
 
             AppFilledButton(
@@ -512,14 +515,13 @@ private fun BuyConfirmSheet(
 }
 
 
-
 private fun formatKoreanWon(amount: Long): String {
     val 억 = amount / 100_000_000
     val 만 = (amount % 100_000_000) / 10_000
 
     return buildString {
-        if (억 > 0) append("${억}억 ")
-        if (만 > 0) append("${만}만원")
+        if (억 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(억)}억 ")
+        if (만 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(만)}만원")
         if (억 == 0L && 만 == 0L) append("0원")
     }.trim()
 }
