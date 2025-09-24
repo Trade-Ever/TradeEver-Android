@@ -68,6 +68,7 @@ private fun TransactionDto.toDomainModel(): Transaction {
         finalPrice = this.finalPrice,
         status = this.status,
         createdAt = this.createdAt,
-        contractPdfUrl = this.contractPdfUrl
+        contractPdfUrl = this.contractPdfUrl,
+        contractId = this.contractId // <--- DTO의 contractId를 전달
     )
 }

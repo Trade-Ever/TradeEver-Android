@@ -28,9 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.trever.android.domain.model.Transaction // Transaction 모델 import
+import com.trever.android.ui.buy.ContractBottomSheet // ContractBottomSheet import
 import com.trever.android.ui.myPage.TransactionType
 import com.trever.android.ui.myPage.TransactionViewModel
 import com.trever.android.ui.theme.AppTheme
@@ -46,7 +47,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionHistoryScreen(
-    navController: NavController,
+    navController: NavHostController,
     viewModel: TransactionViewModel = koinViewModel(),
     initialTabIndex: Int = 0
 ) {
@@ -55,6 +56,9 @@ fun TransactionHistoryScreen(
 
     val transactions by viewModel.transactions.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    var showContractSheet by remember { mutableStateOf(false) }
+    var currentContractIdForSheet by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(selectedTabIndex) {
         val type = if (selectedTabIndex == 0) TransactionType.SALES else TransactionType.PURCHASES
@@ -74,6 +78,7 @@ fun TransactionHistoryScreen(
             )
         },
         containerColor = MaterialTheme.colorScheme.backgroundColor
+
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             TabRow(
@@ -103,26 +108,49 @@ fun TransactionHistoryScreen(
             } else if (transactions.isEmpty()) {
                 EmptyState(message = if(selectedTabIndex == 0) "판매 내역이 없습니다." else "구매 내역이 없습니다.")
             } else {
-                TransactionList(transactions = transactions)
+                TransactionList(
+                    transactions = transactions, 
+                    selectedTabIndex = selectedTabIndex, 
+                    onPdfViewClick = { contractId ->
+                        currentContractIdForSheet = contractId
+                        showContractSheet = true
+                    }
+                )
             }
         }
+    }
+
+    if (showContractSheet && currentContractIdForSheet != null) {
+        ContractBottomSheet(
+            open = true, 
+            onDismissRequest = { showContractSheet = false }, 
+            contractId = currentContractIdForSheet!!
+        )
     }
 }
 
 @Composable
-private fun TransactionList(transactions: List<Transaction>) {
+private fun TransactionList(
+    transactions: List<Transaction>,
+    selectedTabIndex: Int,
+    onPdfViewClick: (contractId: Long) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(transactions, key = { it.transactionId }) { transaction ->
-            TransactionListItem(transaction = transaction)
+            TransactionListItem(
+                transaction = transaction, 
+                selectedTabIndex = selectedTabIndex, 
+                onPdfViewClick = onPdfViewClick
+            )
         }
     }
 }
 
-// 가격 포맷 함수 (예: 11230000L -> "1,123만원")
+// 가격 포맷 함수
 fun formatPriceToManwon(price: Long?): String {
     if (price == null) return "-"
     val manwon = price / 10000
@@ -130,7 +158,7 @@ fun formatPriceToManwon(price: Long?): String {
     return "${formatter.format(manwon)}만원"
 }
 
-// 날짜 포맷 함수 (예: "2023-09-24T10:00:00" -> "09/24")
+// 날짜 포맷 함수
 fun formatDateToMMdd(dateString: String?): String {
     if (dateString.isNullOrBlank()) return "-"
     return try {
@@ -143,7 +171,11 @@ fun formatDateToMMdd(dateString: String?): String {
 }
 
 @Composable
-private fun TransactionListItem(transaction: Transaction) {
+private fun TransactionListItem(
+    transaction: Transaction,
+    selectedTabIndex: Int,
+    onPdfViewClick: (contractId: Long) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -163,6 +195,12 @@ private fun TransactionListItem(transaction: Transaction) {
                     color = MaterialTheme.colorScheme.textPrimaryColor
                 )
                 Spacer(modifier = Modifier.height(4.dp))
+                
+                val counterpartyDisplayName = if (selectedTabIndex == 0) { // 판매 탭
+                    transaction.buyerName ?: "-"
+                } else { // 구매 탭
+                    transaction.sellerName ?: "-"
+                }
                 Text(
                     text = "거래 상대: ${transaction.buyerName ?: "-"}", // counterpartyName 대신 userName 사용
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
@@ -193,7 +231,18 @@ private fun TransactionListItem(transaction: Transaction) {
                 )
                 Spacer(modifier = Modifier.height(8.dp)) 
                 OutlinedButton(
-                    onClick = { /* TODO: PDF 보기 로직 */ },
+                    onClick = {
+                        // contractId가 Long 타입이고 non-null이라고 가정 (Transaction DTO/모델에 맞게)
+                        // 만약 Transaction 모델에서 contractId가 nullable (Long?)이라면,
+                        // transaction.contractId?.let { id -> onPdfViewClick(id) } 와 같이 호출합니다.
+                        // 현재 Transaction 모델에 contractId가 Long (non-null)으로 되어있다고 가정합니다.
+                        if (transaction.contractId != 0L) { // contractId가 유효한 경우 (0이 아니라고 가정)
+                           onPdfViewClick(transaction.contractId)
+                        } else {
+                            // contractId가 없는 경우 또는 유효하지 않은 경우 처리 (예: Toast 메시지)
+                            // 이 부분은 필요시 ViewModel을 통해 Toast를 표시하거나 다른 방식으로 처리하는 것이 좋음
+                        }
+                    },
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                     border = BorderStroke(1.dp, Color.LightGray)
                 ) {
@@ -231,39 +280,46 @@ fun TransactionHistoryScreenPreview() {
     }
 }
 
-// Preview for individual list item
-// @Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
-// @Composable
-// fun TransactionListItemPreview() {
-//    // 실제 Transaction 모델을 사용할 수 없으므로, 프리뷰용 가짜 데이터 생성
-//    // 이제 userName을 거래상대방으로 사용하므로, counterpartyName 필드는 샘플에서 제거하거나 userName으로 통일합니다.
-//    val sampleTransaction = Transaction(
-//        transactionId = "1",
-//        vehicleId = 100,
-//        sellerId = 1,
-//        buyerId = 2,
-//        price = 11230000L,
-//        finalPrice = 11230000L,
-//        status = "COMPLETED", // status는 현재 UI에 표시되지 않음
-//        createdAt = "2023-09-24T10:00:00Z",
-//        updatedAt = "2023-09-24T10:00:00Z",
-//        vehicleName = "G80",
-//        userName = "채상윤", // 이 필드가 거래 상대방 이름으로 사용됨
-//        // 나머지 Transaction 필드들... (실제 모델에 맞게 추가/수정 필요)
-//        auctionId = null,
-//        bidId = null,
-//        deliveryAddress = null,
-//        deliveryAddressDetail = null,
-//        deliveryCharge = null,
-//        deliveryRequest = null,
-//        deliveryStatus = null,
-//        deliveryTrackingNumber = null,
-//        isSellerReviewed = false,
-//        isBuyerReviewed = false,
-//        bankName = null,
-//        accountNumber = null
-//    )
-//    AppTheme {
-//        TransactionListItem(transaction = sampleTransaction)
-//    }
-// }
+@Preview(showBackground = true, backgroundColor = 0xFFF0F0F0)
+@Composable
+fun TransactionListItemPreview() {
+    val sampleTransactionForSale = Transaction(
+        transactionId = 1L,
+        vehicleId = 100L,
+        vehicleName = "G80",
+        buyerName = "채상윤 (구매자)",
+        sellerName = "김판매 (판매자)", 
+        finalPrice = 11230000L,
+        status = "COMPLETED",
+        createdAt = "2023-09-24T10:00:00Z",
+        contractPdfUrl = "dummy_url.pdf",
+        contractId = 1001L 
+    )
+    val sampleTransactionForPurchase = Transaction(
+        transactionId = 2L,
+        vehicleId = 101L,
+        vehicleName = "팰리세이드",
+        buyerName = "박구매 (구매자)",
+        sellerName = "이판매 (판매자)",
+        finalPrice = 8500000L,
+        status = "COMPLETED",
+        createdAt = "2023-09-22T14:30:00Z",
+        contractPdfUrl = "dummy_url2.pdf",
+        contractId = 1002L
+    )
+    AppTheme {
+        Column {
+            TransactionListItem(
+                transaction = sampleTransactionForSale, 
+                selectedTabIndex = 0, // 판매 탭
+                onPdfViewClick = { contractId -> println("Preview: PDF View Clicked for $contractId") }
+            )
+            Spacer(Modifier.height(10.dp))
+            TransactionListItem(
+                transaction = sampleTransactionForPurchase, 
+                selectedTabIndex = 1, // 구매 탭
+                onPdfViewClick = { contractId -> println("Preview: PDF View Clicked for $contractId") }
+            )
+        }
+    }
+}
