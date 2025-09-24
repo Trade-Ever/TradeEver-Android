@@ -90,6 +90,7 @@ interface VehicleApi {
 
     @GET("api/v1/contracts/{id}")
     suspend fun getContract(@Path("id") id: Long): ApiResponse<ContractDetail>
+
 }
 
 

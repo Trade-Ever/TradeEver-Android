@@ -85,7 +85,10 @@ fun AppNavHost(
                         navController.navigate("search/selectManufacturer")
                     }
                 },
-                onBack = { navController.popBackStack() } // 추가
+                onBack = { navController.popBackStack() }, // 추가
+                onClearRecent = { keyword ->
+                    searchViewModel.deleteRecentSearch(keyword)
+                },
             )
         }
 

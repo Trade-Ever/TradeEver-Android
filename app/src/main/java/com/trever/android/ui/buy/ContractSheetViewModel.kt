@@ -16,9 +16,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.FormatStyle
+import java.time.temporal.ChronoField
+
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+
 import java.util.Locale
 
 data class ContractSummaryUi(
@@ -49,6 +59,34 @@ class ContractSheetViewModel(app: Application) : AndroidViewModel(app) {
         override fun sizeOf(key: Int, value: Bitmap) = value.byteCount / 1024
     }
 
+    private val outFmt: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH:mm", Locale.KOREA)
+
+    private val inLocalDateTimeFmt: DateTimeFormatter =
+        DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd'T'HH:mm")
+            .optionalStart().appendPattern(":ss").optionalEnd()
+            .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 1, 9, true).optionalEnd()
+            .toFormatter()
+
+    private fun formatSignedAt(raw: String): String = try {
+        // 오프셋(예: +09:00, Z)이 있으면 OffsetDateTime로 파싱
+        val hasOffset = Regex("([+-]\\d{2}:?\\d{2}|Z)$").containsMatchIn(raw)
+        if (hasOffset) {
+            java.time.OffsetDateTime.parse(raw)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .format(outFmt)
+        } else {
+            // 오프셋이 없으면 LocalDateTime로 파싱
+            LocalDateTime.parse(raw, inLocalDateTimeFmt).format(outFmt)
+        }
+    } catch (e: Exception) {
+        // 실패시 원본 반환(혹은 적당한 대체 텍스트)
+        raw
+    }
+
+
     fun load(contractId: Long) = viewModelScope.launch {
         try {
             _state.value = ContractSheetState.Loading
@@ -57,10 +95,9 @@ class ContractSheetViewModel(app: Application) : AndroidViewModel(app) {
             val d: ContractDetail = res.data
 
             // 1) 요약 변환
-            val signedAtText = runCatching {
-                val odt = OffsetDateTime.parse(d.signedAt)
-                odt.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(Locale.KOREA))
-            }.getOrElse { d.signedAt }
+
+
+            val signedAtText = formatSignedAt(d.signedAt)
 
             val summary = ContractSummaryUi(
                 contractId = d.contractId,

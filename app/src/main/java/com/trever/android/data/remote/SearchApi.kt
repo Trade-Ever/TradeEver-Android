@@ -2,8 +2,10 @@ package com.trever.android.data.remote
 
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface SearchApi {
 
@@ -28,7 +30,17 @@ interface SearchApi {
     suspend fun searchVehicles(
         @Body request: VehicleSearchRequest
     ): ApiResponse<VehicleSearchResponse>
+
+    @DELETE("api/v1/recent-searches")
+    suspend fun deleteRecentSearch(@Query("keyword") keyword: String): RecentResponse
 }
+
+@Serializable
+data class RecentResponse(
+    val status: Int,
+    val success: Boolean,
+    val message: String,
+)
 
 @Serializable
 data class VehicleSearchRequest(

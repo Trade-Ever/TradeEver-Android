@@ -67,6 +67,13 @@ class SearchViewModel(
         }
     }
 
+    fun deleteRecentSearch(keyword: String) {
+        viewModelScope.launch {
+            val ok = api.deleteRecentSearch(keyword)
+            if (ok.success) fetchRecentSearches() // 성공 시 목록 갱신
+        }
+    }
+
     private val carTypeMapReverse = mapOf(
         "대형" to "LARGE",
         "중형" to "MID_SIZE",
@@ -78,9 +85,11 @@ class SearchViewModel(
         "경차" to "COMPACT"
     )
 
+
     private fun triggerSearchIfReady() {
         val request = VehicleSearchRequest(
-            keyword = searchText.value.takeIf { it.isNotEmpty() }, // 만약 StateFlow로 관리 중이라면
+
+            keyword = searchText.value.trim().takeIf { it.isNotEmpty() }, // 만약 StateFlow로 관리 중이라면
             manufacturer = selectedManufacturer.value?.takeIf { it.isNotEmpty() },
             carName = selectedCarName.value?.takeIf { it.isNotEmpty() },
             carModel = selectedCarModel.value?.takeIf { it.isNotEmpty() },
