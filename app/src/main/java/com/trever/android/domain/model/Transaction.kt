@@ -7,8 +7,12 @@ data class Transaction(
     val transactionId: Long,
     val vehicleId: Long,
     val vehicleName: String,
+    val buyerName: String?,    // <--- 이 필드를 추가하세요!
+    val sellerName: String?,   // <--- 이 필드를 추가하세요!
     val finalPrice: Long,
     val status: String,
     val createdAt: String,
     val contractPdfUrl: String?
+    // 필요하다면 DTO에 있던 contractId도 추가할 수 있습니다.
+    // val contractId: Long?
 )

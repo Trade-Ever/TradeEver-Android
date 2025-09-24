@@ -140,7 +140,7 @@ fun SellEntryScreen(
                                         .padding(horizontal = 16.dp, vertical = 48.dp)
                                 )
                             }
-                            registeredCars.isEmpty() -> {
+                            registeredCars.isEmpty() && !isRefreshing -> {
                                 Text(
                                     text = "아직 등록된 차량이 없어요. 지금 바로 내 차 정보를 등록해보세요!",
                                     style = MaterialTheme.typography.bodyLarge,
@@ -151,7 +151,7 @@ fun SellEntryScreen(
                                         .padding(horizontal = 16.dp, vertical = 48.dp)
                                 )
                             }
-                            else -> {
+                            registeredCars.isNotEmpty() -> {
                                 Text(
                                     text = "내가 등록한 차량",
                                     style = MaterialTheme.typography.titleMedium, // Changed to a smaller style
@@ -168,14 +168,24 @@ fun SellEntryScreen(
                 if (registeredCars.isNotEmpty()) {
                     items(registeredCars, key = { it.id }) { car ->
                         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            val isAuction = car.transactionType == "경매"
+                            // 경매 여부 판단: auctionId가 null도 아니고 0L도 아니어야 진짜 경매 매물
+                            val isRealAuction = car.auctionId != null && car.auctionId != 0L
                             ListingItem(
                                 car = car,
-                                onClick = { /* TODO: 등록된 차량 상세 화면으로 이동 */ },
-                                onToggleLike = { /* TODO: 찜하기 로직 */ },
-                                showBadge = isAuction,
-                                showAuctionMeta = isAuction,
-                                priceLabel = if (isAuction) "최고 입찰가" else "판매 가격"
+                                onClick = {
+                                    if (isRealAuction) {
+                                        // 경매 매물일 경우: auction/detail/{carId}/{auctionId}로 이동
+                                        parentNavController.navigate("auction/detail/${car.id}/${car.auctionId}")
+                                    } else {
+                                        // 일반 매물일 경우: buy/detail/{carId}로 이동
+                                        parentNavController.navigate("buy/detail/${car.id}")
+                                    }
+                                },
+                                onToggleLike = { /* TODO: 찜하기 로직 (SellEntryScreen에서는 필요 없을 수 있음) */ },
+                                tags = car.mainOptions ?: emptyList(),
+                                showBadge = isRealAuction,
+                                showAuctionMeta = isRealAuction,
+                                priceLabel = if (isRealAuction) "최고 입찰가" else "판매 가격"
                             )
                         }
                     }

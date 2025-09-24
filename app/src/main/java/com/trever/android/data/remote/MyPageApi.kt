@@ -9,15 +9,30 @@ import retrofit2.http.GET
 interface MyPageApi {
 
     @GET("api/v1/recent-views")
-    suspend fun getRecentlyViewedCars(): ApiResponse<List<RecentlyViewedCarDto>>
+    suspend fun getRecentlyViewedCars(): ApiResponse<RecentlyViewedDataWrapper> 
 
     @GET("api/v1/favorites")
-    suspend fun getLikedCars(): ApiResponse<List<VehicleSummaryDto>>
+    suspend fun getLikedCars(): ApiResponse<LikedCarsDataWrapper> // 확인: LikedCarsDataWrapper 사용
 }
 
 /**
+ * "최근 본 차량" API의 'data' 필드 내부 구조를 위한 래퍼 클래스
+ */
+@Serializable
+data class RecentlyViewedDataWrapper(
+    val vehicles: List<RecentlyViewedCarDto>
+)
+
+/**
+ * "찜한 차량 목록" API의 'data' 필드 내부 구조를 위한 래퍼 클래스
+ */
+@Serializable
+data class LikedCarsDataWrapper(
+    val vehicles: List<VehicleSummaryDto> // 확인: 'vehicles' 속성 정의
+)
+
+/**
  * "최근 본 차량" API의 응답을 받기 위한 데이터 전송 객체(DTO)입니다.
- * 이 파일 내에서만 사용됩니다.
  */
 @Serializable
 data class RecentlyViewedCarDto(
@@ -38,6 +53,8 @@ data class RecentlyViewedCarDto(
     val favoriteCount: Int?,
     val createdAt: String?,
     val isFavorite: Boolean?,
+    val totalCount: Int? = null,
+    val pageNumber: Int? = null,
     val vehicleTypeName: String? = null,
     val mainOptions: List<String>? = null,
     val totalOptionsCount: Int? = null
