@@ -62,9 +62,9 @@ fun SellEntryScreen(
     // 화면이 나타날 때마다 내가 등록한 차량 목록을 새로고침하는 LaunchedEffect는 ViewModel의 init 블록으로 이동 또는 유지 가능
     // ViewModel에서 init 시점에 fetch 및 리스너를 설정하므로 여기서는 필수는 아님
     // 다만, 화면이 다시 보여질 때마다 강제 새로고침을 원한다면 유지할 수 있음
-    // LaunchedEffect(key1 = Unit) { // key1 = true에서 Unit으로 변경하여 화면 진입 시 마다 실행
-    //     sellEntryViewModel.fetchMyVehicles()
-    // }
+//    LaunchedEffect(key1 = Unit) { // key1 = true에서 Unit으로 변경하여 화면 진입 시 마다 실행
+//        sellEntryViewModel.fetchMyVehicles()
+//    }
 
     val uiState by sellEntryViewModel.uiState.collectAsState()
     // uiState.myVehicles가 이미 List<AuctionCar>이므로 추가 매핑 필요 없음
