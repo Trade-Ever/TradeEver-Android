@@ -45,18 +45,28 @@ val appModule = module {
     // --- Network Layer ---
     single { HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY } }
 
-    single {
+    // Json 객체 설정 (ignoreUnknownKeys = true)
+    single<Json> {
+        Json {
+            ignoreUnknownKeys = true
+            // explicitNulls = false // 필요에 따라 추가
+            // coerceInputValues = true // 필요에 따라 추가
+        }
+    }
+
+    single<OkHttpClient> {
+        val tokenStore = get<TokenStore>()
         val refreshRetrofit = Retrofit.Builder()
             .baseUrl("http://54.180.107.111:8080/")
-            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
-            .client(OkHttpClient())
+            .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
+            .client(OkHttpClient.Builder().addInterceptor(get<HttpLoggingInterceptor>()).build()) // 로깅 인터셉터만 가지는 클라이언트
             .build()
         val refreshAuthApi = refreshRetrofit.create(AuthApi::class.java)
 
         OkHttpClient.Builder()
-            .addInterceptor(get<HttpLoggingInterceptor>()) 
-            .addInterceptor(AuthInterceptor(get()))
-            .authenticator(TokenAuthenticator(get(), refreshAuthApi))
+            .addInterceptor(get<HttpLoggingInterceptor>())
+            .addInterceptor(AuthInterceptor(tokenStore))
+            .authenticator(TokenAuthenticator(tokenStore, refreshAuthApi))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -67,7 +77,7 @@ val appModule = module {
         Retrofit.Builder()
             .baseUrl("http://54.180.107.111:8080/")
             .client(get<OkHttpClient>())
-            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
             .build()
     }
 
@@ -78,7 +88,7 @@ val appModule = module {
     single<TransactionApi> { get<Retrofit>().create(TransactionApi::class.java) }
 
     // --- Data Layer ---
-    single { Gson() }
+    single { Gson() } // Gson은 kotlinx.serialization과 별개
     single { TokenStore(androidContext()) }
     single { AuthRepository(get(), get(), get()) }
     single { MyPageRepository(get()) }
@@ -90,5 +100,5 @@ val appModule = module {
     viewModel { MyPageViewModel(get(), get()) }
     viewModel { TransactionViewModel(get()) }
     viewModel { SellEntryViewModel(get()) }
-    viewModel { SearchViewModel() } // SearchViewModel 추가
+    viewModel { SearchViewModel() }
 }

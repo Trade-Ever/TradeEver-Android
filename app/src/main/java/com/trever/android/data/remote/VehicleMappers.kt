@@ -74,7 +74,8 @@ fun VehicleDto.toAuctionCar(): AuctionCar {
         endsAtMillis = System.currentTimeMillis() + 86400000,
         startAtMillis = System.currentTimeMillis() + 86400000,
         liked = isFavorite ?: false,
-        auctionId = auctionId ?: 0
+        auctionId = auctionId ?: 0,
+        transactionType = if (isAuction.equals("true", ignoreCase = true) || isAuction.equals("경매", ignoreCase = true)) "경매" else "일반"
     )
 }
 
@@ -92,7 +93,11 @@ fun VehicleSummaryDto.toAuctionCar(): AuctionCar {
         endsAtMillis = System.currentTimeMillis() + 86400000,
         startAtMillis = System.currentTimeMillis(),
         liked = isFavorite ?: false,
-        auctionId = auctionId ?: 0
+        auctionId = auctionId ?: 0,
+        // isAuction 값을 기반으로 transactionType 설정
+        transactionType = if (isAuction.equals("true", ignoreCase = true) || isAuction.equals("경매", ignoreCase = true)) "경매" else "일반",
+        manufacturer = manufacturer,
+        model = model
     )
 }
 
@@ -189,7 +194,8 @@ fun VehicleSummary.toAuctionCarForDisplay(): AuctionCar {
         endsAtMillis = 0L, // 경매 종료 시간
         startAtMillis = 0L,
         liked = liked,
-        auctionId = auctionId ?: 0
+        auctionId = auctionId ?: 0,
+        transactionType = if (isAuction) "경매" else "일반" // VehicleSummary의 isAuction (Boolean) 사용
     )
 }
 

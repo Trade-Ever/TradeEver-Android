@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.trever.android.R
 import com.trever.android.data.remote.UserInfo
@@ -33,9 +34,9 @@ import com.trever.android.ui.myPage.components.TransactionSheetContent
 import com.trever.android.ui.myPage.components.formatAmountToManwon
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PRIVACY_POLICY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PURCHASE_HISTORY
-import com.trever.android.ui.navigation.ROUTE_MYPAGE_RECENTLY_VIEWED
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
+// import com.trever.android.ui.navigation.ROUTE_SEARCH // 이전 경로, 현재 "main"으로 대체
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.Grey_100
 import kotlinx.coroutines.launch
@@ -147,14 +148,17 @@ fun MyPageScreen(
     }
 
     Scaffold(
-        topBar = { MyPageTopAppBar() },
-        containerColor = Color(0xFFF4F4F4)
+        topBar = { MyPageTopAppBar(navController = navController) },
+        containerColor = Color(0xFFF4F4F4),
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding(),
+                bottom = 0.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
@@ -214,16 +218,22 @@ fun MyPageScreen(
 }
 
 @Composable
-fun MyPageTopAppBar() {
+fun MyPageTopAppBar(navController: NavController) { // NavController 파라미터 추가
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFF4F4F4))
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .height(56.dp),
+            .height(64.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("마이페이지", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Image(
+            painter = painterResource(id = R.drawable.ic_trever_logo), // drawable에 ic_trever_logo.png 추가 필요
+            contentDescription = "Trever 로고",
+            modifier = Modifier
+                .size(120.dp)  // 로고 높이는 36.dp로 유지
+                .clickable { navController.navigate("main") } // "main" 경로로 이동 (BuyListScreen이 포함된 화면)
+        )
     }
 }
 
@@ -246,22 +256,10 @@ fun ProfileSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween // 이 부분을 추가
         ) {
-            Image(
-                painter = if (profileImageUrl != null) {
-                    rememberAsyncImagePainter(model = profileImageUrl)
-                } else {
-                    painterResource(id = R.drawable.profile_placeholder)
-                },
-                contentDescription = "프로필 사진",
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(Grey_100),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(16.dp))
+            // 텍스트를 왼쪽으로 이동
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = nickname,
@@ -275,6 +273,24 @@ fun ProfileSection(
                     color = Color.Gray
                 )
             }
+
+            // 이미지와 텍스트 사이의 간격 제거 (SpaceBetween이 자동으로 간격을 조절)
+            // 기존의 Spacer(modifier = Modifier.width(16.dp))는 삭제
+
+            // 이미지를 오른쪽으로 이동
+            Image(
+                painter = if (profileImageUrl != null) {
+                    rememberAsyncImagePainter(model = profileImageUrl)
+                } else {
+                    painterResource(id = R.drawable.profile_placeholder)
+                },
+                contentDescription = "프로필 사진",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Grey_100),
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }
@@ -401,7 +417,8 @@ fun MyPageMenuListItem(title: String, isLogout: Boolean = false, onClick: () -> 
 @Composable
 fun MyPageScreenPreview() {
     AppTheme {
-        val navController = NavController(LocalContext.current)
-        MyPageScreen(navController = navController)
+//         Preview에서는 NavController를 직접 생성하거나 mock 처리 필요
+//         실제 앱 실행 시에는 NavHost에서 자동으로 주입됨
+//         MyPageScreen(navController = rememberNavController())
     }
 }

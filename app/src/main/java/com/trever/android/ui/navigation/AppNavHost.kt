@@ -21,6 +21,8 @@ import com.trever.android.ui.buy.BuyDetailScreen
 import com.trever.android.ui.buy.ContractScreen
 //import com.trever.android.ui.main.MainScreen
 import com.trever.android.ui.myPage.screens.MyAccountScreen
+//import com.trever.android.ui.main.MainScreen
+//import com.trever.android.ui.myPage.screens.MyAccountScreen
 import com.trever.android.ui.myPage.screens.PrivacyPolicyScreen
 import com.trever.android.ui.myPage.screens.RecentlyViewedCarsScreen
 import com.trever.android.ui.myPage.screens.TermsScreen

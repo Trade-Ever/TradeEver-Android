@@ -25,10 +25,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
+
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AppOutlinedButton
 import com.trever.android.ui.components.ZoomImage
 import com.trever.android.R
+
+import com.trever.android.ui.components.ZoomImage
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -153,6 +157,7 @@ fun ContractBottomSheet(
 
                     // 버튼들
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
                         AppFilledButton(
                             onClick = {
                                 vm.downloadToDownloads { ok ->
@@ -164,18 +169,22 @@ fun ContractBottomSheet(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
+
                             text = "PDF 다운로드",
                             leadingIconRes = R.drawable.filearrowdown// 아이콘 추가
                         )
                         AppOutlinedButton(
+
                             onClick = {
                                 vm.confirm(contractId) { ok ->
                                     if (ok) onDismissRequest()
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
+
                             text = "확인"
                         )
+
                     }
                 }
             }
@@ -194,6 +203,7 @@ private fun SummaryCard(summary: ContractSummaryUi) {
             .background(Color(0xFFF7F8FA))
             .padding(vertical = 12.dp)
     ) {
+
         SummaryRow("계약서 ID", "${summary.contractId}")
         SummaryRow("거래 ID", "${summary.transactionId}")
         SummaryRow("구매자", summary.buyerName)
