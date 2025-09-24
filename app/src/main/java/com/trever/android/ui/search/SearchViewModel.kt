@@ -88,6 +88,7 @@ class SearchViewModel(
 
     private fun triggerSearchIfReady() {
         val request = VehicleSearchRequest(
+
             keyword = searchText.value.trim().takeIf { it.isNotEmpty() }, // 만약 StateFlow로 관리 중이라면
             manufacturer = selectedManufacturer.value?.takeIf { it.isNotEmpty() },
             carName = selectedCarName.value?.takeIf { it.isNotEmpty() },

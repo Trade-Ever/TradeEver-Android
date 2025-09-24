@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -23,6 +24,11 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.time.temporal.ChronoField
+
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+
 import java.util.Locale
 
 data class ContractSummaryUi(
@@ -80,6 +86,7 @@ class ContractSheetViewModel(app: Application) : AndroidViewModel(app) {
         raw
     }
 
+
     fun load(contractId: Long) = viewModelScope.launch {
         try {
             _state.value = ContractSheetState.Loading
@@ -89,7 +96,9 @@ class ContractSheetViewModel(app: Application) : AndroidViewModel(app) {
 
             // 1) 요약 변환
 
+
             val signedAtText = formatSignedAt(d.signedAt)
+
             val summary = ContractSummaryUi(
                 contractId = d.contractId,
                 transactionId = d.transactionId,
