@@ -8,6 +8,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -90,6 +91,9 @@ interface VehicleApi {
 
     @GET("api/v1/contracts/{id}")
     suspend fun getContract(@Path("id") id: Long): ApiResponse<ContractDetail>
+
+
+
 }
 
 

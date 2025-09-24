@@ -40,7 +40,7 @@ class VehicleRepository(
             throw IllegalStateException("계약서 PDF 응답이 없습니다.")
         }
         val body = response.body()!!
-        val file = File(context!!.cacheDir, "contract_$contractId.pdf")
+        val file = File(context!!.cacheDir, "자동차매매계약서_$contractId.pdf")
         body.byteStream().use { input ->
             file.outputStream().use { output ->
                 input.copyTo(output)
