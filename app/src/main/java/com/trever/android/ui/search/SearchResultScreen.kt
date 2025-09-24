@@ -73,50 +73,30 @@ fun SearchResultScreen(
                     containerColor = cs.backgroundColor
                 ),
                 title = { Text("검색결과") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+                actions = {
+                    TextButton(onClick = onBack) {
+                        Text("나가기", color = Color(0xFF6C4DF4))
                     }
                 }
             )
         }
     ) { innerPadding ->
-        Column(Modifier.padding(innerPadding)) {
+        Column(Modifier.padding(innerPadding)
+        ) {
             // 필터/정렬 영역
             Row(
                 Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+
             ) {
+
+
                 OutlinedButton(
-                    onClick = { showBottomSheet = "price" },
-                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (priceRange != null) cs.primary else Color.Black
-                    )
-                ) {
-                    Text(
-                        if (priceRange == null) "가격"
-                        else "${priceRange.start.toInt() * 100}만원 ~ ${priceRange.endInclusive.toInt() * 100}만원",
-                        color = if (priceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
-                    )
-                }
-                OutlinedButton(
-                    onClick = { showBottomSheet = "distance" },
-                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (distanceRange != null) cs.primary else Color.Black
-                    )
-                ) {
-                    Text(
-                        if (distanceRange == null) "주행거리"
-                        else "${String.format("%,d", distanceRange.start.toInt())}km ~ ${String.format("%,d", distanceRange.endInclusive.toInt())}km",
-                        color = if (distanceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
-                    )
-                }
-                OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
                     onClick = { showBottomSheet = "year" },
                     border = BorderStroke(1.dp, if (yearRange != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -130,6 +110,8 @@ fun SearchResultScreen(
                     )
                 }
                 OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
                     onClick = { showBottomSheet = "type" },
                     border = BorderStroke(1.dp, if (selectedType != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -139,6 +121,36 @@ fun SearchResultScreen(
                     Text(
                         selectedType ?: "차종",
                         color = if (selectedType != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
+                    onClick = { showBottomSheet = "distance" },
+                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (distanceRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (distanceRange == null) "주행거리"
+                        else "${String.format("%,d", distanceRange.start.toInt())}km ~ ${String.format("%,d", distanceRange.endInclusive.toInt())}km",
+                        color = if (distanceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
+                    onClick = { showBottomSheet = "price" },
+                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (priceRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (priceRange == null) "가격"
+                        else "${priceRange.start.toInt() * 100}만원 ~ ${priceRange.endInclusive.toInt() * 100}만원",
+                        color = if (priceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
                     )
                 }
             }

@@ -62,6 +62,7 @@ import com.trever.android.R
 import com.trever.android.data.remote.VehicleSearchRequest
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AppOutlinedButton
+import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
 import kotlin.collections.get
@@ -125,6 +126,7 @@ fun SearchScreen(
         viewModel.selectedManufacturer.value = null
         viewModel.selectedCarName.value = null
         viewModel.selectedCarModel.value = null
+        viewModel.searchText.value = ""
         onBack()
     }
 
@@ -173,6 +175,10 @@ fun SearchScreen(
                         viewModel.distanceRange.value = null
                         viewModel.priceRange.value = null
                         viewModel.selectedType.value = null
+                        viewModel.selectedManufacturer.value = null
+                        viewModel.selectedCarName.value = null
+                        viewModel.selectedCarModel.value = null
+                        viewModel.searchText.value = ""
                         onBack()
                     }) {
                         Text("취소", color = Color(0xFF6C4DF4))
@@ -208,7 +214,7 @@ fun SearchScreen(
                 AppFilledButton(
                     onClick = {
                         val request = VehicleSearchRequest(
-                            keyword = searchText,
+                            keyword = searchText.trim().takeIf { it.isNotEmpty() },
                             manufacturer = selectedManufacturer?.takeIf { it.isNotEmpty() },
                             carName = selectedCarName?.takeIf { it.isNotEmpty() },
                             carModel = selectedCarModel?.takeIf { it.isNotEmpty() },
@@ -216,8 +222,8 @@ fun SearchScreen(
                             yearEnd = yearRange?.endInclusive?.toInt(),
                             mileageStart = distanceRange?.start?.toInt(),
                             mileageEnd = distanceRange?.endInclusive?.toInt(),
-                            priceStart = priceRange?.start?.toInt()?.times(100),
-                            priceEnd = priceRange?.endInclusive?.toInt()?.times(100),
+                            priceStart = priceRange?.start?.toInt()?.times(1000000),
+                            priceEnd = priceRange?.endInclusive?.toInt()?.times(1000000),
                             vehicleType = selectedType?.let { carTypeMapReverse[it] },
                             page = 0,
                             size = 10
@@ -271,13 +277,19 @@ fun SearchScreen(
                 )
             }
             Divider(
-                color = cs.G_200,
+                color = cs.G_100,
                 thickness = 1.dp,
-                modifier = Modifier.fillMaxWidth() // Divider에는 padding 없음
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // Divider에는 padding 없음
             )
 
         }
+
         Spacer(Modifier.height(30.dp))
+        Divider(
+            color = cs.G_200,
+            thickness = 1.dp,
+            modifier = Modifier.fillMaxWidth() // Divider에는 padding 없음
+        )
         // 필터 목록
         FilterRow(
             "제조사 · 모델",
@@ -285,9 +297,14 @@ fun SearchScreen(
                 .filter { it.isNotEmpty() }
                 .joinToString(" · "),
         ) { onFilterClick("model") }
+
         FilterRow("연식", yearRange?.let { "${it.start.toInt()}년 ~ ${it.endInclusive.toInt()}년" } ?: "")  {
             showBottomSheet = "year"
         }
+        FilterRow(
+            "차종",
+            selectedType ?: ""
+        ) { showBottomSheet = "type" }
         FilterRow("주행거리", distanceRange?.let { "${it.start.toInt()}km ~ ${it.endInclusive.toInt()}km" } ?: "") {
             showBottomSheet = "distance"
         }
@@ -310,10 +327,7 @@ fun SearchScreen(
 
 
         // FilterRow에서 선택된 차종 표시
-        FilterRow(
-            "차종",
-            selectedType ?: ""
-        ) { showBottomSheet = "type" }
+
 
 // 바텀시트에서 선택 완료 시 상태 갱신
         if (showBottomSheet == "type") {
@@ -373,6 +387,7 @@ fun SearchScreen(
 @Composable
 private fun FilterRow(title: String, value: String, onClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -392,7 +407,7 @@ private fun FilterRow(title: String, value: String, onClick: () -> Unit) {
         )
 
     }
-        Divider(color = MaterialTheme.colorScheme.G_200, thickness = 1.dp, modifier = Modifier.fillMaxWidth())}
+        Divider(color = MaterialTheme.colorScheme.G_100, thickness = 1.dp, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp))}
 }
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)

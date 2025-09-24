@@ -1,7 +1,9 @@
 package com.trever.android.ui.theme
 import androidx.compose.ui.graphics.Color
 
-
+// Fix Color
+val White = Color(0xFFFFFFFF)
+val Black = Color(0xFF000000)
 
 // Light Theme
 val Grey_100 = Color(0xFFE9EAEC)
@@ -17,6 +19,8 @@ val Grey_400_Dark = Color(0xFFD9D9D9) // 가장 밝은 텍스트쪽 톤
 
 val Red_1 = Color(0xFFEA3323)
 val Red_2 = Color(0xFFFF6C6C)
+
+val BackgroundWhiteColor = Color(0xFFF4F4F4)
 
 
 val primaryLight = Color(0xFF6528F7)

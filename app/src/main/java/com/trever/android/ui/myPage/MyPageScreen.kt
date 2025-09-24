@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +39,7 @@ import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
 // import com.trever.android.ui.navigation.ROUTE_SEARCH // 이전 경로, 현재 "main"으로 대체
 import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Grey_100
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -154,6 +156,8 @@ fun MyPageScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
+                .statusBarsPadding()
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(
                 top = paddingValues.calculateTopPadding(),

@@ -1,6 +1,8 @@
 package com.trever.android.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -26,6 +28,7 @@ import com.trever.android.ui.myPage.MyPageScreen // MyPageScreen import 확인
 import com.trever.android.ui.sellcar.SellEntryScreen
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.bottomBarUnselected
+import com.trever.android.ui.theme.cardBackgroundColor
 
 
 
@@ -47,7 +50,7 @@ fun MainScreen(
     }
 
     Scaffold(
-
+        contentWindowInsets = WindowInsets(0),
         bottomBar = { TreverBottomBar(innerNav) }
     ) { padding ->
         NavHost(
@@ -99,7 +102,7 @@ private fun TreverBottomBar(navController: NavHostController) {
     val backStack = navController.currentBackStackEntryAsState()
     val currentRoute = backStack.value?.destination?.route
 
-    NavigationBar(containerColor = cs.backgroundColor) {
+    NavigationBar(containerColor = cs.cardBackgroundColor) {
         MainTabs.forEach { tab ->
             val selected = currentRoute == tab.route
             NavigationBarItem(

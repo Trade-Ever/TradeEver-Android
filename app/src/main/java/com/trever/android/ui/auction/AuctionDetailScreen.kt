@@ -2,7 +2,6 @@ package com.trever.android.ui.auction
 
 
 import android.util.Log
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,23 +10,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -45,23 +39,18 @@ import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.G_300
 import com.trever.android.ui.theme.Green
 import com.trever.android.ui.theme.Red_1
-import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import kotlinx.coroutines.launch
 
 
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Date
+import java.text.NumberFormat
 import java.util.Locale
-import java.util.TimeZone
 import java.util.concurrent.TimeUnit
-import kotlin.compareTo
-import kotlin.div
-import kotlin.rem
-import kotlin.text.format
 
 // 배경 확장 컬러 사용 (이미 네가 정의한 확장)
 
@@ -599,8 +588,8 @@ private fun formatKoreanWon(amount: Long): String {
     val 만 = (amount % 100_000_000) / 10_000
 
     return buildString {
-        if (억 > 0) append("${억}억 ")
-        if (만 > 0) append("${만}만원")
+        if (억 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(억)}억 ")
+        if (만 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(만)}만원")
         if (억 == 0L && 만 == 0L) append("0원")
     }.trim()
 }
@@ -662,25 +651,25 @@ private fun BottomActionBar(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 아바타
-                if (!topBidderAvatarUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = topBidderAvatarUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(28.dp).clip(CircleShape)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.size(28.dp).clip(CircleShape).background(Grey_100),
-                        contentAlignment = Alignment.Center
-                    ) { Text((topBidderName ?: "-").take(1)) }
-                }
+//                // 아바타
+//                if (!topBidderAvatarUrl.isNullOrBlank()) {
+//                    AsyncImage(
+//                        model = topBidderAvatarUrl,
+//                        contentDescription = null,
+//                        contentScale = ContentScale.Crop,
+//                        modifier = Modifier.size(28.dp).clip(CircleShape)
+//                    )
+//                } else {
+//                    Box(
+//                        modifier = Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.G_100),
+//                        contentAlignment = Alignment.Center
+//                    ) { Text((topBidderName ?: "-").take(1)) }
+//                }
 
-                Spacer(Modifier.width(10.dp))
+//                Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("상위 입찰자", style = MaterialTheme.typography.labelSmall, color = cs.onSurface.copy(0.6f))
-                    Text(topBidderName ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text("상위 입찰자", style = MaterialTheme.typography.labelSmall, color = cs.G_300)
+                    Text(topBidderName ?: "-", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = Color.Black)
                 }
 
                 Icon(
@@ -715,7 +704,7 @@ private fun BottomActionBar(
                         color = cs.Green
                     )
                     Spacer(Modifier.height(4.dp))
-                    Text(startPriceText, color = Grey_400, style = MaterialTheme.typography.labelLarge)
+                    Text(startPriceText, color = cs.textSecondaryColor, style = MaterialTheme.typography.labelLarge)
                 }
 
                 AppFilledButton(
