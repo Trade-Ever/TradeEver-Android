@@ -19,6 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -87,7 +90,7 @@ class AuctionRepository(
 
     // 이 함수는 FirebaseAuction의 endAt을 처리하는 데 직접 사용되지 않을 수 있지만,
     // 다른 곳에서 문자열 날짜 파싱이 필요할 수 있으므로 유지합니다.
-    private fun parseFirebaseDateToMillis(dateStr: String?): Long {
+    public fun parseFirebaseDateToMillis(dateStr: String?): Long {
         if (dateStr.isNullOrBlank()) return 0L
         val patterns = listOf(
             "yyyy-MM-dd'T'HH:mm:ss",
@@ -118,24 +121,54 @@ class AuctionRepository(
         })
     }
 
+//    suspend fun placeBid(auctionId: Int, bidPrice: Long): Flow<Result<BidData>> = flow {
+//        try {
+//            Log.d("AuctionRepository", "placeBid 호출됨. auctionId: $auctionId, bidPrice: $bidPrice")
+//            val request = BidRequest(auctionId, bidPrice)
+//            val response = auctionApi.placeBid(request)
+//
+//            if (response.success) {
+//                response.data?.let {
+//                    emit(Result.success(it))
+//                } ?: emit(Result.failure(Exception("입찰 데이터가 null입니다")))
+//            } else {
+//                Log.e("AuctionRepository", "입찰 실패 response: $response")
+//                emit(Result.failure(Exception(response.message)))
+//            }
+//        } catch (e: Exception) {
+//            Log.e("AuctionRepository", "입찰 요청 중 예외 발생", e)
+//            emit(Result.failure(e))
+//        }
+//    }
+
     suspend fun placeBid(auctionId: Int, bidPrice: Long): Flow<Result<BidData>> = flow {
         try {
-            Log.d("AuctionRepository", "placeBid 호출됨. auctionId: $auctionId, bidPrice: $bidPrice")
             val request = BidRequest(auctionId, bidPrice)
             val response = auctionApi.placeBid(request)
-
             if (response.success) {
                 response.data?.let {
                     emit(Result.success(it))
                 } ?: emit(Result.failure(Exception("입찰 데이터가 null입니다")))
             } else {
-                Log.e("AuctionRepository", "입찰 실패 response: $response")
                 emit(Result.failure(Exception(response.message)))
             }
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val message = try {
+                val json = Json.parseToJsonElement(errorBody ?: "")
+                json.jsonObject["message"]?.jsonPrimitive?.content ?: "알 수 없는 오류"
+            } catch (_: Exception) {
+                errorBody ?: e.message()
+            }
+            emit(Result.failure(Exception(message)))
         } catch (e: Exception) {
-            Log.e("AuctionRepository", "입찰 요청 중 예외 발생", e)
             emit(Result.failure(e))
         }
+    }
+
+    suspend fun getFirebaseAuctionsByIds(ids: List<String>): Map<String, FirebaseAuction> {
+        val all = getFirebaseAuctions()
+        return all.filterKeys { it in ids }
     }
 
     suspend fun getBidHistory(auctionId: String): List<BidResponse> = suspendCoroutine { continuation ->

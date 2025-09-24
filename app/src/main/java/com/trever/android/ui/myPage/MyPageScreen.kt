@@ -41,6 +41,7 @@ import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Grey_100
+import com.trever.android.ui.theme.Grey_100
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
