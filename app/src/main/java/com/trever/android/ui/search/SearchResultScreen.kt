@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -21,6 +23,7 @@ import com.trever.android.data.remote.toAuctionCarForDisplay
 import com.trever.android.data.remote.toSearchCarItem
 import com.trever.android.ui.components.ListingItem
 import com.trever.android.domain.model.AuctionCar
+import com.trever.android.domain.model.FirebaseAuction
 import com.trever.android.domain.model.SearchCarItem
 import com.trever.android.domain.model.toAuctionCar
 import com.trever.android.domain.model.toAuctionCarForDisplay
@@ -28,6 +31,9 @@ import com.trever.android.ui.search.CarTypeSelectBottomSheet
 import com.trever.android.ui.search.SearchViewModel
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
+
+import kotlin.text.get
+import kotlin.toString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,11 +58,14 @@ fun SearchResultScreen(
 ) {
     val cs = MaterialTheme.colorScheme
     var showBottomSheet by remember { mutableStateOf<String?>(null) }
-    val cars = viewModel.searchResult.collectAsState().value?.vehicles?.map { it.toSearchCarItem() } ?: emptyList()
+//    val cars = viewModel.searchResult.collectAsState().value?.vehicles?.map { it.toSearchCarItem() } ?: emptyList()
+////    val cars = viewModel.searchCarItems.collectAsState().value
     val yearRange = viewModel.yearRange.collectAsState().value
     val distanceRange = viewModel.distanceRange.collectAsState().value
     val priceRange = viewModel.priceRange.collectAsState().value
     val selectedType = viewModel.selectedType.collectAsState().value
+
+//    val cars = viewModel.searchCarItems.collectAsState().value
 
     fun formatDistance(range: ClosedFloatingPointRange<Float>?): String =
         if (range == null) "주행거리"
@@ -65,6 +74,12 @@ fun SearchResultScreen(
     fun formatRange(range: ClosedFloatingPointRange<Float>?, unit: String): String {
         return if (range == null) unit else "${range.start.toInt()}$unit ~ ${range.endInclusive.toInt()}$unit"
     }
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.setupFirebaseListenerForSearchResults()
+    }
+
     Scaffold(
         containerColor = cs.backgroundColor,
         topBar = {
@@ -155,13 +170,33 @@ fun SearchResultScreen(
                 }
             }
 
+            if (isLoading && cars.isNotEmpty()) {   // ✅ 목록 있을 때만 로딩 오버레이
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+
             // 차량 리스트
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(cars) { car ->
+                if (cars.isEmpty()) {
+                    item {
+                        // 빈 화면: 아무것도 안 보이게 하려면 이 부분을 비워두세요
+                        Spacer(modifier = Modifier.height(1.dp))
+                        // 또는 아래처럼 메시지 추가 가능
+                        // Box(
+                        //     modifier = Modifier.fillMaxSize(),
+                        //     contentAlignment = Alignment.Center
+                        // ) {
+                        //     Text("검색 결과가 없습니다.")
+                        // }
+                    }
+                }
+                 else {itemsIndexed(cars) { index, car ->
+
                     when (car) {
                         is SearchCarItem.Auction -> ListingItem(
                             car = car.toAuctionCar(),
@@ -182,9 +217,24 @@ fun SearchResultScreen(
                             showAuctionMeta = false
                         )
                     }
+
                     Spacer(Modifier.height(12.dp))
+                }}
+
+                if (viewModel.hasMorePages && cars.isNotEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                            LaunchedEffect(Unit) {
+                                viewModel.loadNextPage()
+                            }
+                        }
+                    }
                 }
-            }
+            }}
             when (showBottomSheet) {
                 "price" -> RangeSelectBottomSheet(
                     title = "가격을 선택해 주세요",

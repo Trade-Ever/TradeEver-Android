@@ -29,7 +29,7 @@ data class VehicleDetail(
     val sellerName: String?,
     val sellerLocationCity: String?,
     val sellerProfileImageUrl: String?,
-    val vehicleTypeName: String?
+    val vehicleTypeName: String?,
     val liked: Boolean,
     val favoriteCount: Int,
 )

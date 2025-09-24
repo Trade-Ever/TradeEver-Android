@@ -14,7 +14,7 @@ data class BaseResponse<T>(
     val status: Int,
     val success: Boolean,
     val message: String,
-    val data: T?
+    val data: T? = null
 )
 
 // 입찰 데이터 클래스

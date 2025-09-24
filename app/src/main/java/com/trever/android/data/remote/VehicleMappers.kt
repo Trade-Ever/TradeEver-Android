@@ -154,7 +154,7 @@ fun VehicleDetailResponse.toVehicleDetail(): VehicleDetail {
         sellerProfileImageUrl = sellerProfileImageUrl,
         sellerPhone = sellerPhone,
         vehicleStatus = vehicleStatus,
-        vehicleTypeName = vehicleTypeName
+        vehicleTypeName = vehicleTypeName,
         liked = favorite ?: false,
         favoriteCount = favoriteCount ?: 0
     )

@@ -136,6 +136,7 @@ fun SearchScreen(
     }
 
     Scaffold(
+
         topBar = {
             TopAppBar(
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
@@ -181,17 +182,19 @@ fun SearchScreen(
                         viewModel.searchText.value = ""
                         onBack()
                     }) {
-                        Text("취소", color = Color(0xFF6C4DF4))
+                        Text("취소", color = cs.primary)
                     }
                 },
 
             )
         },
-        containerColor = Color.White,
+        containerColor = cs.backgroundColor,
         bottomBar = {
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(cs.backgroundColor)
                     .padding(horizontal = 16.dp, vertical = 24.dp)
                     .navigationBarsPadding()
                     .imePadding(), // 키보드 대응
@@ -207,6 +210,7 @@ fun SearchScreen(
                         viewModel.selectedManufacturer.value = null
                         viewModel.selectedCarName.value = null
                         viewModel.selectedCarModel.value = null
+                        viewModel.searchText.value = ""
                     // 기타 상태도 필요시 null로
                 },
                     modifier = Modifier.weight(1f)
@@ -242,8 +246,9 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+
             .padding(innerPadding)
-            .background(Color.White)
+            .background(cs.backgroundColor)
 
     ) {
 
@@ -257,7 +262,8 @@ fun SearchScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp,vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .clickable { viewModel.searchText.value = keyword }, // 클릭 시 입력란에 반영
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -269,7 +275,7 @@ fun SearchScreen(
                 Text(keyword, color = cs.G_200, modifier = Modifier.weight(1f))
                 Icon(
                     tint = cs.G_200,
-                    painter = painterResource(id = R.drawable.close), // X 아이콘
+                    painter = painterResource(id = R.drawable.close),
                     contentDescription = null,
                     modifier = Modifier
                         .size(20.dp)
@@ -279,9 +285,10 @@ fun SearchScreen(
             Divider(
                 color = cs.G_100,
                 thickness = 1.dp,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // Divider에는 padding 없음
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             )
-
         }
 
         Spacer(Modifier.height(30.dp))
