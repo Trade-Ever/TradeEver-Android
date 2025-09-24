@@ -12,5 +12,7 @@ data class RecentlyViewedCar(
     val priceWon: Long,
     val isAuction: Boolean,
     val manufacturer: String?,
-    val model: String?
+    val model: String?,
+    val mainOptions: List<String>? = null,
+    val isFavorite: Boolean? = false // <--- 찜 여부 필드 추가
 )

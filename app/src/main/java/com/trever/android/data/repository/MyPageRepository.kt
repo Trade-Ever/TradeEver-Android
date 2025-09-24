@@ -22,7 +22,7 @@ class MyPageRepository(private val myPageApi: MyPageApi) {
         try {
             val response = myPageApi.getRecentlyViewedCars()
             if (response.success) {
-                val domainModels = response.data.map { it.toDomainModel() }
+                val domainModels = response.data.vehicles.map { it.toDomainModel() } // <--- 수정됨
                 Result.success(domainModels)
             } else {
                 Result.failure(Exception(response.message))
@@ -61,7 +61,8 @@ class MyPageRepository(private val myPageApi: MyPageApi) {
  * UI에서 사용하는 도메인 모델인 [RecentlyViewedCar]로 변환합니다.
  */
 private fun RecentlyViewedCarDto.toDomainModel(): RecentlyViewedCar {
-    return RecentlyViewedCar(
+    Log.d("MyPageRepository", "Mapping DTO: id=${this.id}, carName=${this.carName}, mainOptions DTO=${this.mainOptions}")
+    val recentlyViewedCar = RecentlyViewedCar(
         id = this.id.toString(),
         title = this.carName ?: "제목 없음",
         year = this.year_value ?: 0,
@@ -70,6 +71,10 @@ private fun RecentlyViewedCarDto.toDomainModel(): RecentlyViewedCar {
         priceWon = this.price ?: 0L,
         isAuction = this.isAuction == "Y",
         manufacturer = this.manufacturer,
-        model = this.model
+        model = this.model,
+        mainOptions = this.mainOptions, // DTO의 mainOptions를 그대로 전달
+        isFavorite = this.isFavorite
     )
+    Log.d("MyPageRepository", "Created Domain: id=${recentlyViewedCar.id}, mainOptions Domain=${recentlyViewedCar.mainOptions}")
+    return recentlyViewedCar
 }
