@@ -52,6 +52,10 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -100,9 +104,20 @@ fun BuyListScreen(
     var searchBarH by remember { mutableStateOf(0) }
     val searchBarHdp = with(LocalDensity.current) { searchBarH.toDp() }
 
+    Scaffold(
+        // MainScreen에서 contentWindowInsets=WindowInsets(0) 이라서
+        // topBar가 상태바 아래로 깔리지 않도록 여기서 처리
+        topBar = {
+            BuyTopBar(
+                onSearchClick = onSearchClick
+            )
+        },
+        containerColor = cs.backgroundColor
+    ) { padding ->
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(padding)
             .background(cs.backgroundColor)
     ) {
         // 목록 부분
@@ -186,17 +201,52 @@ fun BuyListScreen(
         }
 
         // 떠있는 "검색으로 이동" 버튼 (가짜 검색바)
-        FloatingSearchButton(
-            text = "원하는 차량을 검색해보세요",
-            onClick = onSearchClick,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-                .zIndex(1f)
-                .onSizeChanged { searchBarH = it.height }
-                .statusBarsPadding()
-        )
-    }
+//        FloatingSearchButton(
+//            text = "원하는 차량을 검색해보세요",
+//            onClick = onSearchClick,
+//            modifier = Modifier
+//                .align(Alignment.TopCenter)
+//                .padding(horizontal = 20.dp, vertical = 16.dp)
+//                .zIndex(1f)
+//                .onSizeChanged { searchBarH = it.height }
+//                .statusBarsPadding()
+//        )
+    }}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BuyTopBar(
+    onSearchClick: () -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+    TopAppBar(
+        title = {
+            // 필요하면 로고 옆에 앱 이름 텍스트 추가 가능
+            Icon(
+                painter = painterResource(id = R.drawable.trever_purple), // ← 로고 리소스명으로 교체
+                contentDescription = "Trever",
+                tint = Color.Unspecified, // 원본 컬러 유지
+                modifier = Modifier.size(100.dp)
+            )
+        },
+        navigationIcon = {}, // 왼쪽 공간을 title에서 사용 중
+        actions = {
+            IconButton(onClick = onSearchClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.search), // 또는 Icons.Outlined.Search
+                    contentDescription = "검색",
+                    tint = cs.onSurfaceVariant
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = cs.backgroundColor,
+            titleContentColor = cs.onBackground
+        ),
+        // MainScreen이 WindowInsets(0) 이므로 여기서 상태바 인셋 적용
+        windowInsets = WindowInsets.statusBars
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

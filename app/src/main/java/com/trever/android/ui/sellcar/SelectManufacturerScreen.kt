@@ -37,7 +37,7 @@ import com.trever.android.ui.theme.textPrimaryColor // 이전 스타일로 복�
 @Composable
 @DrawableRes
 // @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) // 이 함수 자체에는 필요 없음
-private fun getManufacturerLogoResId(manufacturerName: String): Int {
+fun getManufacturerLogoResId(manufacturerName: String): Int {
     // ViewModel에서 전달받는 manufacturerName (한글 이름)을 기준으로 매핑
     return when (manufacturerName) {
         // --- 국내차 ---

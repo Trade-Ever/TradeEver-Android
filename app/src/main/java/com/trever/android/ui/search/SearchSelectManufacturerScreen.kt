@@ -1,5 +1,6 @@
 package com.trever.android.ui.search
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,10 +13,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.common.collect.Multimaps.index
+import com.trever.android.ui.sellcar.getManufacturerLogoResId
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
 import kotlin.text.category
@@ -94,6 +98,15 @@ fun SearchSelectManufacturerScreen(
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            val logoResId = getManufacturerLogoResId(manufacturer.manufacturer)
+                            Image(
+                                painter = painterResource(id = logoResId),
+                                contentDescription = "${manufacturer.manufacturer} 로고",
+                                modifier = Modifier.size(36.dp),
+                                contentScale = ContentScale.Fit
+                            )
+
+                            Spacer(Modifier.width(16.dp))
                             Text(
                                 text = manufacturer.manufacturer,
                                 fontSize = 16.sp,
