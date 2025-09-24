@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 //import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -100,7 +103,7 @@ fun SellCarPriceScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -109,7 +112,7 @@ fun SellCarPriceScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         }
     ) { paddingValues ->
@@ -143,8 +146,8 @@ fun SellCarPriceScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) lightPurpleColor else Color.White,
-                                contentColor = if (isSelected) Color.White else Color.Black
+                                containerColor = if (isSelected) lightPurpleColor else MaterialTheme.colorScheme.cardBackgroundColor,
+                                contentColor = if (isSelected) MaterialTheme.colorScheme.textPrimaryColor else MaterialTheme.colorScheme.textPrimaryColor
                             ),
                             border = BorderStroke(1.dp, if(isSelected) lightPurpleColor else Color.LightGray)
                         ) {
@@ -203,8 +206,8 @@ fun SellCarPriceScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
                                 unfocusedBorderColor = if(price.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -225,7 +228,7 @@ fun SellCarPriceScreen(
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.backgroundColor,
                         contentColor = Color.Black
                     ),
                     border = BorderStroke(1.dp, Color.LightGray),
@@ -264,7 +267,7 @@ fun SellCarPriceScreen(
                     },
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text("등록하기", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("등록하기", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
             }
             // ▲▲▲ 이전/등록하기 버튼으로 수정 ▲▲▲
@@ -323,7 +326,7 @@ private fun DateBox(dateMillis: Long?, onClick: () -> Unit, modifier: Modifier =
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, if (isComplete) purpleColor else Color.LightGray),
-        color = Color.White
+        color = MaterialTheme.colorScheme.textPrimaryColor
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

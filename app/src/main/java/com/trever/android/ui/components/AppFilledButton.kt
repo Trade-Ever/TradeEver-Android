@@ -54,7 +54,8 @@ fun AppFilledButton(
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onPrimary
         )
         if (trailingIconRes != null) {
             Spacer(Modifier.width(8.dp))
