@@ -125,6 +125,7 @@ fun SearchScreen(
         viewModel.selectedManufacturer.value = null
         viewModel.selectedCarName.value = null
         viewModel.selectedCarModel.value = null
+        viewModel.searchText.value = ""
         onBack()
     }
 
@@ -173,6 +174,10 @@ fun SearchScreen(
                         viewModel.distanceRange.value = null
                         viewModel.priceRange.value = null
                         viewModel.selectedType.value = null
+                        viewModel.selectedManufacturer.value = null
+                        viewModel.selectedCarName.value = null
+                        viewModel.selectedCarModel.value = null
+                        viewModel.searchText.value = ""
                         onBack()
                     }) {
                         Text("취소", color = Color(0xFF6C4DF4))
@@ -208,7 +213,7 @@ fun SearchScreen(
                 AppFilledButton(
                     onClick = {
                         val request = VehicleSearchRequest(
-                            keyword = searchText,
+                            keyword = searchText.trim().takeIf { it.isNotEmpty() },
                             manufacturer = selectedManufacturer?.takeIf { it.isNotEmpty() },
                             carName = selectedCarName?.takeIf { it.isNotEmpty() },
                             carModel = selectedCarModel?.takeIf { it.isNotEmpty() },
@@ -277,6 +282,7 @@ fun SearchScreen(
             )
 
         }
+
         Spacer(Modifier.height(30.dp))
         // 필터 목록
         FilterRow(
