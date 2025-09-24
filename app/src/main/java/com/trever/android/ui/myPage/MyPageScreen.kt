@@ -216,7 +216,8 @@ fun MyPageScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 0.dp),
             contentPadding = PaddingValues(
                 bottom = 0.dp
             ),
