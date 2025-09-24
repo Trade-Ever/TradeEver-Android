@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -40,16 +42,16 @@ fun SelectManufacturerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("제조사 선택", fontWeight = FontWeight.Bold) },
+                title = { Text("제조사 선택", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.textPrimaryColor) },
                 navigationIcon = {
                     IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         },
-        containerColor = Color.White // 전체 배경 흰색으로 설정
+        containerColor = MaterialTheme.colorScheme.backgroundColor // 전체 배경 흰색으로 설정
     ) { paddingValues ->
         if (uiState.isLoadingManufacturers) {
             Box(
@@ -66,7 +68,8 @@ fun SelectManufacturerScreen(
                 Text(
                     "제조사 정보를 불러올 수 없습니다.\\n네트워크 연결을 확인 후 다시 시도해주세요.",
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    lineHeight = 22.sp,
+                    color = MaterialTheme.colorScheme.textPrimaryColor
                 )
             }
         } else {
@@ -81,9 +84,10 @@ fun SelectManufacturerScreen(
                             text = category,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.textPrimaryColor,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color.White) // 헤더 배경도 흰색으로 명시
+                                .background(MaterialTheme.colorScheme.backgroundColor) // 헤더 배경도 다크모드 대응
                                 .padding(horizontal = 16.dp, vertical = 16.dp)
                         )
                     }
@@ -126,7 +130,7 @@ fun ManufacturerRow(manufacturerName: String, onClick: () -> Unit) {
         Text(
             text = manufacturerName,
             fontSize = 16.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.textPrimaryColor
         )
     }
 }

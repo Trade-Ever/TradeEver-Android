@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,9 +19,16 @@ fun ImagePickerComponent(
     modifier: Modifier = Modifier,
     onImageSelected: () -> Unit // 실제로는 선택된 이미지 URI 등을 전달해야 함
 ) {
-    Button(onClick = onImageSelected, modifier = modifier) {
+    Button(
+        onClick = onImageSelected, 
+        modifier = modifier,
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
+    ) {
         Icon(Icons.Filled.AddAPhoto, contentDescription = "Select Image")
-        Text(text = "이미지 선택")
+        Text(text = "이미지 선택", color = MaterialTheme.colorScheme.onPrimary)
     }
 }
 

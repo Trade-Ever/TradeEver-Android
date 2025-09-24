@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +41,8 @@ fun SelectModelNameScreen(
                 title = {
                     Text(
                         text = if (selectedCarName.isNotEmpty()) "$selectedCarName 상세 모델" else "상세 모델 선택",
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.textPrimaryColor
                     )
                 },
                 navigationIcon = {
@@ -47,10 +50,10 @@ fun SelectModelNameScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.backgroundColor
     ) { paddingValues ->
         if (uiState.isLoadingModelNames) {
             Box(
@@ -124,7 +127,7 @@ fun ModelNameRow(modelName: String, onClick: () -> Unit) {
 //                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
 //                        }
 //                    },
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
 //                )
 //            }
 //        ) { paddingValues ->

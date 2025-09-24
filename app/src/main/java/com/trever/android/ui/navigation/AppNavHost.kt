@@ -177,7 +177,7 @@ fun AppNavHost(
         }
         composable("search/results") {
             val searchResult by searchViewModel.searchResult.collectAsState()
-            val cars = searchResult?.vehicles?.map { it.toSearchCarItem() } ?: emptyList()
+            val cars = searchViewModel.searchCarItems.collectAsState().value
             val yearRange by searchViewModel.yearRange.collectAsState()
             val distanceRange by searchViewModel.distanceRange.collectAsState()
             val priceRange by searchViewModel.priceRange.collectAsState()

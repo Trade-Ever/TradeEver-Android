@@ -40,8 +40,8 @@ android {
         applicationId = "com.trever.android"
         minSdk = 29 // 변경된 부분
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
         buildConfigField(
             "String",
             "WEB_CLIENT_ID",

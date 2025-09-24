@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.trever.android.ui.theme.G_300
 import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textSecondaryColor
 
 @Composable
 fun AppOutlinedButton(
@@ -55,7 +56,8 @@ fun AppOutlinedButton(
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textSecondaryColor
         )
         if (trailingIconRes != null) {
             Spacer(Modifier.width(8.dp))

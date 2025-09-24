@@ -25,6 +25,10 @@ import com.trever.android.domain.model.AuctionCar // RecentlyViewedCar 임포트
 import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.myPage.MyPageViewModel
 import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,21 +69,23 @@ fun RecentlyViewedCarsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }, // 스낵바 추가
         topBar = {
             TopAppBar(
-                title = { Text("나의 활동", fontWeight = FontWeight.SemiBold) },
+                title = { Text("나의 활동", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.
+                textPrimaryColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         },
-        containerColor = Color(0xFFF0F0F0) // 배경색 약간 어둡게 유지
+//        containerColor = Color(0xFFF0F0F0) // 배경색 약간 어둡게 유지
+        containerColor = MaterialTheme.colorScheme.backgroundColor
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.backgroundColor,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
@@ -90,7 +96,9 @@ fun RecentlyViewedCarsScreen(
                         text = {
                             Text(
                                 text = title,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+//                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                                // isSelected 값에 따라 텍스트 색상을 동적으로 변경
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textPrimaryColor
                             )
                         }
                     )
@@ -187,7 +195,7 @@ private fun EmptyState(message: String) {
     ) {
         Text(
             text = message,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.textSecondaryColor,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium
         )

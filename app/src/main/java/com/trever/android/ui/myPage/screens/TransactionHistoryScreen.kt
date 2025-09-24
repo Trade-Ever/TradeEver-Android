@@ -35,6 +35,10 @@ import com.trever.android.ui.buy.ContractBottomSheet // ContractBottomSheet impo
 import com.trever.android.ui.myPage.TransactionType
 import com.trever.android.ui.myPage.TransactionViewModel
 import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import org.koin.androidx.compose.koinViewModel
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -64,21 +68,22 @@ fun TransactionHistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("거래 내역", fontWeight = FontWeight.SemiBold) },
+                title = { Text("거래 내역", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.textPrimaryColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         },
-        containerColor = Color(0xFFF0F0F0)
+        containerColor = MaterialTheme.colorScheme.backgroundColor
+
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
@@ -89,7 +94,7 @@ fun TransactionHistoryScreen(
                         text = {
                             Text(
                                 text = title,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.textPrimaryColor
                             )
                         }
                     )
@@ -174,7 +179,7 @@ private fun TransactionListItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.cardBackgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -186,7 +191,8 @@ private fun TransactionListItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = transaction.vehicleName ?: "차량명 없음",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                    color = MaterialTheme.colorScheme.textPrimaryColor
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 
@@ -196,13 +202,15 @@ private fun TransactionListItem(
                     transaction.sellerName ?: "-"
                 }
                 Text(
-                    text = "거래 상대: $counterpartyDisplayName",
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray, fontSize = 13.sp)
+                    text = "거래 상대: ${transaction.buyerName ?: "-"}", // counterpartyName 대신 userName 사용
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                    color = MaterialTheme.colorScheme.textSecondaryColor
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formatDateToMMdd(transaction.createdAt),
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray, fontSize = 13.sp)
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                    color = MaterialTheme.colorScheme.textSecondaryColor
                 )
             }
 

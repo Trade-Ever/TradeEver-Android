@@ -38,7 +38,13 @@ import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.navigation.ROUTE_SELL_FLOW
 import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
 // import com.trever.android.ui.theme.AppTheme // 프리뷰 관련 코드가 없다면 제거 가능
+import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Red_1
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -77,17 +83,12 @@ fun SellEntryScreen(
         onRefresh = { sellEntryViewModel.fetchMyVehicles(isRefresh = true) }
     )
 
-    Scaffold(
-        containerColor = Color.White
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .statusBarsPadding()
-                .pullRefresh(pullRefreshState)
-        ) {
-            LazyColumn(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState) // Box에 pullRefresh Modifier 적용
+    ) {
+        LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
@@ -97,13 +98,13 @@ fun SellEntryScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(250.dp),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.TopCenter
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.purple_car_80),
                             contentDescription = "차량 등록 배경",
                             modifier = Modifier.matchParentSize(),
-                            contentScale = ContentScale.Fit
+                            contentScale = ContentScale.Crop
                         )
                         Button(
                             onClick = { parentNavController.navigate(ROUTE_SELL_FLOW) },
@@ -111,14 +112,14 @@ fun SellEntryScreen(
                                 .align(Alignment.BottomCenter)
                                 .offset(y = (-40).dp)
                                 .border(
-                                    width = 4.dp,
-                                    color = Color.Gray,
-                                    shape = RoundedCornerShape(8.dp)
+                                    width = 4.dp, // Adjust the border thickness as needed
+                                    color = MaterialTheme.colorScheme.G_100,
+                                    shape = RoundedCornerShape(8.dp) // Use the same shape for the border
                                 ),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = Color.Black,
+                                containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                contentColor = MaterialTheme.colorScheme.textPrimaryColor,
                             ),
                             elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
@@ -141,7 +142,7 @@ fun SellEntryScreen(
                                     text = uiState.error ?: "알 수 없는 오류가 발생했습니다.",
                                     style = MaterialTheme.typography.bodyLarge,
                                     textAlign = TextAlign.Center,
-                                    color = Color.Red,
+                                    color = MaterialTheme.colorScheme.error,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 48.dp)
@@ -153,7 +154,7 @@ fun SellEntryScreen(
                                     text = "아직 등록된 차량이 없어요. 지금 바로 내 차 정보를 등록해보세요!",
                                     style = MaterialTheme.typography.bodyLarge,
                                     textAlign = TextAlign.Center,
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.textSecondaryColor,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 48.dp)
@@ -162,8 +163,9 @@ fun SellEntryScreen(
                             registeredCars.isNotEmpty() -> {
                                 Text(
                                     text = "내가 등록한 차량",
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.titleMedium, // Changed to a smaller style
                                     fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.textPrimaryColor,
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
                                 )
                             }
@@ -205,9 +207,8 @@ fun SellEntryScreen(
                 refreshing = isRefreshing,
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
-                backgroundColor = Color.White,
+                backgroundColor = MaterialTheme.colorScheme.cardBackgroundColor,
                 contentColor = MaterialTheme.colorScheme.primary
             )
         }
     }
-}

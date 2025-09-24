@@ -28,6 +28,9 @@ import com.google.common.math.LinearTransformation.horizontal
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -64,7 +67,7 @@ fun SellCarMileageAndTypeScreen(
     val isCarModelInfoComplete = uiState.selectedManufacturer.isNotBlank() && uiState.selectedModel.isNotBlank()
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -76,7 +79,7 @@ fun SellCarMileageAndTypeScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         }
     ) { paddingValues ->
@@ -118,9 +121,9 @@ fun SellCarMileageAndTypeScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = purpleColor,
                         unfocusedBorderColor = if (yearInput.isNotEmpty()) purpleColor else Color.LightGray,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        disabledContainerColor = Color.White
+                        focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                        disabledContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
                     )
                 )
 
@@ -136,7 +139,7 @@ fun SellCarMileageAndTypeScreen(
                         Surface(
                             modifier = Modifier.fillMaxWidth().clickable { showBottomSheet = true },
                             shape = RoundedCornerShape(8.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.textPrimaryColor,
                             border = BorderStroke(1.dp, if (uiState.selectedCarType.isNotEmpty()) purpleColor else Color.LightGray)
                         ) {
                             Row(
@@ -176,9 +179,9 @@ fun SellCarMileageAndTypeScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
                                 unfocusedBorderColor = if (mileage.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
-                                disabledContainerColor = Color.White
+                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                disabledContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -196,7 +199,7 @@ fun SellCarMileageAndTypeScreen(
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.backgroundColor,
                         contentColor = Color.Black
                     ),
                     border = BorderStroke(1.dp, Color.LightGray)
@@ -218,7 +221,7 @@ fun SellCarMileageAndTypeScreen(
                     enabled = yearInput.length == 4 && uiState.selectedCarType.isNotBlank() && mileage.isNotBlank(),
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -253,7 +256,7 @@ fun CarTypeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         Column(
@@ -276,8 +279,8 @@ fun CarTypeBottomSheet(
                                 .height(48.dp),
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) selectedColor else Color.White,
-                                contentColor = if (isSelected) Color.White else Color.Black
+                                containerColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.cardBackgroundColor,
+                                contentColor = if (isSelected) MaterialTheme.colorScheme.textPrimaryColor else MaterialTheme.colorScheme.textPrimaryColor
                             ),
                             border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null,
                             contentPadding = PaddingValues(horizontal = 4.dp)
@@ -321,7 +324,7 @@ fun CarTypeBottomSheet(
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = purpleColor)
                 ) {
-                    Text("확인", color = Color.White)
+                    Text("확인", color = MaterialTheme.colorScheme.textPrimaryColor)
                 }
             }
         }
@@ -335,7 +338,7 @@ fun DisplayInfoField(label: String, value: String, isComplete: Boolean) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.textPrimaryColor,
         border = BorderStroke(1.dp, if (isComplete) Color(0xFF6A11CB) else Color.LightGray)
     ) {
         Text(

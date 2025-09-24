@@ -24,6 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 
@@ -42,7 +44,7 @@ fun SellCarYearScreen(
     val yearRange = (currentYear + 2 downTo currentYear - 30).toList()
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { Text("연식 입력") },
@@ -55,7 +57,7 @@ fun SellCarYearScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.backgroundColor,
                     titleContentColor = Color.Black,
                     navigationIconContentColor = Color.Black
                 )
@@ -85,7 +87,7 @@ fun SellCarYearScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color(0xFF6A11CB)), // 이미지 보라색 테두리
-                color = Color.White
+                color = MaterialTheme.colorScheme.textPrimaryColor
             ) {
                 Text(
                     text = uiState.selectedModel.ifEmpty { "(모델 정보 없음)" }, // ViewModel의 모델 사용
@@ -127,7 +129,7 @@ fun SellCarYearScreen(
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A11CB))
             ) {
-                Text("다음", fontSize = 18.sp, color = Color.White)
+                Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor)
             }
         }
     }

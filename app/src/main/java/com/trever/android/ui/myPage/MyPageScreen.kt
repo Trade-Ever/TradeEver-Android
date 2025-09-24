@@ -43,6 +43,11 @@ import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Grey_100
 import kotlinx.coroutines.flow.collectLatest
+import com.trever.android.ui.theme.Grey_100
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
@@ -74,10 +79,10 @@ fun MyPageScreen(
     LaunchedEffect(key1 = Unit) {
         viewModel.navigateToLogin.collectLatest {
             navController.navigate(ROUTE_LOGIN) {
-                popUpTo("main") { 
-                    inclusive = true 
+                popUpTo("main") {
+                    inclusive = true
                 }
-                launchSingleTop = true 
+                launchSingleTop = true
             }
         }
     }
@@ -91,12 +96,12 @@ fun MyPageScreen(
             },
             title = {
                 Text(
-                    text = "로그아웃", 
-                    fontWeight = FontWeight.Bold, 
+                    text = "로그아웃",
+                    fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
-                ) 
+                )
             },
             text = {
                 Text(
@@ -124,7 +129,7 @@ fun MyPageScreen(
         ModalBottomSheet(
             onDismissRequest = { showProfileBottomSheet = false },
             sheetState = profileSheetState,
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.backgroundColor
         ) {
             ProfileEditSheetContent(
                 initialName = userProfile?.name ?: "",
@@ -155,7 +160,7 @@ fun MyPageScreen(
         ModalBottomSheet(
             onDismissRequest = { showChargeBottomSheet = false },
             sheetState = chargeSheetState,
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.backgroundColor
         ) {
             TransactionSheetContent(
                 title = "얼마나 충전할까요?",
@@ -181,7 +186,7 @@ fun MyPageScreen(
         ModalBottomSheet(
             onDismissRequest = { showWithdrawBottomSheet = false },
             sheetState = withdrawSheetState,
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.backgroundColor
         ) {
             TransactionSheetContent(
                 title = "얼마나 출금할까요?",
@@ -205,16 +210,14 @@ fun MyPageScreen(
 
     Scaffold(
         topBar = { MyPageTopAppBar(navController = navController) },
-        containerColor = Color(0xFFF4F4F4),
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .statusBarsPadding()
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(
-                top = paddingValues.calculateTopPadding(),
                 bottom = 0.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -280,7 +283,8 @@ fun MyPageTopAppBar(navController: NavController) { // NavController 파라미�
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF4F4F4))
+            .background(MaterialTheme.colorScheme.backgroundColor)
+            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(64.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -306,8 +310,8 @@ fun ProfileSection(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onProfileClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.cardBackgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -328,7 +332,7 @@ fun ProfileSection(
                 Text(
                     text = email,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.textSecondaryColor
                 )
             }
 
@@ -362,7 +366,7 @@ fun AccountSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF5222D0)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -422,8 +426,8 @@ fun MyPageMenuGroup(title: String, items: List<MyPageActionItem>) {
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.cardBackgroundColor),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -480,3 +484,4 @@ fun MyPageScreenPreview() {
 //         MyPageScreen(navController = rememberNavController())
     }
 }
+

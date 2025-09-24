@@ -23,6 +23,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.R
+import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textSecondaryColor
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -63,6 +65,7 @@ fun TransactionSheetContent(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.textPrimaryColor,
             modifier = Modifier
                 .padding(bottom = 24.dp)
                 .align(Alignment.Start)
@@ -89,12 +92,13 @@ fun TransactionSheetContent(
                 Text(
                     text = bankName,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.textPrimaryColor
                 )
                 Text(
                     text = accountNumber,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.textSecondaryColor
                 )
             }
         }

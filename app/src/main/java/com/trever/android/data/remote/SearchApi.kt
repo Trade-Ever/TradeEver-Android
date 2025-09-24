@@ -70,7 +70,7 @@ data class Vehicle(
     val transmission: String?,
     val vehicleStatus: String?,
     val fuelType: String?,
-    val price: Int?,
+    val price: Long?,
     val isAuction: String?,
     val auctionId: Long?,
     val representativePhotoUrl: String?,

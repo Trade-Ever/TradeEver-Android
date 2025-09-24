@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
+
 //import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 
 
@@ -57,7 +61,7 @@ fun SellCarDetailsScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -70,7 +74,7 @@ fun SellCarDetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.backgroundColor,
                     titleContentColor = Color.Black,
                     navigationIconContentColor = Color.Black
                 )
@@ -142,8 +146,8 @@ fun SellCarDetailsScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
                                 unfocusedBorderColor = if (displacement.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -170,8 +174,8 @@ fun SellCarDetailsScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
                                 unfocusedBorderColor = if (horsepower.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -191,7 +195,7 @@ fun SellCarDetailsScreen(
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.backgroundColor,
                         contentColor = Color.Black
                     ),
                     border = BorderStroke(1.dp, Color.LightGray),
@@ -219,7 +223,7 @@ fun SellCarDetailsScreen(
                             horsepower.isNotEmpty(),
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
             }
             // ▲▲▲ 이전/다음 버튼으로 수정 ▲▲▲
@@ -244,8 +248,8 @@ fun SelectableButtonGroup(options: List<String>, selectedOption: String, onOptio
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) lightPurpleColor else Color.White,
-                    contentColor = if (isSelected) Color.White else Color.Black
+                    containerColor = if (isSelected) lightPurpleColor else MaterialTheme.colorScheme.cardBackgroundColor,
+                    contentColor = if (isSelected) MaterialTheme.colorScheme.textPrimaryColor else MaterialTheme.colorScheme.textPrimaryColor
                 ),
                 border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)

@@ -1,6 +1,7 @@
 package com.trever.android.ui.auction
 
 
+
 import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -33,6 +34,7 @@ import com.trever.android.data.remote.toAuctionDetailUi
 
 import com.trever.android.ui.components.AppFilledButton
 import com.trever.android.ui.components.AuctionBadge
+import com.trever.android.ui.components.CommonDialog
 import com.trever.android.ui.components.DetailContent
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.G_200
@@ -44,6 +46,7 @@ import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 import com.trever.android.ui.theme.textSecondaryColor
 import kotlinx.coroutines.launch
+
 
 
 import java.text.SimpleDateFormat
@@ -71,10 +74,24 @@ fun AuctionDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val bids by viewModel.bids.collectAsState()
     val auction by viewModel.auction.collectAsState()
+    var showBidSheet by remember { mutableStateOf(false) }
 
-    // Snackbar 상태 관리 추가
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+
+
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf("") }
+
+    val bidResult by viewModel.bidResult.collectAsState()
+
+// 입찰 결과에 따라 다이얼로그 표시
+
+    CommonDialog(
+        title = title,
+        showDialog = showDialog,
+        message = dialogMessage,
+        onConfirm = { showDialog = false }
+    )
 
 
 
@@ -83,7 +100,7 @@ fun AuctionDetailScreen(
         viewModel.loadVehicleDetail(carId, auctionId)
     }
 
-    var showBidSheet by remember { mutableStateOf(false) }
+
     val blur by animateDpAsState(if (showBidSheet) 12.dp else 0.dp, label = "")
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -225,8 +242,9 @@ fun AuctionDetailScreen(
                                 viewModel.resetBidResult()
                                 showBidSheet = true
                             },
-                            endAtMillis = endAtMillis,
+                            endAtMillis = if (isBeforeStart) startAtMillis else endAtMillis,
                             bidEnabled = bidEnabled,
+                            remainText = if (isBeforeStart) "시작까지 " else "종료까지 "
                         )
                     },
                     onToggleLike = {viewModel.toggleLike(carId)
@@ -246,13 +264,7 @@ fun AuctionDetailScreen(
             }
         }
     }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 50.dp)
-                .zIndex(3f)
-        )
+
     }
 
 
@@ -272,35 +284,28 @@ fun AuctionDetailScreen(
             ?: ((uiState as? AuctionDetailUiState.Success)?.vehicle?.toAuctionDetailUi()?.priceWon ?: 0L)
 
         val bidResult by viewModel.bidResult.collectAsState()
-
-        // bidResult 상태에 따른 UI 업데이트 처리
         LaunchedEffect(bidResult) {
             bidResult?.let { result ->
                 result.fold(
-                    onSuccess = { bidData ->
-                        // 성공 시 입찰 시트 닫기
+                    onSuccess = {
                         showBidSheet = false
-                        // 성공 메시지 스낵바 표시
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "입찰이 성공적으로 완료되었습니다",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
+                        title = "입찰 성공"
+                        dialogMessage = "입찰이 성공적으로 완료되었습니다."
+                        showDialog = true
                     },
                     onFailure = { error ->
-                        // 실패 메시지 스낵바 표시
                         showBidSheet = false
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "입찰에 실패했습니다",
-                                duration = SnackbarDuration.Long
-                            )
-                        }
+                        title = "입찰 실패"
+                        // 실패 메시지 추출
+                        dialogMessage = error.message ?: "알 수 없는 오류"
+                        showDialog = true
                     }
                 )
             }
         }
+
+        // bidResult 상태에 따른 UI 업데이트 처리
+
 
         PlaceBidSheet(
             currentTopPrice = currentTopPrice,
@@ -621,7 +626,8 @@ private fun BottomActionBar(
     bidEnabled: Boolean = true, // 추가
 ) {
     val cs = MaterialTheme.colorScheme
-    val green = Color(0xFF00C364)
+    val isStart = remainText.contains("시작까지")
+    val remainTextColor = if (isStart) Color(0xFF1976D2) else Red_1
 
 
     Surface(
@@ -679,15 +685,26 @@ private fun BottomActionBar(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(6.dp))
-                if (endAtMillis > 0) {
-                    CountdownText(endsAtMillis = endAtMillis)
+                val remainMillis = endAtMillis - System.currentTimeMillis()
+                if (remainMillis > 0) {
+                    Log.d("BottomActionBar", "endAtMillis > 0, remainText=$endAtMillis")
+                    Row {
+                        Text(
+                            if (remainText.isNotBlank()) remainText else "종료까지",
+                            color = remainTextColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        CountdownText(
+                            endsAtMillis = endAtMillis,
+                            color = remainTextColor
+                        )
+                    }
                 } else {
-                    Text(
-                        remainText,
-                        color = Red_1,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp
+                    Log.d("BottomActionBar", "endAtMillis <= 0, 종료 상태 remainText=$endAtMillis")
+                    CountdownText(
+                        endsAtMillis = endAtMillis,
+                        color = remainTextColor
                     )
                 }
             }
@@ -760,7 +777,7 @@ data class SellerUi(
 /* 샘플 */
 
 @Composable
-private fun CountdownText(endsAtMillis: Long) {
+private fun CountdownText(endsAtMillis: Long,color: Color = Red_1) {
     var remain by remember(endsAtMillis) { mutableStateOf(endsAtMillis - System.currentTimeMillis()) }
 
     LaunchedEffect(endsAtMillis) {
@@ -788,7 +805,7 @@ private fun CountdownText(endsAtMillis: Long) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-        color = Red_1
+        color = color
     )
 }
 
