@@ -116,10 +116,10 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.searchVehicles(request)
+                val response = api.searchVehicles(request) // response.data is VehicleSearchResponse?
                 Log.d("SearchViewModel", "searchVehicles: $response")
                 if (response.success) {
-                    _searchResult.value = response.data
+                    _searchResult.value = response.data // response.data is nullable, _searchResult is nullable - OK
                 }
             } finally {
                 _isLoading.value = false
@@ -134,9 +134,12 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getCarModels(manufacturer, carName)
+                val response = api.getCarModels(manufacturer, carName) // response.data is List<CarModel>?
                 if (response.success) {
-                    _carModels.value = response.data
+                    _carModels.value = response.data ?: emptyList()
+                } else {
+                    Log.e("SearchViewModel", "Failed to fetch car models: ${response.message}")
+                    _carModels.value = emptyList() // API 실패 시 빈 리스트로 처리
                 }
             } finally {
                 _isLoading.value = false
@@ -151,9 +154,12 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getCarNames(manufacturer)
+                val response = api.getCarNames(manufacturer) // response.data is List<CarName>?
                 if (response.success) {
-                    _carNames.value = response.data
+                    _carNames.value = response.data ?: emptyList()
+                } else {
+                    Log.e("SearchViewModel", "Failed to fetch car names: ${response.message}")
+                    _carNames.value = emptyList() // API 실패 시 빈 리스트로 처리
                 }
             } finally {
                 _isLoading.value = false
@@ -163,9 +169,12 @@ class SearchViewModel(
 
     fun fetchRecentSearches() {
         viewModelScope.launch {
-            val response = api.getRecentSearches()
+            val response = api.getRecentSearches() // response.data is List<String>?
             if (response.success) {
-                _recentSearches.value = response.data
+                _recentSearches.value = response.data ?: emptyList()
+            } else {
+                Log.e("SearchViewModel", "Failed to fetch recent searches: ${response.message}")
+                _recentSearches.value = emptyList() // API 실패 시 빈 리스트로 처리
             }
         }
     }
@@ -174,9 +183,12 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getManufacturers()
+                val response = api.getManufacturers() // response.data is List<ManufacturerCategory>?
                 if (response.success) {
-                    _manufacturerCategories.value = response.data
+                    _manufacturerCategories.value = response.data ?: emptyList()
+                } else {
+                    Log.e("SearchViewModel", "Failed to fetch manufacturers: ${response.message}")
+                    _manufacturerCategories.value = emptyList() // API 실패 시 빈 리스트로 처리
                 }
             } finally {
                 _isLoading.value = false
@@ -184,4 +196,3 @@ class SearchViewModel(
         }
     }
 }
-

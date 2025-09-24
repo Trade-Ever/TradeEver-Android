@@ -57,7 +57,7 @@ val appModule = module {
     single<OkHttpClient> {
         val tokenStore = get<TokenStore>()
         val refreshRetrofit = Retrofit.Builder()
-            .baseUrl("http://54.180.107.111:8080/")
+            .baseUrl("http://54.180.107.111:8080/") // 서버 URL은 환경에 맞게 관리하는 것이 좋습니다.
             .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
             .client(OkHttpClient.Builder().addInterceptor(get<HttpLoggingInterceptor>()).build()) // 로깅 인터셉터만 가지는 클라이언트
             .build()
@@ -75,7 +75,7 @@ val appModule = module {
 
     single<Retrofit> {
         Retrofit.Builder()
-            .baseUrl("http://54.180.107.111:8080/")
+            .baseUrl("http://54.180.107.111:8080/") // 서버 URL은 환경에 맞게 관리하는 것이 좋습니다.
             .client(get<OkHttpClient>())
             .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
             .build()
@@ -89,15 +89,16 @@ val appModule = module {
 
     // --- Data Layer ---
     single { Gson() } // Gson은 kotlinx.serialization과 별개
-    single { TokenStore(androidContext()) }
-    single { AuthRepository(get(), get(), get()) }
-    single { MyPageRepository(get()) }
+    single { TokenStore(androidContext()) } // TokenStore 정의
+    single { AuthRepository(get(), get(), get()) } // AuthRepository는 TokenStore, AuthApi, Context를 주입받음
+    single { MyPageRepository(get()) } // MyPageRepository는 MyPageApi를 주입받음
     single { VehicleRepository(get(), androidContext(), get()) }
     single { TransactionRepository(get()) }
 
     // --- UI Layer (ViewModels) ---
     viewModel { AuthViewModel(get()) }
-    viewModel { MyPageViewModel(get(), get()) }
+    // MyPageViewModel에 MyPageRepository, AuthRepository, TokenStore를 주입
+    viewModel { MyPageViewModel(get(), get(), get()) } 
     viewModel { TransactionViewModel(get()) }
     viewModel { SellEntryViewModel(get()) }
     viewModel { SearchViewModel() }

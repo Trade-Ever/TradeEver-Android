@@ -24,7 +24,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.ResponseBody
 import java.io.File
 import java.io.FileOutputStream
 
@@ -51,17 +50,14 @@ class VehicleRepository(
         return file
     }
 
-    // PdfRenderer 열기
     suspend fun openRenderer(pdfFile: File): PdfRenderer = withContext(Dispatchers.IO) {
         val pfd = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
         PdfRenderer(pfd)
     }
 
-    // 특정 페이지를 비트맵으로 렌더링
     suspend fun renderPage(renderer: PdfRenderer, index: Int, width: Int): Bitmap =
         withContext(Dispatchers.IO) {
             renderer.openPage(index).use { page ->
-                // 종횡비대로 높이 계산
                 val ratio = page.height.toFloat() / page.width.toFloat()
                 val bmp = Bitmap.createBitmap(width, (width * ratio).toInt(), Bitmap.Config.ARGB_8888)
                 page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
@@ -69,8 +65,6 @@ class VehicleRepository(
             }
         }
 
-
-    // Downloads/ 에 저장 (스코프드 스토리지)
     suspend fun saveToDownloads(pdfFile: File, displayName: String = pdfFile.name): Uri =
         withContext(Dispatchers.IO) {
             val contentValues = ContentValues().apply {
@@ -99,26 +93,32 @@ class VehicleRepository(
 
     suspend fun checkCarNumber(carNumber: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val response = api.checkCarNumber(carNumber)
-            if (response.success) {
+            val response = api.checkCarNumber(carNumber) // response.data is CarNumberCheckDto?
+            if (response.success && response.data != null) {
                 Result.success(response.data.exists)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "차량 번호 확인 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Check car number failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
+            Log.e("VehicleRepository", "Check car number exception", e)
             Result.failure(e)
         }
     }
 
     suspend fun toggleLike(vehicleId: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val response = api.toggleFavorite(vehicleId)
-            if (response.success) {
+            val response = api.toggleFavorite(vehicleId) // response.data is Boolean?
+            if (response.success && response.data != null) {
                 Result.success(response.data)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "찜하기 처리 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Toggle like failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
+            Log.e("VehicleRepository", "Toggle like exception", e)
             Result.failure(e)
         }
     }
@@ -126,11 +126,13 @@ class VehicleRepository(
     suspend fun getMyVehicles(page: Int = 0, size: Int = 10): Result<MyVehiclesResponse> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = api.getMyVehicles(page, size)
-                if (response.success) {
+                val response = api.getMyVehicles(page, size) // response.data is MyVehiclesResponse?
+                if (response.success && response.data != null) {
                     Result.success(response.data)
                 } else {
-                    Result.failure(Exception(response.message))
+                    val errorMessage = response.message ?: "내 차량 정보 가져오기 실패 (data is null: ${response.data == null})"
+                    Log.e("VehicleRepository", "Get my vehicles failed: $errorMessage")
+                    Result.failure(Exception(errorMessage))
                 }
             } catch (e: Exception) {
                 Log.e("VehicleRepository", "Error fetching my vehicles", e)
@@ -144,14 +146,17 @@ class VehicleRepository(
         size: Int = 10,
     ): Result<List<AuctionCar>> = withContext(Dispatchers.IO) {
         try {
-            val response = api.listVehicles(page, size, isAuction = true)
-            if (response.success) {
+            val response = api.listVehicles(page, size, isAuction = true) // response.data is VehicleListResponse?
+            if (response.success && response.data != null) {
                 val auctionCars = response.data.vehicles.map { it.toAuctionCar() }
                 Result.success(auctionCars)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "경매 차량 목록 가져오기 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get auctions failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
+            Log.e("VehicleRepository", "Get auctions exception", e)
             Result.failure(e)
         }
     }
@@ -161,12 +166,14 @@ class VehicleRepository(
         size: Int = 10,
     ): Result<List<VehicleSummary>> = withContext(Dispatchers.IO) {
         try {
-            val response = api.listVehicles(page, size, isAuction = false)
-            if (response.success) {
+            val response = api.listVehicles(page, size, isAuction = false) // response.data is VehicleListResponse?
+            if (response.success && response.data != null) {
                 val vehicles = response.data.vehicles.map { it.toVehicleSummary() }
                 Result.success(vehicles)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "차량 목록 가져오기 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get vehicles failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Log.e("VehicleRepository", "Error fetching vehicles", e)
@@ -176,12 +183,14 @@ class VehicleRepository(
 
     suspend fun getVehicleDetail(id: String): Result<VehicleDetail> = withContext(Dispatchers.IO) {
         try {
-            val response = api.getVehicleDetail(id)
-            if (response.success) {
+            val response = api.getVehicleDetail(id) // response.data is VehicleDetailDto?
+            if (response.success && response.data != null) {
                 val vehicleDetail = response.data.toVehicleDetail()
                 Result.success(vehicleDetail)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "차량 상세 정보 가져오기 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get vehicle detail failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Log.e("VehicleRepository", "Error fetching vehicle detail", e)
@@ -205,10 +214,12 @@ class VehicleRepository(
                 emptyList()
             }
 
-            val response = api.registerVehicle(requestBody, photoParts)
+            val response = api.registerVehicle(requestBody, photoParts) // response.data could be String? or other type
 
             if (response.success) {
-                Result.success("차량 등록 성공: ${response.data}")
+                // Assuming response.data (if not null) might contain an ID or a specific success detail.
+                // If response.data is always Unit or not relevant on success, this can be simplified.
+                Result.success("차량 등록 성공: ${response.data ?: "성공 (추가 정보 없음)"}")
             } else {
                 Result.failure(Exception(response.message ?: "등록 실패"))
             }
@@ -220,7 +231,7 @@ class VehicleRepository(
 
     suspend fun getManufacturersDataForSelection(): Result<Map<String, List<String>>> = withContext(Dispatchers.IO) {
         try {
-            coroutineScope { 
+            coroutineScope {
                 val domesticManufacturersDeferred = async { api.getManufacturersByCategory("국산") }
                 val importedManufacturersDeferred = async { api.getManufacturersByCategory("수입") }
 
@@ -234,8 +245,14 @@ class VehicleRepository(
                     )
                     Result.success(map)
                 } else {
-                    val errorMessage = if (!domesticResponse.success) domesticResponse.message else importedResponse.message
-                    Result.failure(Exception(errorMessage ?: "제조사 목록을 불러오는 데 실패했습니다."))
+                    val errorMsgBuilder = StringBuilder()
+                    if (!domesticResponse.success || domesticResponse.data == null) {
+                        errorMsgBuilder.append("국산 제조사 목록 실패: ${domesticResponse.message ?: "데이터 없음"}. ")
+                    }
+                    if (!importedResponse.success || importedResponse.data == null) {
+                        errorMsgBuilder.append("수입 제조사 목록 실패: ${importedResponse.message ?: "데이터 없음"}")
+                    }
+                    Result.failure(Exception(errorMsgBuilder.toString().ifEmpty { "제조사 목록을 불러오는 데 실패했습니다." }))
                 }
             }
         } catch (e: Exception) {
@@ -246,11 +263,13 @@ class VehicleRepository(
 
     suspend fun getCarNameList(category: String, manufacturer: String): Result<List<String>> = withContext(Dispatchers.IO) {
         try {
-            val response = api.getCarNames(category, manufacturer)
+            val response = api.getCarNames(category, manufacturer) // response.data is List<String>?
             if (response.success && response.data != null) {
                 Result.success(response.data)
             } else {
-                Result.failure(Exception(response.message ?: "Failed to load car names for $manufacturer"))
+                val errorMessage = response.message ?: "Failed to load car names for $manufacturer (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get car names failed for $manufacturer: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Log.e("VehicleRepository", "Error fetching car names for $manufacturer", e)
@@ -260,11 +279,13 @@ class VehicleRepository(
 
     suspend fun getModelNameList(category: String, manufacturer: String, carName: String): Result<List<String>> = withContext(Dispatchers.IO) {
         try {
-            val response = api.getModelNames(category, manufacturer, carName)
+            val response = api.getModelNames(category, manufacturer, carName) // response.data is List<String>?
             if (response.success && response.data != null) {
                 Result.success(response.data)
             } else {
-                Result.failure(Exception(response.message ?: "Failed to load model names for $carName"))
+                val errorMessage = response.message ?: "Failed to load model names for $carName (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get model names failed for $carName: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Log.e("VehicleRepository", "Error fetching model names for $carName", e)
@@ -279,11 +300,13 @@ class VehicleRepository(
         modelName: String
     ): Result<List<Int>> = withContext(Dispatchers.IO) {
         try {
-            val response = api.getYears(category, manufacturer, carName, modelName)
+            val response = api.getYears(category, manufacturer, carName, modelName) // response.data is List<Int>?
             if (response.success && response.data != null) {
                 Result.success(response.data)
             } else {
-                Result.failure(Exception(response.message ?: "Failed to load years for $modelName"))
+                val errorMessage = response.message ?: "Failed to load years for $modelName (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get years failed for $modelName: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Log.e("VehicleRepository", "Error fetching years for $modelName", e)
@@ -293,30 +316,37 @@ class VehicleRepository(
 
     suspend fun selectBuyer(vehicleId: String, buyerId: Long): Result<SelectBuyerResponse> = withContext(Dispatchers.IO) {
         try {
-            val response = api.selectBuyer(vehicleId, buyerId)
+            val response = api.selectBuyer(vehicleId, buyerId) // response.data is SelectBuyerResponse?
             if (response.success && response.data != null) {
                 Result.success(response.data)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "구매자 선택 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Select buyer failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
+            Log.e("VehicleRepository", "Select buyer exception", e)
             Result.failure(e)
         }
     }
 
     suspend fun getBuyRequests(vehicleId: String): Result<List<BuyApplyData>> = withContext(Dispatchers.IO) {
         try {
-            val response = api.getBuyRequests(vehicleId)
+            val response = api.getBuyRequests(vehicleId) // response.data is List<BuyApplyData>?
             if (response.success && response.data != null) {
                 Result.success(response.data)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "구매 신청 목록 가져오기 실패 (data is null: ${response.data == null})"
+                Log.e("VehicleRepository", "Get buy requests failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
+            Log.e("VehicleRepository", "Get buy requests exception", e)
             Result.failure(e)
         }
     }
 
+    // 이 함수는 ApiResponse를 직접 반환하므로, 호출하는 쪽에서 data의 null 가능성을 처리해야 합니다.
     suspend fun applyBuy(vehicleId: String): ApiResponse<BuyApplyData> {
         return api.applyBuy(vehicleId)
     }
@@ -331,6 +361,4 @@ class VehicleRepository(
         }
         return tempFile
     }
-
-
 }
