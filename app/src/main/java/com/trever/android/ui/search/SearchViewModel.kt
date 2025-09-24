@@ -156,52 +156,6 @@ class SearchViewModel(
         }
     }
 
-//    fun updateSearchResultWithFirebase() {
-//        viewModelScope.launch {
-//            val result = _searchResult.value ?: return@launch
-//            val auctionItems = result.vehicles.filterIsInstance<SearchCarItem.Auction>()
-//            val auctionIds = auctionItems.map { it.auctionId.toString() }
-//            val firebaseAuctions = auctionRepository.getFirebaseAuctionsByIds(auctionIds)
-//            val updatedList = result.vehicles.map { item ->
-//                if (item is SearchCarItem.Auction) {
-//                    val fb = firebaseAuctions[item.auctionId.toString()]
-//                    if (fb != null) {
-//                        item.copy(
-//                            currentPriceWon = fb.currentBidPrice.takeIf { it > 0 } ?: fb.startPrice,
-//                            endsAtMillis = auctionRepository.parseFirebaseDateToMillis(fb.endAt)
-//                        )
-//                    } else item
-//                } else item
-//            }.filterIsInstance<SearchCarItem>()
-//
-//            _searchCarItems.value = updatedList
-//        }
-//    }
-
-//    fun updateSearchResultWithFirebase() {
-//        viewModelScope.launch {
-//            val result = _searchResult.value ?: return@launch
-//            val auctionItems = result.vehicles.filterIsInstance<SearchCarItem.Auction>()
-//            val auctionIds = auctionItems.map { it.auctionId.toString() }
-//            val firebaseAuctions = auctionRepository.getFirebaseAuctionsByIds(auctionIds)
-//            val updatedList = result.vehicles.map { item ->
-//                if (item is SearchCarItem.Auction) {
-//                    val fb = firebaseAuctions[item.auctionId.toString()]
-//                    if (fb != null) {
-//                        item.copy(
-//                            currentPrice = fb.currentBidPrice.takeIf { it > 0 } ?: fb.startPrice,
-//                            endsAtMillis = /* 파싱 함수로 변환 */,
-//                            // 기타 필요한 필드
-//                        )
-//                    } else item
-//                } else item
-//            }
-//            _searchResult.value = result.copy(vehicles = updatedList)
-//        }
-//    }
-
-
-
     fun deleteRecentSearch(keyword: String) {
         viewModelScope.launch {
             val ok = api.deleteRecentSearch(keyword)
@@ -315,9 +269,12 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getCarModels(manufacturer, carName)
+                val response = api.getCarModels(manufacturer, carName) // response.data is List<CarModel>?
                 if (response.success) {
-                    _carModels.value = response.data
+                    _carModels.value = response.data ?: emptyList()
+                } else {
+                    Log.e("SearchViewModel", "Failed to fetch car models: ${response.message}")
+                    _carModels.value = emptyList() // API 실패 시 빈 리스트로 처리
                 }
             } finally {
                 _isLoading.value = false
@@ -332,9 +289,12 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getCarNames(manufacturer)
+                val response = api.getCarNames(manufacturer) // response.data is List<CarName>?
                 if (response.success) {
-                    _carNames.value = response.data
+                    _carNames.value = response.data ?: emptyList()
+                } else {
+                    Log.e("SearchViewModel", "Failed to fetch car names: ${response.message}")
+                    _carNames.value = emptyList() // API 실패 시 빈 리스트로 처리
                 }
             } finally {
                 _isLoading.value = false
@@ -344,9 +304,12 @@ class SearchViewModel(
 
     fun fetchRecentSearches() {
         viewModelScope.launch {
-            val response = api.getRecentSearches()
+            val response = api.getRecentSearches() // response.data is List<String>?
             if (response.success) {
-                _recentSearches.value = response.data
+                _recentSearches.value = response.data ?: emptyList()
+            } else {
+                Log.e("SearchViewModel", "Failed to fetch recent searches: ${response.message}")
+                _recentSearches.value = emptyList() // API 실패 시 빈 리스트로 처리
             }
         }
     }
@@ -355,9 +318,12 @@ class SearchViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getManufacturers()
+                val response = api.getManufacturers() // response.data is List<ManufacturerCategory>?
                 if (response.success) {
-                    _manufacturerCategories.value = response.data
+                    _manufacturerCategories.value = response.data ?: emptyList()
+                } else {
+                    Log.e("SearchViewModel", "Failed to fetch manufacturers: ${response.message}")
+                    _manufacturerCategories.value = emptyList() // API 실패 시 빈 리스트로 처리
                 }
             } finally {
                 _isLoading.value = false

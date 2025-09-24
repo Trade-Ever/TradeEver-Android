@@ -18,16 +18,17 @@ class TransactionRepository(private val transactionApi: TransactionApi) {
     suspend fun getSalesHistory(): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         try {
             Log.d("TransactionRepository", "판매 내역 로드를 시작합니다.")
-            val response = transactionApi.getSalesHistory()
-            Log.d("TransactionRepository", "서버 응답: $response") // 서버 응답 전체를 로그로 출력
+            val response = transactionApi.getSalesHistory() // response.data is List<TransactionDto>?
+            Log.d("TransactionRepository", "판매 내역 서버 응답: $response")
 
-            if (response.success) {
-                val domainModels = response.data.map { it.toDomainModel() }
+            if (response.success && response.data != null) {
+                val domainModels = response.data.map { it.toDomainModel() } // response.data가 스마트 캐스트됨
                 Log.d("TransactionRepository", "판매 내역 파싱 성공: ${domainModels.size}개")
                 Result.success(domainModels)
             } else {
-                Log.e("TransactionRepository", "판매 내역 API 실패: ${response.message}")
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "판매 내역을 가져오지 못했습니다 (data is null: ${response.data == null})"
+                Log.e("TransactionRepository", "판매 내역 API 실패: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
             Log.e("TransactionRepository", "판매 내역 로드 중 예외 발생", e)
@@ -40,15 +41,22 @@ class TransactionRepository(private val transactionApi: TransactionApi) {
      */
     suspend fun getPurchaseHistory(): Result<List<Transaction>> = withContext(Dispatchers.IO) {
         try {
-            val response = transactionApi.getPurchaseHistory()
-            if (response.success) {
-                val domainModels = response.data.map { it.toDomainModel() }
+            Log.d("TransactionRepository", "구매 내역 로드를 시작합니다.")
+            val response = transactionApi.getPurchaseHistory() // response.data is List<TransactionDto>?
+            Log.d("TransactionRepository", "구매 내역 서버 응답: $response")
+
+            if (response.success && response.data != null) {
+                val domainModels = response.data.map { it.toDomainModel() } // response.data가 스마트 캐스트됨
+                Log.d("TransactionRepository", "구매 내역 파싱 성공: ${domainModels.size}개")
                 Result.success(domainModels)
             } else {
-                Result.failure(Exception(response.message))
+                val errorMessage = response.message ?: "구매 내역을 가져오지 못했습니다 (data is null: ${response.data == null})"
+                Log.e("TransactionRepository", "구매 내역 API 실패: $errorMessage")
+                Result.failure(Exception(errorMessage))
             }
         } catch (e: Exception) {
-            Log.e("TransactionRepository", "구매 내역 로드 실패", e)
+            // 원래 로그 메시지 유지, 스택 트레이스도 함께 출력
+            Log.e("TransactionRepository", "구매 내역 로드 실패", e) 
             Result.failure(e)
         }
     }

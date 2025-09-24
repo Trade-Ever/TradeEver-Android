@@ -86,36 +86,41 @@ class ContractSheetViewModel(app: Application) : AndroidViewModel(app) {
         raw
     }
 
-
     fun load(contractId: Long) = viewModelScope.launch {
         try {
             _state.value = ContractSheetState.Loading
 
-            val res = api.getContract(contractId)
-            val d: ContractDetail = res.data
+            val res = api.getContract(contractId) // res.data is ContractDetail?
 
-            // 1) 요약 변환
+            if (res.success && res.data != null) {
+                val d: ContractDetail = res.data // Smart cast to ContractDetail
 
+                // 1) 요약 변환
+                val signedAtText = formatSignedAt(d.signedAt)
 
-            val signedAtText = formatSignedAt(d.signedAt)
+                val summary = ContractSummaryUi(
+                    contractId = d.contractId,
+                    transactionId = d.transactionId,
+                    buyerName = d.buyerName,
+                    sellerName = d.sellerName,
+                    signedAtText = signedAtText
+                )
 
-            val summary = ContractSummaryUi(
-                contractId = d.contractId,
-                transactionId = d.transactionId,
-                buyerName = d.buyerName,
-                sellerName = d.sellerName,
-                signedAtText = signedAtText
-            )
+                // 2) PDF 다운로드 & 렌더러 준비
+                val file = repo.downloadToCache(d.contractId) // Assuming d.contractId is valid
+                pdfFile = file
+                val r = repo.openRenderer(file)
+                renderer = r
 
-            // 2) PDF 다운로드 & 렌더러 준비
-            val file = repo.downloadToCache(d.contractId)
-            pdfFile = file
-            val r = repo.openRenderer(file)
-            renderer = r
-
-            _state.value = ContractSheetState.Ready(summary, r.pageCount)
+                _state.value = ContractSheetState.Ready(summary, r.pageCount)
+            } else {
+                // Handle API error or null data
+                val errorMessage = res.message ?: "계약 상세 정보를 가져오지 못했습니다 (data is null: ${res.data == null})"
+                _state.value = ContractSheetState.Error(errorMessage)
+            }
         } catch (e: Exception) {
-            _state.value = ContractSheetState.Error(e.message ?: "로딩 실패")
+            // Handle other exceptions like network issues
+            _state.value = ContractSheetState.Error(e.message ?: "로딩 중 알 수 없는 오류가 발생했습니다.")
         }
     }
 

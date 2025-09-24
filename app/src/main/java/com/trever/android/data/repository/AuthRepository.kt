@@ -41,17 +41,28 @@ class AuthRepository(
     }
 
     suspend fun handleGoogleSignInResult(idToken: String): Result<Boolean> {
-        Log.d("AuthRepository", "Google ID Token: $idToken") // 토큰 값 로그 출력
+        Log.d("AuthRepository", "Google ID Token: $idToken")
         return try {
-            val response = authApi.googleLogin(GoogleLoginRequest(idToken))
-            tokenStore.saveTokens(response.data.accessToken, response.data.refreshToken)
+            val apiResponse = authApi.googleLogin(GoogleLoginRequest(idToken)) // apiResponse는 ApiResponse<TokenResponse>
 
-            Result.success(response.data.profileComplete)
+            if (apiResponse.success && apiResponse.data != null) {
+                // apiResponse.data가 null이 아님을 확인했으므로 안전하게 접근 가능
+                val tokenData = apiResponse.data
+                tokenStore.saveTokens(tokenData.accessToken, tokenData.refreshToken)
+                Result.success(tokenData.profileComplete)
+            } else {
+                // API 응답이 실패했거나 data가 null인 경우
+                val errorMessage = "Google sign-in failed: ${apiResponse.message} (Data was ${if (apiResponse.data == null) "null" else "not null"})"
+                Log.e("AuthRepository", errorMessage)
+                Result.failure(Exception(errorMessage))
+            }
         } catch (e: Exception) {
-            Log.e("AuthRepository", "로그인 실패12: ${e.message}", e)
+            // 네트워크 오류 또는 JSON 파싱 오류 등 기타 예외
+            Log.e("AuthRepository", "Google sign-in exception: ${e.message}", e)
             Result.failure(e)
         }
     }
+
 
     suspend fun completeProfile(
         name: String,
@@ -65,6 +76,22 @@ class AuthRepository(
             )
             Result.success(response)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun logout(): Result<Unit> {
+        return try {
+            val response = authApi.logout() // AuthApi에 추가된 logout 함수 호출
+            if (response.success) {
+                Log.d("AuthRepository", "로그아웃 API 호출 성공: ${response.message}")
+                Result.success(Unit)
+            } else {
+                Log.e("AuthRepository", "로그아웃 API 호출 실패: ${response.message}")
+                Result.failure(Exception(response.message ?: "로그아웃 실패"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "로그아웃 중 예외 발생", e)
             Result.failure(e)
         }
     }

@@ -20,7 +20,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,13 +48,13 @@ import com.trever.android.ui.theme.G_300
 
 import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.Red_1
-import com.trever.android.ui.theme.backgroundColor
+// import com.trever.android.ui.theme.backgroundColor // Not used, can be removed
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.utils.formatMileage
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
-import kotlin.compareTo
-import kotlin.rem
+// import kotlin.compareTo // Not used directly, can be removed if not needed by other parts of the file
+// import kotlin.rem // Not used directly, can be removed if not needed by other parts of the file
 
 @Composable
 fun ListingItem(
@@ -137,8 +136,19 @@ fun ListingItem(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val manufacturer = car.manufacturer
+                    val model = car.model
+                    val title = car.title ?: ""
+
+                    val carName = when {
+                        !manufacturer.isNullOrBlank() && !model.isNullOrBlank() -> "$manufacturer $model"
+                        !manufacturer.isNullOrBlank() -> manufacturer
+                        !model.isNullOrBlank() -> model
+                        else -> title
+                    }
+
                     Text(
-                        text = car.title,
+                        text = carName,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -146,18 +156,6 @@ fun ListingItem(
                         fontSize = 18.sp
                     )
 
-//                    if (showAuctionMeta) {
-//                        Row(verticalAlignment = Alignment.CenterVertically) {
-//                            Icon(
-//                                painter = painterResource(id = R.drawable.gavel_1),
-//                                contentDescription = "경매",
-//                                tint = Color.Unspecified,
-//                                modifier = Modifier.size(16.dp)
-//                            )
-//                            Spacer(Modifier.width(4.dp))
-//                            CountdownText(car.endsAtMillis)
-//                        }
-//                    }
                     if (showAuctionMeta) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -197,13 +195,13 @@ private fun formatKoreanWon(amount: Long): String {
     return buildString {
         if (억 > 0) append("${dec.format(억)}억 ")
         if (만 > 0) append("${dec.format(만)}만원")
-        if (억 == 0L && 만 == 0L) append("0원")
-    }.trim()
+        if (억 == 0L && 만 == 0L) append("0원") // 금액이 0원일 경우 처리
+    }.trim().ifEmpty { "0원" } // 만약 모든 조건에 해당하지 않아 비어있다면 "0원" 반환
 }
 
 private val dec = DecimalFormat("#,###")
 
-private fun formatKm(km: Int) = dec.format(km)
+// private fun formatKm(km: Int) = dec.format(km) // Not used, can be removed
 
 @Composable
 fun TagChip(text: String) {
@@ -252,7 +250,7 @@ private fun TagsWithPrice(
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp,
-                            color = Color.Black
+                            color = Color.Black // Consider using MaterialTheme.colorScheme.onSurface or similar
                         ).toSpanStyle()
                     ) {
                         append("$label ")
@@ -279,37 +277,6 @@ private fun TagsWithPrice(
         }
     }
 }
-//@Composable
-//private fun CountdownText(endsAtMillis: Long) {
-//    var remain by remember(endsAtMillis) { mutableStateOf(endsAtMillis - System.currentTimeMillis()) }
-//
-//    LaunchedEffect(endsAtMillis) {
-//        while (remain > 0) {
-//            kotlinx.coroutines.delay(1000)
-//            remain = endsAtMillis - System.currentTimeMillis()
-//        }
-//        remain = 0
-//    }
-//
-//    val d = TimeUnit.MILLISECONDS.toDays(remain.coerceAtLeast(0))
-//    val h = TimeUnit.MILLISECONDS.toHours(remain.coerceAtLeast(0)) % 24
-//    val m = TimeUnit.MILLISECONDS.toMinutes(remain.coerceAtLeast(0)) % 60
-//    val s = TimeUnit.MILLISECONDS.toSeconds(remain.coerceAtLeast(0)) % 60
-//
-//    val text = when {
-//        d > 0 -> "${d}일 ${h}시간 ${m}분"
-//        h > 0 -> "${h}시간 ${m}분"
-//        m >= 10 -> "${m}분"
-//        m > 0 -> "${m}분 ${s}초"
-//        else -> "${s}초"
-//    }
-//
-//    Text(
-//        text = text,
-//        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-//        color = Red_1
-//    )
-//}
 
 @Composable
 private fun CountdownText(startAtMillis: Long, endsAtMillis: Long) {
@@ -319,21 +286,27 @@ private fun CountdownText(startAtMillis: Long, endsAtMillis: Long) {
     var remain by remember(targetMillis) { mutableStateOf(targetMillis - now) }
 
     LaunchedEffect(targetMillis) {
+        // kotlinx.coroutines.delay(1000) // Original delay
+        // Consider using a more precise delay that accounts for processing time
+        // For example: val delayTime = (1000 - (System.currentTimeMillis() - targetMillis) % 1000).coerceAtLeast(0)
+        // kotlinx.coroutines.delay(delayTime)
+        // However, for simplicity and common practice, 1000ms is often sufficient.
         while (remain > 0) {
             kotlinx.coroutines.delay(1000)
             remain = targetMillis - System.currentTimeMillis()
         }
-        remain = 0
+        remain = 0 // Ensure remain is non-negative
     }
 
-    val d = TimeUnit.MILLISECONDS.toDays(remain.coerceAtLeast(0))
-    val h = TimeUnit.MILLISECONDS.toHours(remain.coerceAtLeast(0)) % 24
-    val m = TimeUnit.MILLISECONDS.toMinutes(remain.coerceAtLeast(0)) % 60
-    val s = TimeUnit.MILLISECONDS.toSeconds(remain.coerceAtLeast(0)) % 60
+    val currentRemain = remain.coerceAtLeast(0)
+    val d = TimeUnit.MILLISECONDS.toDays(currentRemain)
+    val h = TimeUnit.MILLISECONDS.toHours(currentRemain) % 24
+    val m = TimeUnit.MILLISECONDS.toMinutes(currentRemain) % 60
+    val s = TimeUnit.MILLISECONDS.toSeconds(currentRemain) % 60
 
     val label = if (isBeforeStart) "시작까지" else "종료까지"
     val text = when {
-        remain <= 0L -> "종료"
+        currentRemain <= 0L -> if (isBeforeStart && targetMillis > now) "시작 예정" else "종료"
         d > 0 -> "$label ${d}일 ${h}시간 ${m}분"
         h > 0 -> "$label ${h}시간 ${m}분"
         m >= 10 -> "$label ${m}분"
@@ -341,7 +314,7 @@ private fun CountdownText(startAtMillis: Long, endsAtMillis: Long) {
         else -> "$label ${s}초"
     }
 
-    val color = if (isBeforeStart) Color(0xFF1976D2) else Red_1
+    val color = if (isBeforeStart && currentRemain > 0L) Color(0xFF1976D2) else Red_1
 
     Text(
         text = text,

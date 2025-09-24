@@ -140,7 +140,7 @@ data class ApiResponse<T>(
     val status: Int,
     val success: Boolean,
     val message: String,
-    val data: T
+    val data: T? = null
 )
 
 @Serializable

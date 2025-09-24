@@ -25,10 +25,17 @@ class ProfileRepository(
 
     suspend fun getProfile(): Result<UserProfile> = withContext(Dispatchers.IO) {
         try {
-            val response = api.getProfile()
-            if (response.success) Result.success(response.data)
-            else Result.failure(Exception(response.message))
+            val response = api.getProfile() // response.data는 UserProfile?
+            if (response.success && response.data != null) {
+                Result.success(response.data) // response.data가 UserProfile로 스마트 캐스트됨
+            } else {
+                // API 응답이 성공하지 않았거나 data가 null인 경우
+                val errorMessage = response.message ?: "프로필 정보를 가져오지 못했습니다 (data is null: ${response.data == null})"
+                Log.e("ProfileRepository", "Get profile failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
         } catch (e: Exception) {
+            Log.e("ProfileRepository", "Get profile exception", e)
             Result.failure(e)
         }
     }
@@ -48,12 +55,15 @@ class ProfileRepository(
                     MultipartBody.Part.createFormData("profileImage", file.name, reqFile)
                 } else null
 
+                // api.updateProfile()이 ApiResponse<T>를 반환하고, T가 Unit이거나 무시되는 타입이라고 가정합니다.
+                // 만약 ApiResponse.data를 사용해야 한다면, 해당 부분도 nullable 처리가 필요합니다.
                 val response = api.updateProfile(userInfoBody, imagePart)
 
                 Log.d("ProfileRepository", "프로필 업데이트 응답: $response")
 
                 if (response.success) {
-                    Result.success("프로필 수정 성공")
+                    // 성공 메시지를 response.data에서 가져오지 않는다면 이 부분은 괜찮습니다.
+                    Result.success("프로필 수정 성공") 
                 } else {
                     Log.e("ProfileRepository", "프로필 업데이트 API 실패: ${response.message}")
                     Result.failure(Exception(response.message ?: "프로필 수정 실패"))

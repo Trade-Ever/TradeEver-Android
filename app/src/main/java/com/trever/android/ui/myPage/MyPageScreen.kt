@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,15 +34,16 @@ import com.trever.android.data.remote.UserInfo
 import com.trever.android.ui.myPage.components.ProfileEditSheetContent
 import com.trever.android.ui.myPage.components.TransactionSheetContent
 import com.trever.android.ui.myPage.components.formatAmountToManwon
+import com.trever.android.ui.navigation.ROUTE_LOGIN
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PRIVACY_POLICY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_PURCHASE_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_SALES_HISTORY
 import com.trever.android.ui.navigation.ROUTE_MYPAGE_TERMS
-// import com.trever.android.ui.navigation.ROUTE_SEARCH // 이전 경로, 현재 "main"으로 대체
 import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Grey_100
-import com.trever.android.ui.theme.Grey_100
+import kotlinx.coroutines.flow.collectLatest
+// import com.trever.android.ui.theme.Grey_100 // Duplicate import
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
@@ -71,6 +73,58 @@ fun MyPageScreen(
     val withdrawSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showWithdrawBottomSheet by remember { mutableStateOf(false) }
 
+    val logoutState by viewModel.logoutProcessState.collectAsState()
+
+    // ViewModel의 navigateToLogin 이벤트를 구독하여 화면 이동 처리
+    LaunchedEffect(key1 = Unit) {
+        viewModel.navigateToLogin.collectLatest {
+            navController.navigate(ROUTE_LOGIN) {
+                popUpTo("main") {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    // 로그아웃 완료 다이얼로그 표시
+    if (logoutState == LogoutProcessState.CompletedShowDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                // 다이얼로그 외부 클릭 시에도 확인과 동일하게 처리
+                viewModel.onLogoutDialogConfirmed()
+            },
+            title = {
+                Text(
+                    text = "로그아웃",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    text = "로그아웃 되었습니다!",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.onLogoutDialogConfirmed() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("확인")
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = Color.White
+        )
+    }
+
     if (showProfileBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showProfileBottomSheet = false },
@@ -79,14 +133,16 @@ fun MyPageScreen(
         ) {
             ProfileEditSheetContent(
                 initialName = userProfile?.name ?: "",
-                initialPhoneNumber = userProfile?.phone ?: "",
+                initialEmail = userProfile?.email ?: "", // phoneNumber -> email, and provide email from userProfile
                 initialAddress = userProfile?.locationCity ?: "",
                 initialBirthday = userProfile?.birthDate ?: "",
                 initialProfileImageUri = userProfile?.profileImageUrl?.let { Uri.parse(it) },
-                onSaveClicked = { name, phone, address, birthday, imageUri ->
+                onSaveClicked = { name, email, address, birthday, imageUri -> // phone -> email
                     val userInfo = UserInfo(
                         name = name,
-                        phone = phone.ifEmpty { null },
+                        // If UserInfo has an 'email' field, use it. Otherwise, map to 'phone' or adjust UserInfo.
+                        phone = email.ifEmpty { null }, // Assuming email is saved to phone field for now
+                        email = email.ifEmpty {null}, // If UserInfo has an email field
                         locationCity = address.ifEmpty { null },
                         birthDate = birthday.ifEmpty { null }
                     )
@@ -162,7 +218,8 @@ fun MyPageScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 0.dp),
             contentPadding = PaddingValues(
                 bottom = 0.dp
             ),
@@ -173,7 +230,7 @@ fun MyPageScreen(
             item {
                 ProfileSection(
                     nickname = userProfile?.name ?: "닉네임",
-                    email = userProfile?.phone ?: "-",
+                    email = userProfile?.email ?: "",
                     profileImageUrl = userProfile?.profileImageUrl,
                     onProfileClick = { showProfileBottomSheet = true }
                 )
