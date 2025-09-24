@@ -29,5 +29,5 @@ data class TransactionDto(
     val status: String,
     val createdAt: String,
     val contractId: Long,
-    val contractPdfUrl: String
+    val contractPdfUrl: String,
 )
