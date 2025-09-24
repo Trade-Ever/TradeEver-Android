@@ -3,6 +3,8 @@ package com.trever.android.data.repository
 import android.util.Log
 import com.trever.android.data.remote.MyPageApi
 import com.trever.android.data.remote.RecentlyViewedCarDto
+import com.trever.android.data.remote.VehicleSummaryDto
+import com.trever.android.data.remote.LikedCarsDataWrapper // 확인: import 구문 포함
 import com.trever.android.data.remote.toAuctionCar
 import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.RecentlyViewedCar
@@ -22,7 +24,8 @@ class MyPageRepository(private val myPageApi: MyPageApi) {
         try {
             val response = myPageApi.getRecentlyViewedCars()
             if (response.success) {
-                val domainModels = response.data.vehicles.map { it.toDomainModel() } // <--- 수정됨
+                val dtoList = response.data?.vehicles ?: emptyList()
+                val domainModels = dtoList.map { it.toDomainModel() } 
                 Result.success(domainModels)
             } else {
                 Result.failure(Exception(response.message))
@@ -43,7 +46,10 @@ class MyPageRepository(private val myPageApi: MyPageApi) {
             Log.d("MyPageRepository", "찜 목록 조회 응답: $response")
 
             if (response.success) {
-                val domainModels = response.data.map { it.toAuctionCar() }
+                // response.data는 LikedCarsDataWrapper? 타입.
+                // 여기서 vehicles 리스트를 가져와서 AuctionCar로 매핑합니다.
+                val vehicleDtoList: List<VehicleSummaryDto> = response.data?.vehicles ?: emptyList() // 확인: .vehicles 접근
+                val domainModels: List<AuctionCar> = vehicleDtoList.map { dto -> dto.toAuctionCar() }
                 Result.success(domainModels)
             } else {
                 Log.e("MyPageRepository", "찜 목록 API 조회 실패: ${response.message}")
@@ -72,7 +78,7 @@ private fun RecentlyViewedCarDto.toDomainModel(): RecentlyViewedCar {
         isAuction = this.isAuction == "Y",
         manufacturer = this.manufacturer,
         model = this.model,
-        mainOptions = this.mainOptions, // DTO의 mainOptions를 그대로 전달
+        mainOptions = this.mainOptions, 
         isFavorite = this.isFavorite
     )
     Log.d("MyPageRepository", "Created Domain: id=${recentlyViewedCar.id}, mainOptions Domain=${recentlyViewedCar.mainOptions}")

@@ -9,10 +9,10 @@ import retrofit2.http.GET
 interface MyPageApi {
 
     @GET("api/v1/recent-views")
-    suspend fun getRecentlyViewedCars(): ApiResponse<RecentlyViewedDataWrapper> // <--- 수정됨
+    suspend fun getRecentlyViewedCars(): ApiResponse<RecentlyViewedDataWrapper> 
 
     @GET("api/v1/favorites")
-    suspend fun getLikedCars(): ApiResponse<List<VehicleSummaryDto>> // TODO: 이 응답도 실제 구조 확인 필요
+    suspend fun getLikedCars(): ApiResponse<LikedCarsDataWrapper> // 확인: LikedCarsDataWrapper 사용
 }
 
 /**
@@ -21,6 +21,14 @@ interface MyPageApi {
 @Serializable
 data class RecentlyViewedDataWrapper(
     val vehicles: List<RecentlyViewedCarDto>
+)
+
+/**
+ * "찜한 차량 목록" API의 'data' 필드 내부 구조를 위한 래퍼 클래스
+ */
+@Serializable
+data class LikedCarsDataWrapper(
+    val vehicles: List<VehicleSummaryDto> // 확인: 'vehicles' 속성 정의
 )
 
 /**
