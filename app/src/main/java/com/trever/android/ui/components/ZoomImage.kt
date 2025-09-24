@@ -17,43 +17,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 
-//@Composable
-//fun ZoomImage(
-//    bitmap: Bitmap,
-//    modifier: Modifier = Modifier,
-//    minScale: Float = 1f,
-//    maxScale: Float = 4f
-//) {
-//    var scale by remember { mutableStateOf(1f) }
-//    var offsetX by remember { mutableStateOf(0f) }
-//    var offsetY by remember { mutableStateOf(0f) }
-//
-//    Box(
-//        modifier = modifier
-//            .graphicsLayer(
-//                scaleX = scale,
-//                scaleY = scale,
-//                translationX = offsetX,
-//                translationY = offsetY
-//            )
-//            .pointerInput(Unit) {
-//                detectTransformGestures { _, pan, zoom, _ ->
-//                    val newScale = (scale * zoom).coerceIn(minScale, maxScale)
-//                    // 팬은 스케일에 비례
-//                    offsetX += pan.x
-//                    offsetY += pan.y
-//                    scale = newScale
-//                }
-//            }
-//    ) {
-//        Image(
-//            bitmap = bitmap.asImageBitmap(),
-//            contentDescription = null,
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//    }
-//}
-//
+
 
 @Composable
 fun ZoomImage(

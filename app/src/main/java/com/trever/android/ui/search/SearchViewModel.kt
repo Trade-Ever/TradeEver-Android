@@ -58,9 +58,9 @@ class SearchViewModel(
     private fun checkAndTriggerSearch() {
         // 모든 값이 null이 아니고, 실제로 유효할 때만 검색 실행
         if (
-            yearRange.value != null &&
-            distanceRange.value != null &&
-            priceRange.value != null &&
+            yearRange.value != null ||
+            distanceRange.value != null ||
+            priceRange.value != null ||
             selectedType.value != null
         ) {
             triggerSearchIfReady()
@@ -96,8 +96,8 @@ class SearchViewModel(
             yearEnd = yearRange.value?.endInclusive?.toInt(),
             mileageStart = distanceRange.value?.start?.toInt(),
             mileageEnd = distanceRange.value?.endInclusive?.toInt(),
-            priceStart = priceRange.value?.start?.toInt()?.times(100),
-            priceEnd = priceRange.value?.endInclusive?.toInt()?.times(100),
+            priceStart = priceRange.value?.start?.toInt()?.times(1000000),
+            priceEnd = priceRange.value?.endInclusive?.toInt()?.times(1000000),
             vehicleType = selectedType.value?.let { carTypeMapReverse[it] },
             page = 0,
             size = 10
