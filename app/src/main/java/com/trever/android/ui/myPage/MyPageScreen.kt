@@ -43,7 +43,7 @@ import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Grey_100
 import kotlinx.coroutines.flow.collectLatest
-import com.trever.android.ui.theme.Grey_100
+// import com.trever.android.ui.theme.Grey_100 // Duplicate import
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
@@ -133,14 +133,16 @@ fun MyPageScreen(
         ) {
             ProfileEditSheetContent(
                 initialName = userProfile?.name ?: "",
-                initialPhoneNumber = userProfile?.phone ?: "",
+                initialEmail = userProfile?.email ?: "", // phoneNumber -> email, and provide email from userProfile
                 initialAddress = userProfile?.locationCity ?: "",
                 initialBirthday = userProfile?.birthDate ?: "",
                 initialProfileImageUri = userProfile?.profileImageUrl?.let { Uri.parse(it) },
-                onSaveClicked = { name, phone, address, birthday, imageUri ->
+                onSaveClicked = { name, email, address, birthday, imageUri -> // phone -> email
                     val userInfo = UserInfo(
                         name = name,
-                        phone = phone.ifEmpty { null },
+                        // If UserInfo has an 'email' field, use it. Otherwise, map to 'phone' or adjust UserInfo.
+                        phone = email.ifEmpty { null }, // Assuming email is saved to phone field for now
+                        email = email.ifEmpty {null}, // If UserInfo has an email field
                         locationCity = address.ifEmpty { null },
                         birthDate = birthday.ifEmpty { null }
                     )
@@ -228,7 +230,7 @@ fun MyPageScreen(
             item {
                 ProfileSection(
                     nickname = userProfile?.name ?: "닉네임",
-                    email = userProfile?.phone ?: "-",
+                    email = userProfile?.email ?: "",
                     profileImageUrl = userProfile?.profileImageUrl,
                     onProfileClick = { showProfileBottomSheet = true }
                 )
@@ -485,4 +487,3 @@ fun MyPageScreenPreview() {
 //         MyPageScreen(navController = rememberNavController())
     }
 }
-

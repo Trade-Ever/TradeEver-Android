@@ -33,6 +33,7 @@ interface ProfileApi {
 data class UserInfo(
     val name: String? = null,
     val phone: String? = null,
+    val email: String? = null, // Add this
     val locationCity: String? = null,
     val birthDate: String? = null
 )

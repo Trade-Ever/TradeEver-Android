@@ -26,21 +26,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.trever.android.R // Placeholder 이미지용
-import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.theme.textPrimaryColor // 사용하고 있으므로 유지
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditSheetContent(
     initialName: String = "채은정",
-    initialPhoneNumber: String = "010-1234-5678",
+    initialEmail: String = "example@email.com", // phoneNumber -> email, 기본값 변경
     initialAddress: String = "",
     initialBirthday: String = "",
     initialProfileImageUri: Uri? = null,
-    onSaveClicked: (name: String, phone: String, address: String, birthday: String, imageUri: Uri?) -> Unit,
+    onSaveClicked: (name: String, email: String, address: String, birthday: String, imageUri: Uri?) -> Unit, // phone -> email
 ) {
     var profileImageUri by remember { mutableStateOf(initialProfileImageUri) }
     var name by remember { mutableStateOf(initialName) }
-    var phoneNumber by remember { mutableStateOf(initialPhoneNumber) }
+    var email by remember { mutableStateOf(initialEmail) } // phoneNumber -> email
     var address by remember { mutableStateOf(initialAddress) }
     var birthday by remember { mutableStateOf(initialBirthday) }
 
@@ -63,7 +63,7 @@ fun ProfileEditSheetContent(
         Text(
             text = "프로필 수정",
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.textPrimaryColor,
+            color = MaterialTheme.colorScheme.textPrimaryColor, // 테마 컬러 사용 확인
             modifier = Modifier
                 .padding(bottom = 24.dp)
                 .align(Alignment.Start)
@@ -87,7 +87,7 @@ fun ProfileEditSheetContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         ProfileTextField(label = "이름", value = name, onValueChange = { name = it })
-        ProfileTextField(label = "전화번호", value = phoneNumber, onValueChange = { phoneNumber = it })
+        ProfileTextField(label = "이메일", value = email, onValueChange = { email = it }) // "전화번호" -> "이메일", phoneNumber -> email
         ProfileTextField(label = "주소", value = address, onValueChange = { address = it })
         ProfileTextField(label = "생일", value = birthday, onValueChange = { birthday = it }, placeholder = "YYYYMMDD")
 
@@ -95,7 +95,7 @@ fun ProfileEditSheetContent(
 
         Button(
             onClick = {
-                onSaveClicked(name, phoneNumber, address, birthday, profileImageUri)
+                onSaveClicked(name, email, address, birthday, profileImageUri) // phoneNumber -> email
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -120,7 +120,7 @@ private fun ProfileTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.textPrimaryColor,
+            color = MaterialTheme.colorScheme.textPrimaryColor, // 테마 컬러 사용 확인
             modifier = Modifier.padding(bottom = 4.dp)
         )
         OutlinedTextField(

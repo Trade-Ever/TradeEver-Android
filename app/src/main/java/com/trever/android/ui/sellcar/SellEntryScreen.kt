@@ -38,10 +38,11 @@ import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.navigation.ROUTE_SELL_FLOW
 import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
 // import com.trever.android.ui.theme.AppTheme // 프리뷰 관련 코드가 없다면 제거 가능
-import com.trever.android.ui.theme.AppTheme
+// import com.trever.android.ui.theme.AppTheme // AppTheme 사용시 필요
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Red_1
 import com.trever.android.ui.theme.backgroundColor
+// import com.trever.android.ui.theme.backgroundColor // 직접 Color.White 사용
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 import com.trever.android.ui.theme.textSecondaryColor
@@ -65,34 +66,30 @@ fun SellEntryScreen(
     parentNavController: NavHostController,
     sellEntryViewModel: SellEntryViewModel = koinViewModel()
 ) {
-    // 화면이 나타날 때마다 내가 등록한 차량 목록을 새로고침하는 LaunchedEffect는 ViewModel의 init 블록으로 이동 또는 유지 가능
-    // ViewModel에서 init 시점에 fetch 및 리스너를 설정하므로 여기서는 필수는 아님
-    // 다만, 화면이 다시 보여질 때마다 강제 새로고침을 원한다면 유지할 수 있음
-//    LaunchedEffect(key1 = Unit) { // key1 = true에서 Unit으로 변경하여 화면 진입 시 마다 실행
-//        sellEntryViewModel.fetchMyVehicles()
-//    }
-
     val uiState by sellEntryViewModel.uiState.collectAsState()
-    // uiState.myVehicles가 이미 List<AuctionCar>이므로 추가 매핑 필요 없음
     val registeredCars = uiState.myVehicles
     val isRefreshing = uiState.isLoading
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
-        // onRefresh 콜백에서 isRefresh = true 로 설정
         onRefresh = { sellEntryViewModel.fetchMyVehicles(isRefresh = true) }
     )
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pullRefresh(pullRefreshState) // Box에 pullRefresh Modifier 적용
-    ) {
-        LazyColumn(
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.backgroundColor, // 배경색 흰색으로 변경
+        modifier = Modifier.statusBarsPadding() // 상태바 패딩 Scaffold 레벨로 이동
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues) // Scaffold로부터의 패딩 적용
+                .pullRefresh(pullRefreshState)
+        ) {
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                // .background(Color.White) // LazyColumn 자체의 배경보다 Scaffold 배경색 사용
             ) {
-                // 1. 상단 UI (변경 없음)
+                // 1. 상단 UI
                 item {
                     Box(
                         modifier = Modifier
@@ -112,9 +109,9 @@ fun SellEntryScreen(
                                 .align(Alignment.BottomCenter)
                                 .offset(y = (-40).dp)
                                 .border(
-                                    width = 4.dp, // Adjust the border thickness as needed
+                                    width = 4.dp, // 테두리 두께 조정 (기존 4dp에서 변경된 경우 참고)
                                     color = MaterialTheme.colorScheme.G_100,
-                                    shape = RoundedCornerShape(8.dp) // Use the same shape for the border
+                                    shape = RoundedCornerShape(8.dp)
                                 ),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -148,7 +145,6 @@ fun SellEntryScreen(
                                         .padding(horizontal = 16.dp, vertical = 48.dp)
                                 )
                             }
-                            // 로딩이 끝났고, 차량이 없을 때 메시지 표시
                             registeredCars.isEmpty() && !isRefreshing -> {
                                 Text(
                                     text = "아직 등록된 차량이 없어요. 지금 바로 내 차 정보를 등록해보세요!",
@@ -163,7 +159,7 @@ fun SellEntryScreen(
                             registeredCars.isNotEmpty() -> {
                                 Text(
                                     text = "내가 등록한 차량",
-                                    style = MaterialTheme.typography.titleMedium, // Changed to a smaller style
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.textPrimaryColor,
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp)
@@ -173,14 +169,13 @@ fun SellEntryScreen(
                     }
                 }
 
-
-                // 3. 등록된 차량 목록 (registeredCars를 직접 사용)
+                // 3. 등록된 차량 목록
                 if (registeredCars.isNotEmpty()) {
-                    items(registeredCars, key = { it.id }) { car -> // car는 이제 AuctionCar 타입
+                    items(registeredCars, key = { it.id }) { car ->
                         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             val isRealAuction = car.auctionId != null && car.auctionId != 0L
                             ListingItem(
-                                car = car, // AuctionCar 타입이므로 그대로 전달
+                                car = car,
                                 onClick = {
                                     if (isRealAuction) {
                                         parentNavController.navigate("auction/detail/${car.id}/${car.auctionId}")
@@ -188,7 +183,7 @@ fun SellEntryScreen(
                                         parentNavController.navigate("buy/detail/${car.id}")
                                     }
                                 },
-                                onToggleLike = { /* SellEntryScreen에서는 찜하기 기능이 필요 없을 수 있음 */ },
+                                onToggleLike = { /* 찜하기 로직 */ },
                                 tags = car.mainOptions ?: emptyList(),
                                 showBadge = isRealAuction,
                                 showAuctionMeta = isRealAuction,
@@ -199,7 +194,7 @@ fun SellEntryScreen(
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                    Spacer(modifier = Modifier.height(80.dp)) // 바텀 네비게이션 고려
                 }
             }
 
@@ -212,3 +207,4 @@ fun SellEntryScreen(
             )
         }
     }
+}
