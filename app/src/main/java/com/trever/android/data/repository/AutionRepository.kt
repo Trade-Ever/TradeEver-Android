@@ -120,6 +120,7 @@ class AuctionRepository(
 
     suspend fun placeBid(auctionId: Int, bidPrice: Long): Flow<Result<BidData>> = flow {
         try {
+            Log.d("AuctionRepository", "placeBid 호출됨. auctionId: $auctionId, bidPrice: $bidPrice")
             val request = BidRequest(auctionId, bidPrice)
             val response = auctionApi.placeBid(request)
 

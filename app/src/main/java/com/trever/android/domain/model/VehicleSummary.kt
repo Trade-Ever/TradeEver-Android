@@ -3,6 +3,7 @@ package com.trever.android.domain.model
 
 
 data class VehicleSummary(
+
     val id: Long,
     val carName: String,
     val manufacturer: String,
@@ -20,7 +21,8 @@ data class VehicleSummary(
     val createdAt: String,
     val vehicleTypeName: String?,
     val mainOptions: List<String>,
-    val totalOptionsCount: Int
+    val totalOptionsCount: Int,
+    val liked: Boolean?,
 )
 
 

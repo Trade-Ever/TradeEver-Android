@@ -63,6 +63,8 @@ private fun TransactionDto.toDomainModel(): Transaction {
         transactionId = this.transactionId,
         vehicleId = this.vehicleId,
         vehicleName = this.vehicleName,
+        buyerName = this.buyerName,      // <--- DTO의 buyerName을 전달
+        sellerName = this.sellerName,    // <--- DTO의 sellerName을 전달
         finalPrice = this.finalPrice,
         status = this.status,
         createdAt = this.createdAt,

@@ -141,24 +141,24 @@ class AuctionListViewModel : ViewModel() {
         viewModelScope.launch {
             repository.getAuctions(currentPage)
                 .onSuccess { auctions ->
-                    // Firebase 데이터로 갱신
                     val updatedAuctions = auctionRepository.updateAuctionsWithFirebaseData(auctions)
+                    val uniqueAuctions = updatedAuctions.distinctBy { it.id }
                     val currentState = _uiState.value
                     val newState = if (currentState is AuctionListUiState.Success && !isRefresh) {
                         currentState.copy(
-                            auctions = currentState.auctions + updatedAuctions,
+                            auctions = (currentState.auctions + uniqueAuctions).distinctBy { it.id },
                             currentPage = currentPage,
-                            hasMorePages = updatedAuctions.isNotEmpty() && updatedAuctions.size == 10
+                            hasMorePages = uniqueAuctions.isNotEmpty() && uniqueAuctions.size == 10
                         )
                     } else {
                         AuctionListUiState.Success(
-                            auctions = updatedAuctions,
+                            auctions = uniqueAuctions,
                             currentPage = currentPage,
-                            hasMorePages = updatedAuctions.isNotEmpty() && updatedAuctions.size == 10
+                            hasMorePages = uniqueAuctions.isNotEmpty() && uniqueAuctions.size == 10
                         )
                     }
                     _uiState.value = newState
-                    isLastPage = updatedAuctions.isEmpty() || updatedAuctions.size < 10
+                    isLastPage = uniqueAuctions.isEmpty() || uniqueAuctions.size < 10
                 }
                 .onFailure { error ->
                     Log.e("AuctionListViewModel", "Error loading auctions", error)
@@ -171,6 +171,27 @@ class AuctionListViewModel : ViewModel() {
         if (!isLoading && !isLastPage) {
             currentPage++
             loadAuctions(currentPage, false)
+        }
+    }
+
+    fun toggleLike(carId: String) {
+        Log.d("AuctionListViewModel", "toggleLike 호출됨: $carId")
+        viewModelScope.launch {
+            val result = repository.toggleLike(carId)
+            if (result.isSuccess) {
+                Log.d("AuctionListViewModel", "toggleLike 성공: $carId")
+                // 현재 상태에서 해당 차량의 liked 값만 토글
+                val currentState = _uiState.value
+                if (currentState is AuctionListUiState.Success) {
+                    val updatedAuctions = currentState.auctions.map { car ->
+                        if (car.id == carId) car.copy(liked = !(car.liked == true))
+                        else car
+                    }
+                    _uiState.value = currentState.copy(auctions = updatedAuctions)
+                }
+            } else {
+                Log.e("AuctionListViewModel", "toggleLike 실패: $carId, ${result.exceptionOrNull()}")
+            }
         }
     }
 

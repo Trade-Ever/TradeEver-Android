@@ -1,7 +1,13 @@
 package com.trever.android.data.repository
 
+import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.Build
+import android.os.ParcelFileDescriptor
+import android.provider.MediaStore
 import android.util.Log
 import com.google.gson.Gson
 import com.trever.android.data.network.ApiClient
@@ -18,6 +24,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import java.io.File
 import java.io.FileOutputStream
 
@@ -27,11 +34,87 @@ class VehicleRepository(
     private val gson: Gson = Gson()
 ) {
 
+    suspend fun downloadToCache(contractId: Long): File {
+        val response = api.getContractPdf(contractId)
+        if (response == null || response.body() == null) {
+            throw IllegalStateException("계약서 PDF 응답이 없습니다.")
+        }
+        val body = response.body()!!
+
+        val file = File(context!!.cacheDir, "자동차매매계약서_$contractId.pdf")
+
+        body.byteStream().use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        return file
+    }
+
+    // PdfRenderer 열기
+    suspend fun openRenderer(pdfFile: File): PdfRenderer = withContext(Dispatchers.IO) {
+        val pfd = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
+        PdfRenderer(pfd)
+    }
+
+    // 특정 페이지를 비트맵으로 렌더링
+    suspend fun renderPage(renderer: PdfRenderer, index: Int, width: Int): Bitmap =
+        withContext(Dispatchers.IO) {
+            renderer.openPage(index).use { page ->
+                // 종횡비대로 높이 계산
+                val ratio = page.height.toFloat() / page.width.toFloat()
+                val bmp = Bitmap.createBitmap(width, (width * ratio).toInt(), Bitmap.Config.ARGB_8888)
+                page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                bmp
+            }
+        }
+
+
+    // Downloads/ 에 저장 (스코프드 스토리지)
+    suspend fun saveToDownloads(pdfFile: File, displayName: String = pdfFile.name): Uri =
+        withContext(Dispatchers.IO) {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, displayName)
+                put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.Downloads.IS_PENDING, 1)
+                }
+            }
+
+            val resolver = context!!.contentResolver
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                ?: error("Downloads 항목 생성 실패")
+
+            resolver.openOutputStream(uri)?.use { out ->
+                pdfFile.inputStream().use { it.copyTo(out) }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.clear()
+                contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
+                resolver.update(uri, contentValues, null, null)
+            }
+            uri
+        }
+
     suspend fun checkCarNumber(carNumber: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             val response = api.checkCarNumber(carNumber)
             if (response.success) {
                 Result.success(response.data.exists)
+            } else {
+                Result.failure(Exception(response.message))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun toggleLike(vehicleId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.toggleFavorite(vehicleId)
+            if (response.success) {
+                Result.success(response.data)
             } else {
                 Result.failure(Exception(response.message))
             }

@@ -58,12 +58,19 @@ class SearchViewModel(
     private fun checkAndTriggerSearch() {
         // 모든 값이 null이 아니고, 실제로 유효할 때만 검색 실행
         if (
-            yearRange.value != null &&
-            distanceRange.value != null &&
-            priceRange.value != null &&
+            yearRange.value != null ||
+            distanceRange.value != null ||
+            priceRange.value != null ||
             selectedType.value != null
         ) {
             triggerSearchIfReady()
+        }
+    }
+
+    fun deleteRecentSearch(keyword: String) {
+        viewModelScope.launch {
+            val ok = api.deleteRecentSearch(keyword)
+            if (ok.success) fetchRecentSearches() // 성공 시 목록 갱신
         }
     }
 
@@ -78,9 +85,11 @@ class SearchViewModel(
         "경차" to "COMPACT"
     )
 
+
     private fun triggerSearchIfReady() {
         val request = VehicleSearchRequest(
-            keyword = searchText.value, // 만약 StateFlow로 관리 중이라면
+
+            keyword = searchText.value.trim().takeIf { it.isNotEmpty() }, // 만약 StateFlow로 관리 중이라면
             manufacturer = selectedManufacturer.value?.takeIf { it.isNotEmpty() },
             carName = selectedCarName.value?.takeIf { it.isNotEmpty() },
             carModel = selectedCarModel.value?.takeIf { it.isNotEmpty() },
@@ -88,8 +97,8 @@ class SearchViewModel(
             yearEnd = yearRange.value?.endInclusive?.toInt(),
             mileageStart = distanceRange.value?.start?.toInt(),
             mileageEnd = distanceRange.value?.endInclusive?.toInt(),
-            priceStart = priceRange.value?.start?.toInt()?.times(100),
-            priceEnd = priceRange.value?.endInclusive?.toInt()?.times(100),
+            priceStart = priceRange.value?.start?.toInt()?.times(1000000),
+            priceEnd = priceRange.value?.endInclusive?.toInt()?.times(1000000),
             vehicleType = selectedType.value?.let { carTypeMapReverse[it] },
             page = 0,
             size = 10

@@ -6,6 +6,8 @@ import com.trever.android.domain.model.Tag
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -79,7 +81,29 @@ interface VehicleApi {
         @Path("vehicleId") vehicleId: String,
         @Query("buyerId") buyerId: Long
     ): ApiResponse<SelectBuyerResponse>
+
+    @POST("api/v1/favorites/{vehicleId}/toggle")
+    suspend fun toggleFavorite(@Path("vehicleId") vehicleId: String): ApiResponse<Boolean>
+
+    @GET("api/v1/contracts/{id}/pdf")
+    suspend fun getContractPdf(@Path("id") id: Long): Response<ResponseBody>
+
+    @GET("api/v1/contracts/{id}")
+    suspend fun getContract(@Path("id") id: Long): ApiResponse<ContractDetail>
+
 }
+
+
+@Serializable
+data class ContractDetail(
+    val contractId: Long,
+    val transactionId: Long,
+    val buyerName: String,
+    val sellerName: String,
+    val status: String,
+    val signedAt: String,          // ISO
+    val contractPdfUrl: String
+)
 
 @Serializable
 data class CarNumberCheckDto(
@@ -163,6 +187,7 @@ data class VehicleSummaryDto(
 @Serializable
 data class VehicleDto(
     val id: Long,
+    val isFavorite: Boolean? = null,
     val carName: String? = null,
     val manufacturer: String? = null,
     val model: String? = null,

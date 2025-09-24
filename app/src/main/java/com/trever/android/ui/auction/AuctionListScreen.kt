@@ -106,6 +106,8 @@ fun AuctionListScreen(
         }
     )
 
+
+
     // 새로고침 완료 감지
     LaunchedEffect(uiState) {
         if (refreshing && uiState !is AuctionListUiState.Loading) {
@@ -159,7 +161,7 @@ fun AuctionListScreen(
                                 ListingItem(
                                     car = car,
                                     onClick = { onItemClick(car.id, car.auctionId.toString()) },
-                                    onToggleLike = { onToggleLike(car.id) },
+                                    onToggleLike = { viewModel.toggleLike(car.id) },
                                     tags = car.mainOptions,
                                     priceLabel = "최고 입찰가",
                                     showBadge = true,

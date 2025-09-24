@@ -71,10 +71,17 @@ fun RecentlyViewedCarsScreen(
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
+                    val isSelected = selectedTabIndex == index
                     Tab(
-                        selected = selectedTabIndex == index,
+                        selected = isSelected,
                         onClick = { selectedTabIndex = index },
-                        text = { Text(text = title) }
+                        text = {
+                            Text(
+                                text = title,
+                                // isSelected 값에 따라 텍스트 색상을 동적으로 변경
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black
+                            )
+                        }
                     )
                 }
             }
@@ -107,32 +114,49 @@ private fun CarList(cars: List<RecentlyViewedCar>, navController: NavController)
         contentPadding = PaddingValues(all = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(cars, key = { it.id }) { car ->
+        items(cars, key = { it.id }) { car -> // car is RecentlyViewedCar
+            val effectiveTitle = if (!car.manufacturer.isNullOrBlank() && !car.model.isNullOrBlank()) {
+                "${car.manufacturer} ${car.model}"
+            } else {
+                car.title // car.title is from DTO's carName
+            }
+
             val auctionCar = AuctionCar(
                 id = car.id,
-                title = car.title,
+                title = effectiveTitle,
                 year = car.year,
                 mileageKm = car.mileageKm,
                 imageUrl = car.imageUrl,
                 currentPriceWon = car.priceWon,
                 manufacturer = car.manufacturer,
                 model = car.model,
-                tags = emptyList(),
-                mainOptions = emptyList(),
-                startAtMillis = 0L, // 임시값 추가
-                endsAtMillis = 0L,
-                liked = false,
+                tags = emptyList(), // This is List<Tag> (enum). Pass emptyList() as we don't have this info from RecentlyViewedCar.
+                mainOptions = car.mainOptions ?: emptyList(), // This is List<String> and is correctly used by ListingItem.
+                startAtMillis = 0L, // Placeholder, as RecentlyViewedCar doesn't have auction times
+                endsAtMillis = 0L,  // Placeholder
+                liked = car.isFavorite ?: false, // Uses isFavorite from RecentlyViewedCar
                 auctionId = if(car.isAuction) car.id.toLongOrNull() else null,
                 transactionType = if(car.isAuction) "경매" else "일반"
             )
+            
+            val isAuctionDisplay = auctionCar.auctionId != null
 
             ListingItem(
                 car = auctionCar,
-                onClick = { /* TODO: 상세 화면 이동 */ },
+                onClick = { // auctionCar를 사용하여 네비게이션
+                    if (auctionCar.auctionId != null) {
+                        // 경매 매물일 경우: auction/detail/{carId}/{auctionId}로 이동
+                        navController.navigate("auction/detail/${auctionCar.id}/${auctionCar.auctionId}")
+                    } else {
+                        // 일반 매물일 경우: buy/detail/{carId}로 이동
+                        navController.navigate("buy/detail/${auctionCar.id}")
+                    }
+                },
                 onToggleLike = { /* TODO: 찜하기 로직 */ },
-                showBadge = car.isAuction,
-                showAuctionMeta = car.isAuction,
-                priceLabel = if (car.isAuction) "최고 입찰가" else "판매 가격"
+                tags = auctionCar.mainOptions ?: emptyList(),
+                showBadge = isAuctionDisplay,
+                showAuctionMeta = isAuctionDisplay,
+                priceLabel = if (isAuctionDisplay) "최고 입찰가" else "판매 가격"
             )
         }
     }
@@ -145,14 +169,24 @@ private fun LikedCarList(cars: List<AuctionCar>, navController: NavController) {
         contentPadding = PaddingValues(all = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(cars, key = { it.id }) { car ->
+        items(cars, key = { it.id }) { car -> // car is AuctionCar
+            val isAuctionDisplay = car.auctionId != null
             ListingItem(
                 car = car,
-                onClick = { /* TODO: 상세 화면 이동 */ },
+                onClick = {
+                    if (car.auctionId != null) {
+                        // 경매 매물일 경우: auction/detail/{carId}/{auctionId}로 이동
+                        navController.navigate("auction/detail/${car.id}/${car.auctionId}")
+                    } else {
+                        // 일반 매물일 경우: buy/detail/{carId}로 이동
+                        navController.navigate("buy/detail/${car.id}")
+                    }
+                },
                 onToggleLike = { /* TODO: 찜하기 로직 */ },
-                showBadge = car.transactionType == "경매",
-                showAuctionMeta = car.transactionType == "경매",
-                priceLabel = if (car.transactionType == "경매") "최고 입찰가" else "판매 가격"
+                tags = car.mainOptions ?: emptyList(),
+                showBadge = isAuctionDisplay,
+                showAuctionMeta = isAuctionDisplay,
+                priceLabel = if (isAuctionDisplay) "최고 입찰가" else "판매 가격"
             )
         }
     }

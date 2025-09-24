@@ -1,6 +1,5 @@
-package com.trever.android.ui.search
+import com.trever.android.ui.search.RangeSelectBottomSheet
 
-// app/src/main/java/com/trever/android/ui/search/SearchResultScreen.kt
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
@@ -25,6 +24,8 @@ import com.trever.android.domain.model.AuctionCar
 import com.trever.android.domain.model.SearchCarItem
 import com.trever.android.domain.model.toAuctionCar
 import com.trever.android.domain.model.toAuctionCarForDisplay
+import com.trever.android.ui.search.CarTypeSelectBottomSheet
+import com.trever.android.ui.search.SearchViewModel
 import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
 
@@ -34,12 +35,10 @@ fun SearchResultScreen(
     viewModel: SearchViewModel,
     cars: List<SearchCarItem>,
     onBack: () -> Unit,
-    onCarClick: (AuctionCar) -> Unit,
+    onCarClick: (SearchCarItem) -> Unit,
     onToggleLike: (AuctionCar) -> Unit,
     selectedPriceRange: String,
-
     selectedDistance: String,
-
     selectedSort: String,
     onSortClick: () -> Unit,
     yearRange: ClosedFloatingPointRange<Float>?,
@@ -59,7 +58,6 @@ fun SearchResultScreen(
     val priceRange = viewModel.priceRange.collectAsState().value
     val selectedType = viewModel.selectedType.collectAsState().value
 
-    // 범위 표시 함수
     fun formatDistance(range: ClosedFloatingPointRange<Float>?): String =
         if (range == null) "주행거리"
         else "${range.start.toInt()}km ~ ${range.endInclusive.toInt()}km"
@@ -69,63 +67,39 @@ fun SearchResultScreen(
     }
     Scaffold(
         containerColor = cs.backgroundColor,
-
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = cs.backgroundColor
                 ),
                 title = { Text("검색결과") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+                actions = {
+                    TextButton(onClick = onBack) {
+                        Text("나가기", color = Color(0xFF6C4DF4))
                     }
                 }
             )
         }
     ) { innerPadding ->
-        Column(Modifier.padding(innerPadding)) {
+        Column(Modifier.padding(innerPadding)
+        ) {
             // 필터/정렬 영역
             Row(
                 Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+
             ) {
-                OutlinedButton(
-                    onClick = { showBottomSheet = "price" },
-                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
-                    colors = ButtonDefaults.outlinedButtonColors(
 
-                        contentColor = if (priceRange != null) cs.primary else Color.Black
-                    )
-                ) {
-                    Text(
-                        if (priceRange == null) "가격"
-                        else "${priceRange.start.toInt() * 100}만원 ~ ${priceRange.endInclusive.toInt() * 100}만원",
-                        color = if (priceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
-                    )
-                }
-                OutlinedButton(
-                    onClick = { showBottomSheet = "distance" },
-                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
-                    colors = ButtonDefaults.outlinedButtonColors(
 
-                        contentColor = if (distanceRange != null) cs.primary else Color.Black
-                    )
-                ) {
-                    Text(
-                        if (distanceRange == null) "주행거리"
-                        else "${String.format("%,d", distanceRange.start.toInt())}km ~ ${String.format("%,d", distanceRange.endInclusive.toInt())}km",
-                        color = if (distanceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
-                    )
-                }
                 OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
                     onClick = { showBottomSheet = "year" },
                     border = BorderStroke(1.dp, if (yearRange != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
-
                         contentColor = if (yearRange != null) cs.primary else Color.Black
                     )
                 ) {
@@ -136,16 +110,47 @@ fun SearchResultScreen(
                     )
                 }
                 OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
                     onClick = { showBottomSheet = "type" },
                     border = BorderStroke(1.dp, if (selectedType != null) cs.primary else cs.G_200),
                     colors = ButtonDefaults.outlinedButtonColors(
-
                         contentColor = if (selectedType != null) cs.primary else Color.Black
                     )
                 ) {
                     Text(
                         selectedType ?: "차종",
                         color = if (selectedType != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
+                    onClick = { showBottomSheet = "distance" },
+                    border = BorderStroke(1.dp, if (distanceRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (distanceRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (distanceRange == null) "주행거리"
+                        else "${String.format("%,d", distanceRange.start.toInt())}km ~ ${String.format("%,d", distanceRange.endInclusive.toInt())}km",
+                        color = if (distanceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier
+                        .height(36.dp),
+                    onClick = { showBottomSheet = "price" },
+                    border = BorderStroke(1.dp, if (priceRange != null) cs.primary else cs.G_200),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (priceRange != null) cs.primary else Color.Black
+                    )
+                ) {
+                    Text(
+                        if (priceRange == null) "가격"
+                        else "${priceRange.start.toInt() * 100}만원 ~ ${priceRange.endInclusive.toInt() * 100}만원",
+                        color = if (priceRange != null) Color(0xFF6C4DF4) else Color.Unspecified
                     )
                 }
             }
@@ -160,7 +165,7 @@ fun SearchResultScreen(
                     when (car) {
                         is SearchCarItem.Auction -> ListingItem(
                             car = car.toAuctionCar(),
-                            onClick = { onCarClick(car.toAuctionCar()) },
+                            onClick = { onCarClick(car) }, // SearchCarItem 그대로 넘김
                             onToggleLike = { onToggleLike(car.toAuctionCar()) },
                             tags = car.mainOptions,
                             priceLabel = "최고 입찰가",
@@ -169,7 +174,7 @@ fun SearchResultScreen(
                         )
                         is SearchCarItem.General -> ListingItem(
                             car = car.toAuctionCarForDisplay(),
-                            onClick = { onCarClick(car.toAuctionCarForDisplay()) },
+                            onClick = { onCarClick(car) }, // SearchCarItem 그대로 넘김
                             onToggleLike = { onToggleLike(car.toAuctionCarForDisplay()) },
                             tags = car.mainOptions,
                             priceLabel = "",
@@ -189,7 +194,6 @@ fun SearchResultScreen(
                     initialRange = priceRange ?: (0f..300f),
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         viewModel.priceRange.value = it
                         showBottomSheet = null
                     }
@@ -203,7 +207,6 @@ fun SearchResultScreen(
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
                         viewModel.distanceRange.value = it
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         showBottomSheet = null
                     }
                 )
@@ -215,7 +218,6 @@ fun SearchResultScreen(
                     initialRange = yearRange ?: (1998f..2025f),
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         viewModel.yearRange.value = it
                         showBottomSheet = null
                     }
@@ -224,7 +226,6 @@ fun SearchResultScreen(
                     selectedType = selectedType,
                     onDismiss = { showBottomSheet = null },
                     onConfirm = {
-                        // ViewModel에서 상태 관리 시 콜백으로 넘겨서 처리
                         viewModel.selectedType.value = it
                         showBottomSheet = null
                     }

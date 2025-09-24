@@ -118,7 +118,7 @@ fun ListingItem(
                             .padding(6.dp)
                             .size(36.dp)
                     ) {
-                        if (car.liked) {
+                        if (car.liked == true) {
                             Icon(Icons.Default.Favorite, contentDescription = "찜 해제", tint = Red_1)
                         } else {
                             Icon(

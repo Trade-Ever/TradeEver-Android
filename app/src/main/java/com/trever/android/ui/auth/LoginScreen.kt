@@ -22,8 +22,10 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.trever.android.R
+import com.trever.android.ui.theme.backgroundColor
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
@@ -59,10 +62,12 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
         }
     }
 
+    val cs = MaterialTheme.colorScheme
+
 
 
     Scaffold(
-        backgroundColor = Color.White
+        backgroundColor = cs.backgroundColor
     ) { innerPadding ->
         Box(
             modifier = Modifier

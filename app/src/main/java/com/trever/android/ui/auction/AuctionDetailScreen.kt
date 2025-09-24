@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 
 import coil.compose.AsyncImage
 import com.trever.android.data.remote.toAuctionDetailUi
@@ -60,6 +61,7 @@ import java.util.concurrent.TimeUnit
 fun AuctionDetailScreen(
     carId: String,
     auctionId: String,
+    navController: NavHostController,
     viewModel: AuctionDetailViewModel = viewModel(),
     onBack: () -> Unit = {},
     onLike: () -> Unit = {},
@@ -208,7 +210,6 @@ fun AuctionDetailScreen(
 //                } ?: (System.currentTimeMillis() + 24 * 60 * 60 * 1000)
 
                 DetailContent(
-
                     item = detailUi.copy(bids = bidUiList, seller = sellerUi, priceWon = currentPrice, priceWonText = currentPriceText),
                     onBack = onBack,
                     badge = { AuctionBadge() },
@@ -227,7 +228,11 @@ fun AuctionDetailScreen(
                             endAtMillis = endAtMillis,
                             bidEnabled = bidEnabled,
                         )
-                    }
+                    },
+                    onToggleLike = {viewModel.toggleLike(carId)
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("likeChanged", true)}
                 )
             }
 

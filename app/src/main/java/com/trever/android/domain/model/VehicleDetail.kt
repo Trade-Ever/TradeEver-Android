@@ -30,6 +30,8 @@ data class VehicleDetail(
     val sellerLocationCity: String?,
     val sellerProfileImageUrl: String?,
     val vehicleTypeName: String?
+    val liked: Boolean,
+    val favoriteCount: Int,
 )
 
 data class SellerInfo(
