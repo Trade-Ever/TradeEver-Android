@@ -563,9 +563,9 @@ fun CarTypeSelectBottomSheet(
                                 .clip(RoundedCornerShape(24.dp))
                                 .background(
                                     when {
-                                        !enabled -> Color(0xFFF5F5F5)
-                                        isSelected -> Color(0xFF8C6CFF)
-                                        else -> Color.White
+                                        !enabled -> cs.backgroundColor
+                                        isSelected -> cs.primary
+                                        else -> cs.backgroundColor
                                     }
                                 )
                                 .border(

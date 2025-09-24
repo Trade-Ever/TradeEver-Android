@@ -3,8 +3,10 @@ package com.trever.android.ui.auth
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.trever.android.R
+import com.trever.android.ui.theme.G_100
+import com.trever.android.ui.theme.G_200
 import com.trever.android.ui.theme.backgroundColor
 
 @Composable
@@ -87,15 +91,17 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
 
             // 버튼: 하단에서 120dp 위
             Button(
+                border = BorderStroke(1.dp, cs.G_100),
                 onClick = { launcher.launch(viewModel.getGoogleSignInIntent()) },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+                colors = ButtonDefaults.buttonColors(backgroundColor = cs.backgroundColor),
                 shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.elevation(defaultElevation = 4.dp),
+                elevation = ButtonDefaults.elevation(defaultElevation = 1.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .align(Alignment.BottomCenter)
                     .offset(y = (-180).dp)
+
                     .padding(start = 24.dp, end = 24.dp, bottom = 0.dp)
             ) {
                 Image(
@@ -106,7 +112,7 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Google 계정으로 로그인",
-                    color = Color.Black
+                    color = cs.onSurfaceVariant
                 )
             }
 
