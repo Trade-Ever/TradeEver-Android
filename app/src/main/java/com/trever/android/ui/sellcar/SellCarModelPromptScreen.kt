@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,7 +50,7 @@ fun SellCarModelPromptScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -60,9 +63,9 @@ fun SellCarModelPromptScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.backgroundColor,
+                    titleContentColor = MaterialTheme.colorScheme.textPrimaryColor,
+                    navigationIconContentColor = MaterialTheme.colorScheme.textPrimaryColor
                 )
             )
         }
@@ -80,7 +83,7 @@ fun SellCarModelPromptScreen(
                 text = "차량 모델을 입력해주세요",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.textPrimaryColor
             )
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -92,7 +95,7 @@ fun SellCarModelPromptScreen(
                     .clickable { onSelectModelPathClicked() }, // 제조사 선택 플로우 시작
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
-                color = Color.White
+                color = MaterialTheme.colorScheme.cardBackgroundColor
             ) {
                 Box(
                     modifier = Modifier
@@ -133,7 +136,7 @@ fun SellCarModelPromptScreen(
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
                         contentColor = Color.Black
                     ),
                     border = BorderStroke(1.dp, Color.LightGray)
@@ -150,7 +153,7 @@ fun SellCarModelPromptScreen(
                     ),
                     enabled = isModelSelected, // 모델 정보가 모두 선택되었을 때만 활성화
                 ) {
-                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
+import com.trever.android.ui.theme.backgroundColor
+import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +68,7 @@ fun SellCarVisualsScreen(
     val purpleColor = Color(0xFF6A11CB)
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { }, // 제목 추가
@@ -74,7 +77,7 @@ fun SellCarVisualsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
             )
         }
     ) { paddingValues ->
@@ -123,7 +126,7 @@ fun SellCarVisualsScreen(
                                         .background(Color.Black.copy(alpha = 0.5f))
                                         .size(24.dp)
                                 ) {
-                                    Icon(Icons.Default.Close, "Remove Image", tint = Color.White, modifier = Modifier.padding(4.dp))
+                                    Icon(Icons.Default.Close, "Remove Image", tint = MaterialTheme.colorScheme.textPrimaryColor, modifier = Modifier.padding(4.dp))
                                 }
                             }
                         }
@@ -150,8 +153,8 @@ fun SellCarVisualsScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
                                 unfocusedBorderColor = if (color.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -170,7 +173,7 @@ fun SellCarVisualsScreen(
                     modifier = Modifier.weight(1f).height(56.dp), // 높이 추가
                     shape = RoundedCornerShape(8.dp), // 기존 "다음" 버튼과 동일한 모양
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.backgroundColor,
                         contentColor = Color.Black // 텍스트 색상
                     ),
                     border = BorderStroke(1.dp, Color.LightGray), // 테두리
@@ -194,7 +197,7 @@ fun SellCarVisualsScreen(
                     enabled = uiState.imageUris.isNotEmpty() && color.isNotBlank(),
                     contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
                 ) {
-                    Text("다음", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold) // fontWeight 추가
+                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold) // fontWeight 추가
                 }
             }
         }
@@ -244,7 +247,7 @@ fun ImageUploadBox(onClick: () -> Unit) {
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = lightPurpleColor,
-                    contentColor = Color.White
+                    contentColor = MaterialTheme.colorScheme.textPrimaryColor
                 ),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
             ) {
