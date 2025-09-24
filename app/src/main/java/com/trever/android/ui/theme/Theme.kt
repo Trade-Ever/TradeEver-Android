@@ -1,4 +1,5 @@
 package com.trever.android.ui.theme
+
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -37,7 +38,11 @@ val ColorScheme.G_200: Color
     @Composable
     get() = if (isSystemInDarkTheme()) Grey_200_Dark else Grey_200
 
-val ColorScheme.backgroundColor : Color
+val ColorScheme.backgroundColor: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Grey_100_Dark else BackgroundWhiteColor
+
+val ColorScheme.cardBackgroundColor: Color
     @Composable
     get() = if (isSystemInDarkTheme()) Grey_400 else Color.White
 
@@ -58,6 +63,16 @@ val ColorScheme.G_100: Color
         Grey_100_Dark // 다크: 보더
     else
         Grey_100 // 라이트: 지금 쓰던 보더
+
+val ColorScheme.textPrimaryColor: Color
+    @Composable get() = if (isSystemInDarkTheme())
+        White
+    else Black
+
+val ColorScheme.textSecondaryColor: Color
+    @Composable get() = if (isSystemInDarkTheme())
+        Grey_200
+    else Grey_200_Dark
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -306,20 +321,20 @@ fun AppTheme(
     dynamicColor: Boolean = true,
     content: @Composable() () -> Unit
 ) {
-  val colorScheme = when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-          val context = LocalContext.current
-          if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-      
-      darkTheme -> darkScheme
-      else -> lightScheme
-  }
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
 
-  MaterialTheme(
-    colorScheme = colorScheme,
-    typography = Typography,
-    content = content
-  )
+        darkTheme -> darkScheme
+        else -> lightScheme
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
 }
 

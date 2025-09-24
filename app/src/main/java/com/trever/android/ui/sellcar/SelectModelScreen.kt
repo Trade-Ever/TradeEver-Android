@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.AppTheme
-import com.trever.android.ui.theme.Grey_100
+import com.trever.android.ui.theme.G_100
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +100,7 @@ fun SelectModelScreen(
                         onModelSelected()
                     }
                     HorizontalDivider(
-                        color = Grey_100,
+                        color = MaterialTheme.colorScheme.G_100,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
@@ -154,7 +154,7 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
 //                items(dummyCarNames) { carName ->
 //                    ModelRow(carName = carName) {}
 //                    HorizontalDivider(
-//                        color = Grey_100,
+//                        color = MaterialTheme.colorScheme.G_100,
 //                        modifier = Modifier.padding(horizontal = 16.dp)
 //                    )
 //                }
