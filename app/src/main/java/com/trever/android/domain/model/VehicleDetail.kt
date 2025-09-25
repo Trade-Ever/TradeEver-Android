@@ -24,7 +24,7 @@ data class VehicleDetail(
     val accidentDescription: String,
     val photos: List<String>,
     val options: List<String>,
-    val isSeller: Boolean, // 본인 매물 여부
+    val isSeller: Boolean,
     val sellerId: String?,
     val sellerName: String?,
     val sellerLocationCity: String?,

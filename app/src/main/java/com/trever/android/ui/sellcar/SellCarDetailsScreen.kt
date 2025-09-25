@@ -2,7 +2,6 @@ package com.trever.android.ui.sellcar
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
-// import androidx.compose.foundation.clickable // 현재 이 화면에서 사용되지 않음
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,15 +29,12 @@ import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 
-//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellCarDetailsScreen(
     sellCarViewModel: SellCarViewModel,
-    onSystemBack: () -> Unit,    // ArrowBack 아이콘용
-    onStepBack: () -> Unit,      // 하단 "이전" 버튼용
+    onSystemBack: () -> Unit,    
+    onStepBack: () -> Unit,      
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
@@ -47,13 +43,11 @@ fun SellCarDetailsScreen(
 
     val purpleColor = Color(0xFF6A11CB)
 
-    // ViewModel의 displacement가 변경되면 로컬 상태도 업데이트
     LaunchedEffect(uiState.displacement) {
         if (displacement != uiState.displacement) {
             displacement = uiState.displacement
         }
     }
-    // ViewModel의 horsepower가 변경되면 로컬 상태도 업데이트
     LaunchedEffect(uiState.horsepower) {
         if (horsepower != uiState.horsepower) {
             horsepower = uiState.horsepower
@@ -66,7 +60,7 @@ fun SellCarDetailsScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onSystemBack) { // onSystemBack 사용
+                    IconButton(onClick = onSystemBack) { 
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로 가기"
@@ -88,10 +82,7 @@ fun SellCarDetailsScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // CustomProgressBar는 uiState.currentStep 또는 고정값 중 원래 의도대로 사용
-            // 여기서는 원본처럼 3으로 두겠습니다.
-            // ViewModel 연동 시에는 uiState.currentStep 사용 권장.
-            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) // ViewModel 값 사용 권장
+            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) 
 
             Column(
                 modifier = Modifier
@@ -180,18 +171,16 @@ fun SellCarDetailsScreen(
                         )
                     }
                 }
-            } // 스크롤 Column 끝
+            } 
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ▼▼▼ 이전/다음 버튼으로 수정 ▼▼▼
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 이전 버튼
                 OutlinedButton(
-                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    onClick = onStepBack, 
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -204,7 +193,6 @@ fun SellCarDetailsScreen(
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
 
-                // 다음 버튼
                 Button(
                     onClick = {
                         sellCarViewModel.updateDisplacement(displacement)
@@ -226,13 +214,10 @@ fun SellCarDetailsScreen(
                     Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
             }
-            // ▲▲▲ 이전/다음 버튼으로 수정 ▲▲▲
         }
     }
 }
 
-// SelectableButtonGroup 함수는 변경 없이 그대로 사용
-// ... (SelectableButtonGroup 함수 코드는 여기에 위치)
 @Composable
 fun SelectableButtonGroup(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
     val lightPurpleColor = Color(0xFF9F72FF)
@@ -267,18 +252,14 @@ fun SellCarDetailsScreenPreview() {
     MaterialTheme {
         val context = LocalContext.current
         val previewViewModel: SellCarViewModel = viewModel(
-//            factory = SellCarViewModelFactory(context)
         )
-        // previewViewModel.updateCurrentStep(3) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
         previewViewModel.updateFuelType("휘발유")
         previewViewModel.updateTransmissionType("자동")
-        // previewViewModel.updateDisplacement("1600")
-        // previewViewModel.updateHorsepower("123")
 
         SellCarDetailsScreen(
             sellCarViewModel = previewViewModel,
-            onSystemBack = {},    // onNavigateBack 대신 onSystemBack
-            onStepBack = {},      // onStepBack 추가
+            onSystemBack = {},    
+            onStepBack = {},      
             onNextClicked = {}
         )
     }

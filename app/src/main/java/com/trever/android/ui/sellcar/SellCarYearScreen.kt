@@ -29,7 +29,6 @@ import com.trever.android.ui.theme.textPrimaryColor
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 
-// import com.trever.android.ui.theme.YourAppTheme // 실제 테마로 교체 필요
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +39,6 @@ fun SellCarYearScreen(
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    // 연식 범위: 현재 연도부터 30년 전까지 (예시)
     val yearRange = (currentYear + 2 downTo currentYear - 30).toList()
 
     Scaffold(
@@ -71,13 +69,12 @@ fun SellCarYearScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 6, currentStep = 2) // ViewModel의 currentStep 사용
+            CustomProgressBar(totalSteps = 6, currentStep = 2) 
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 선택된 차량 모델 표시부
             Text(
-                text = "차량 모델을 입력해주세요", // 이미지상의 레이블
+                text = "차량 모델을 입력해주세요", 
                 fontSize = 14.sp,
                 color = Color.Gray,
                 modifier = Modifier.fillMaxWidth()
@@ -86,11 +83,11 @@ fun SellCarYearScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, Color(0xFF6A11CB)), // 이미지 보라색 테두리
+                border = BorderStroke(1.dp, Color(0xFF6A11CB)), 
                 color = MaterialTheme.colorScheme.textPrimaryColor
             ) {
                 Text(
-                    text = uiState.selectedModel.ifEmpty { "(모델 정보 없음)" }, // ViewModel의 모델 사용
+                    text = uiState.selectedModel.ifEmpty { "(모델 정보 없음)" }, 
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -109,7 +106,6 @@ fun SellCarYearScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 연식 선택기
             YearPicker(
                 years = yearRange,
                 initialYear = uiState.selectedYear,
@@ -120,7 +116,6 @@ fun SellCarYearScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // 다음 버튼
             Button(
                 onClick = onNextClicked,
                 modifier = Modifier
@@ -148,7 +143,6 @@ fun YearPicker(
     )
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    // LazyColumn
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -179,35 +173,30 @@ fun YearPicker(
         }
     }
 
-    // 중앙 하이라이트 로직
     val density = LocalDensity.current
     var firstLaunch by remember { mutableStateOf(true) }
 
     LaunchedEffect(listState) {
-        // 1️⃣ 첫 레이아웃 완료 대기
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.isNotEmpty() }
             .first { it }
 
-        // 2️⃣ 초기 선택값
         selectedYear = initialYear
         onYearSelected(initialYear)
 
-        // 3️⃣ 중앙 정렬 계산
         val index = years.indexOf(initialYear).coerceIn(0, years.lastIndex)
         val layoutInfo = listState.layoutInfo
         val visibleItems = layoutInfo.visibleItemsInfo
         if (visibleItems.isNotEmpty()) {
             val itemHeight = visibleItems.first().size
             val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
-            val paddingTopPx = with(density) { 60.dp.roundToPx() } // contentPadding.vertical / 2
-            val spacingPx = with(density) { 8.dp.roundToPx() }      // verticalArrangement.spacedBy
+            val paddingTopPx = with(density) { 60.dp.roundToPx() } 
+            val spacingPx = with(density) { 8.dp.roundToPx() }      
 
             val offset =
                 index * (itemHeight + spacingPx) - viewportHeight / 2 + itemHeight / 2 + paddingTopPx
             listState.scrollToItem(0, offset.coerceAtLeast(0))
         }
 
-        // 4️⃣ 스크롤 시 중앙 아이템 업데이트
         snapshotFlow { listState.layoutInfo }
             .collect { layout ->
                 if (firstLaunch) {
@@ -230,19 +219,3 @@ fun YearPicker(
     }
 }
 
-//@Preview(showBackground = true, device = "spec:shape=Normal,width=360,height=640,unit=dp,dpi=480")
-//@Composable
-//fun SellCarYearScreenPreview() {
-//    YourAppTheme { // 실제 테마로 교체 필요
-//        val previewViewModel = SellCarViewModel()
-//        previewViewModel.updateCurrentStep(5) // 이 화면은 5단계로 가정
-//        previewViewModel.updateSelectedModel("현대 아반떼 SN7") // 더미 모델 설정
-//        previewViewModel.updateSelectedYear(2023) // 초기 선택 연도 설정
-//
-//        SellCarYearScreen(
-//            sellCarViewModel = previewViewModel,
-//            onNavigateBack = {},
-//            onNextClicked = {}
-//        )
-//    }
-//}

@@ -57,8 +57,8 @@ fun TransactionSheetContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .imePadding() // ✅ 키보드 올라올 때 여백 확보
-            .verticalScroll(scrollState) // ✅ 스크롤 가능하게
+            .imePadding()
+            .verticalScroll(scrollState)
             .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -172,7 +172,6 @@ private fun AmountButton(
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = if (isSelected) Color(0xFFEEEEEE) else Color.Transparent
-    // 텍스트 색상을 선택 여부와 관계없이 onSurface (보통 검은색 계열)로 변경
     val textColor = MaterialTheme.colorScheme.onSurface 
 
     Button(
@@ -183,9 +182,9 @@ private fun AmountButton(
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
-            contentColor = textColor // Text에 적용될 색상
+            contentColor = textColor
         ),
-        border = null, // 테두리 없음
+        border = null, 
         contentPadding = PaddingValues(horizontal = 16.dp) 
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
@@ -193,7 +192,6 @@ private fun AmountButton(
                 text = formatAmountToManwon(amount), 
                 fontSize = 16.sp, 
                 fontWeight = FontWeight.Medium
-                // textColor는 Button의 contentColor에 의해 설정됨
             )
         }
     }

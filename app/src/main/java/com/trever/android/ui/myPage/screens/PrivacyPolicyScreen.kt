@@ -22,7 +22,6 @@ import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 
-// 제공된 개인정보 처리방침 텍스트
 private val privacyPolicyText = """
 1. 개인정보의 처리 목적
 
@@ -102,7 +101,7 @@ private val privacyPolicyText = """
 직책 : 대표
 직급 : CEO
 연락처 : 1577-8725, contact@jpinnovation.kr
-※ 개인정보 보호 담당부서로 연결됩니다.
+
 
 ▶ 개인정보 보호 담당부서
 부서명 : 마케팅팀
@@ -162,7 +161,7 @@ fun PrivacyPolicyScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("개인정보 처리방침", fontWeight = FontWeight.SemiBold) }, // 제목 유지
+                title = { Text("개인정보 처리방침", fontWeight = FontWeight.SemiBold) }, 
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -172,18 +171,18 @@ fun PrivacyPolicyScreen(navController: NavController) {
             )
         },
         containerColor = MaterialTheme.colorScheme.backgroundColor
-    ) { paddingValues -> // Scaffold의 paddingValues를 it 대신 명시적으로 사용
+    ) { paddingValues -> 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Scaffold로부터 제공된 padding 적용
-                .padding(16.dp) // 컨텐츠 자체의 추가적인 padding
-                .verticalScroll(rememberScrollState()) // 스크롤 가능하도록
+                .padding(paddingValues) 
+                .padding(16.dp) 
+                .verticalScroll(rememberScrollState()) 
         ) {
             Text(
                 text = privacyPolicyText,
-                fontSize = 14.sp, // 가독성을 위한 폰트 크기
-                lineHeight = 20.sp, // 가독성을 위한 줄 간격
+                fontSize = 14.sp, 
+                lineHeight = 20.sp, 
                 color = MaterialTheme.colorScheme.textPrimaryColor
             )
         }

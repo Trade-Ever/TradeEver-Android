@@ -1,6 +1,5 @@
 package com.trever.android.domain.model
 
-// app/src/main/java/com/trever/android/domain/model/SearchCarItem.kt
 sealed class SearchCarItem {
     data class Auction(
         val id: String,

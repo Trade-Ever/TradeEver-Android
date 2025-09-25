@@ -1,6 +1,6 @@
 package com.trever.android.ui.myPage.components
 
-import android.net.Uri // android.net.Uri 임포트 확인
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -19,28 +19,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-//import androidx.compose.ui.platform.LocalContext // 현재 사용되지 않음
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.trever.android.R // Placeholder 이미지용
-import com.trever.android.ui.theme.textPrimaryColor // 사용하고 있으므로 유지
+import com.trever.android.R
+import com.trever.android.ui.theme.textPrimaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditSheetContent(
     initialName: String = "채은정",
-    initialEmail: String = "example@email.com", // phoneNumber -> email, 기본값 변경
+    initialEmail: String = "example@email.com",
     initialAddress: String = "",
     initialBirthday: String = "",
     initialProfileImageUri: Uri? = null,
-    onSaveClicked: (name: String, email: String, address: String, birthday: String, imageUri: Uri?) -> Unit, // phone -> email
+    onSaveClicked: (name: String, email: String, address: String, birthday: String, imageUri: Uri?) -> Unit,
 ) {
     var profileImageUri by remember { mutableStateOf(initialProfileImageUri) }
     var name by remember { mutableStateOf(initialName) }
-    var email by remember { mutableStateOf(initialEmail) } // phoneNumber -> email
+    var email by remember { mutableStateOf(initialEmail) }
     var address by remember { mutableStateOf(initialAddress) }
     var birthday by remember { mutableStateOf(initialBirthday) }
 
@@ -49,21 +48,20 @@ fun ProfileEditSheetContent(
         onResult = { uri -> profileImageUri = uri }
     )
 
-    // 스크롤 상태 추가
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .imePadding() // ✅ 키보드 올라올 때 자동 패딩
-            .verticalScroll(scrollState) // ✅ 스크롤 가능
+            .imePadding()
+            .verticalScroll(scrollState)
             .padding(top = 24.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "프로필 수정",
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.textPrimaryColor, // 테마 컬러 사용 확인
+            color = MaterialTheme.colorScheme.textPrimaryColor,
             modifier = Modifier
                 .padding(bottom = 24.dp)
                 .align(Alignment.Start)
@@ -87,7 +85,7 @@ fun ProfileEditSheetContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         ProfileTextField(label = "이름", value = name, onValueChange = { name = it })
-        ProfileTextField(label = "이메일", value = email, onValueChange = { email = it }) // "전화번호" -> "이메일", phoneNumber -> email
+        ProfileTextField(label = "이메일", value = email, onValueChange = { email = it })
         ProfileTextField(label = "주소", value = address, onValueChange = { address = it })
         ProfileTextField(label = "생일", value = birthday, onValueChange = { birthday = it }, placeholder = "YYYYMMDD")
 
@@ -95,7 +93,7 @@ fun ProfileEditSheetContent(
 
         Button(
             onClick = {
-                onSaveClicked(name, email, address, birthday, profileImageUri) // phoneNumber -> email
+                onSaveClicked(name, email, address, birthday, profileImageUri)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -120,7 +118,7 @@ private fun ProfileTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.textPrimaryColor, // 테마 컬러 사용 확인
+            color = MaterialTheme.colorScheme.textPrimaryColor,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         OutlinedTextField(
