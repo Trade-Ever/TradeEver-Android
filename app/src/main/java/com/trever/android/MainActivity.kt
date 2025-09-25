@@ -23,10 +23,12 @@ import androidx.compose.ui.Modifier // Greeting에서 사용
 // import androidx.lifecycle.viewmodel.compose.viewModel // 직접 ViewModelProvider를 사용하므로 이 임포트는 불필요
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider // ViewModelProvider 임포트 추가
+import androidx.navigation.compose.rememberNavController
 import com.trever.android.data.network.ApiClient
 import com.trever.android.ui.navigation.TreverApp
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel // SellCarViewModel 임포트 추가
 import com.trever.android.ui.theme.AppTheme
+import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -34,29 +36,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ApiClient.init(applicationContext)
-
-
-
-        // ViewModel 인스턴스 생성
-        sellCarViewModel = ViewModelProvider(this)[SellCarViewModel::class.java]
 
         enableEdgeToEdge()
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        setContent { 
+
+        setContent {
+            val navController = rememberNavController() // NavHostController 생성
+            ApiClient.init(applicationContext, navController) // navController 전달
+
+            // Koin으로 ViewModel을 가져옴
+            val sellCarViewModel: SellCarViewModel = koinViewModel()
+
             AppTheme(dynamicColor = false) {
-                // TreverApp에 ViewModel 인스턴스 전달
-                TreverApp(sellCarViewModel = sellCarViewModel)
+                TreverApp(
+                    sellCarViewModel = sellCarViewModel,
+                )
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
