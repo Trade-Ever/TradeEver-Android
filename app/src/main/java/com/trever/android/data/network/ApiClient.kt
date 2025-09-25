@@ -1,6 +1,7 @@
 package com.trever.android.data.network
 
 import android.content.Context
+import androidx.navigation.NavHostController
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuctionApi
@@ -10,6 +11,7 @@ import com.trever.android.data.remote.ProfileApi
 import com.trever.android.data.remote.SearchApi
 import com.trever.android.data.remote.VehicleApi
 import com.trever.android.data.remote.WalletApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -18,6 +20,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import okhttp3.MediaType.Companion.toMediaType
 import kotlin.jvm.java
+import kotlin.text.clear
 
 object ApiClient {
 
@@ -51,7 +54,7 @@ object ApiClient {
 //    lateinit var profileApi: ProfileApi
 //        private set
 
-    fun init(context: Context, baseUrl: String = BASE_URL) {
+    fun init(context: Context,navController: NavHostController,baseUrl: String = BASE_URL) {
         tokenStore = TokenStore(context)
 
         val json = Json {
@@ -93,7 +96,16 @@ object ApiClient {
         // (2) 인증 인터셉터/리프레시 인증자 부착한 클라이언트 & Retrofit (CarApi 등)
         val authedClient = baseClient.newBuilder()
             .addInterceptor(AuthInterceptor(tokenStore))
-            .authenticator(TokenAuthenticator(tokenStore, authApi))
+            .authenticator(TokenAuthenticator(
+                tokenStore,
+                authApi,
+                {
+                    runBlocking { tokenStore.clear() }
+                    navController.navigate("login") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                }
+            ))
             .build()
 
         val retrofit = Retrofit.Builder()

@@ -26,7 +26,12 @@ interface ProfileApi {
   
     @POST("api/v1/users/me/complete")
     suspend fun completeProfile(@Body request: ProfileCompleteRequest): ProfileCompleteResponse
-    }
+
+
+
+}
+
+
 
 // 프로필 수정 요청 DTO
 @Serializable
@@ -48,7 +53,8 @@ data class UserProfile(
     val locationCity: String? = null,
     val birthDate: String? = null,
     val profileImageUrl: String? = null,
-    val balance: Long? = null
+    val balance: Long? = null,
+    val profileComplete: Boolean? = null
 )
 
 @Serializable

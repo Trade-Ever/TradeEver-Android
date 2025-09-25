@@ -45,18 +45,7 @@ fun SearchResultScreen(
     onBack: () -> Unit,
     onCarClick: (SearchCarItem) -> Unit,
     onToggleLike: (AuctionCar) -> Unit,
-    selectedPriceRange: String,
-    selectedDistance: String,
-    selectedSort: String,
-    onSortClick: () -> Unit,
-    yearRange: ClosedFloatingPointRange<Float>?,
-    distanceRange: ClosedFloatingPointRange<Float>?,
-    priceRange: ClosedFloatingPointRange<Float>?,
-    selectedType: String?,
-    onYearRangeClick: () -> Unit,
-    onDistanceClick: () -> Unit,
-    onPriceRangeClick: () -> Unit,
-    onTypeClick: () -> Unit,
+
 ) {
     val cs = MaterialTheme.colorScheme
     var showBottomSheet by remember { mutableStateOf<String?>(null) }

@@ -9,6 +9,7 @@ import com.trever.android.domain.model.VehicleSummary
 import com.trever.android.ui.auction.AuctionDetailUi
 import com.trever.android.ui.auction.BidUi
 import com.trever.android.ui.auction.SellerUi
+import com.trever.android.ui.utils.formatMileage
 
 import kotlin.div
 
@@ -206,7 +207,7 @@ fun Vehicle.toSearchCarItem(): SearchCarItem =
     if (this.isAuction == "Y") {
         SearchCarItem.Auction(
             id = (this.id ?: 0L).toString(),
-            title = "${this.manufacturer ?: ""} ${this.carName ?: ""} ${this.model ?: ""}",
+            title = "${this.manufacturer ?: ""} ${this.model ?: ""}",
             year = this.year_value ?: 0,
             mileageKm = this.mileage ?: 0,
             imageUrl = this.representativePhotoUrl,
@@ -220,7 +221,7 @@ fun Vehicle.toSearchCarItem(): SearchCarItem =
     } else {
         SearchCarItem.General(
             id = (this.id ?: 0L).toString(),
-            title = "${this.manufacturer ?: ""} ${this.carName ?: ""} ${this.model ?: ""}",
+            title = "${this.manufacturer ?: ""} ${this.model ?: ""}",
             year = this.year_value ?: 0,
             mileageKm = this.mileage ?: 0,
             imageUrl = this.representativePhotoUrl,
@@ -349,20 +350,6 @@ private fun formatKoreanWon(amount: Long): String {
     }.trim()
 }
 
-private fun formatMileage(mileageKm: Int): String {
-    return if (mileageKm >= 10000) {
-        val man = mileageKm / 10000
-        val remainder = (mileageKm % 10000) / 1000
-        if (remainder > 0) {
-            "$man.${remainder}만km"
-        } else {
-            "${man}만km"
-        }
-    } else {
-        // 천 단위 콤마 표시
-        "${String.format("%,d", mileageKm)}km"
-    }
-}
 
 
 

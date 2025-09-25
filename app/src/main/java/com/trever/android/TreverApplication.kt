@@ -8,6 +8,7 @@ import com.trever.android.data.network.AuthInterceptor
 import com.trever.android.data.network.TokenAuthenticator
 import com.trever.android.data.remote.AuthApi
 import com.trever.android.data.remote.MyPageApi
+import com.trever.android.data.remote.ProfileApi
 import com.trever.android.data.remote.TransactionApi
 import com.trever.android.data.remote.VehicleApi
 import com.trever.android.data.repository.AuthRepository
@@ -15,11 +16,14 @@ import com.trever.android.data.repository.MyPageRepository
 import com.trever.android.data.repository.TransactionRepository
 import com.trever.android.data.repository.VehicleRepository
 import com.trever.android.data.repository.AuctionRepository // AuctionRepository 임포트 추가
+import com.trever.android.data.repository.ProfileRepository
 import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.myPage.MyPageViewModel
 import com.trever.android.ui.myPage.TransactionViewModel
 import com.trever.android.ui.search.SearchViewModel
+import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -30,6 +34,7 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
+import kotlin.text.clear
 
 class TreverApplication : Application() {
     override fun onCreate() {
@@ -67,12 +72,19 @@ val appModule = module {
         OkHttpClient.Builder()
             .addInterceptor(get<HttpLoggingInterceptor>())
             .addInterceptor(AuthInterceptor(tokenStore))
-            .authenticator(TokenAuthenticator(tokenStore, refreshAuthApi))
+            .authenticator(TokenAuthenticator(tokenStore, refreshAuthApi) {
+                runBlocking { tokenStore.clear() }
+                // 필요 시 네비게이션 처리 추가
+            })
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
+    single<ProfileApi> { get<Retrofit>().create(ProfileApi::class.java) }
+    viewModel { SellCarViewModel(get()) }
+    single<ProfileRepository> { ProfileRepository(get(), androidContext(), get()) }
+
 
     single<Retrofit> {
         Retrofit.Builder()
