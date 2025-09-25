@@ -73,11 +73,10 @@ fun SellCarPlateNumberScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
                         onClick = { sellCarViewModel.resetPlateNumberCheck() },
-                        // Remove fillMaxWidth() to make it compact
                         modifier = Modifier,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 40.dp) // Add horizontal padding
+                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 40.dp)
                     ) {
                         Text(
                             text = "확인",
@@ -137,8 +136,8 @@ fun SellCarPlateNumberScreen(
                     .fillMaxWidth()
                     .height(80.dp),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color.Black),
-                color = MaterialTheme.colorScheme.textPrimaryColor
+                border = BorderStroke(1.dp, cs.outline),
+                color = cs.backgroundColor // 배경색을 cs.backgroundColor로 변경 (원복)
             ) {
                 Row(
                     modifier = Modifier
@@ -147,7 +146,11 @@ fun SellCarPlateNumberScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box(modifier = Modifier.size(10.dp).border(1.dp, Color.LightGray, CircleShape))
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .border(1.dp, cs.outlineVariant, CircleShape)
+                    )
 
                     BasicTextField(
                         value = plateNumber,
@@ -156,7 +159,7 @@ fun SellCarPlateNumberScreen(
                         textStyle = TextStyle(
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.textPrimaryColor,
+                            color = cs.onSurface,
                             textAlign = TextAlign.Center
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -172,7 +175,7 @@ fun SellCarPlateNumberScreen(
                                         style = TextStyle(
                                             fontSize = 28.sp,
                                             fontWeight = FontWeight.Normal,
-                                            color = Color.LightGray,
+                                            color = cs.onSurface.copy(alpha = 0.6f),
                                             textAlign = TextAlign.Center
                                         )
                                     )
@@ -181,7 +184,11 @@ fun SellCarPlateNumberScreen(
                             }
                         }
                     )
-                    Box(modifier = Modifier.size(10.dp).border(1.dp, Color.LightGray, CircleShape))
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .border(1.dp, cs.outlineVariant, CircleShape)
+                    )
                 }
             }
 
@@ -255,7 +262,7 @@ fun CustomProgressBar(
         for (i in 1..totalSteps) {
             Box(
                 modifier = Modifier
-                    .weight(1f) // 각 박스가 동일한 너비를 가지도록 함
+                    .weight(1f)
                     .height(8.dp)
                     .background(
                         color = if (i == currentStep) activeColor else inactiveColor,
