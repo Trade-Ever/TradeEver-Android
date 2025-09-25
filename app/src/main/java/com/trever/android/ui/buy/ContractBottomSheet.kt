@@ -32,6 +32,7 @@ import com.trever.android.ui.components.ZoomImage
 import com.trever.android.R
 
 import com.trever.android.ui.components.ZoomImage
+import com.trever.android.ui.theme.backgroundColor
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -47,6 +48,7 @@ fun ContractBottomSheet(
     val density = LocalDensity.current
     val cfg = LocalConfiguration.current
     val maxHeight = (cfg.screenHeightDp * 0.9f).dp
+    val cs = MaterialTheme.colorScheme
 
     LaunchedEffect(open, contractId) {
         if (open) vm.load(contractId)
@@ -62,7 +64,7 @@ fun ContractBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = cs.backgroundColor,
         dragHandle = null
     ) {
         Column(
@@ -81,7 +83,7 @@ fun ContractBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Spacer(Modifier.width(48.dp))
-                Text("거래 완료", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("거래 완료", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = cs.onSurfaceVariant)
                 AssistChip(onClick = onDismissRequest, label = { Text("닫기") })
             }
 
@@ -99,7 +101,7 @@ fun ContractBottomSheet(
                     modifier = Modifier.size(56.dp)
                 )
                 Spacer(Modifier.height(8.dp))
-                Text("거래가 완료되었습니다!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("거래가 완료되었습니다!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = cs.onSurfaceVariant)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -123,7 +125,7 @@ fun ContractBottomSheet(
                     val pagerState = rememberPagerState { pageCount }
                     val widthPx = with(density) { ctx.resources.displayMetrics.widthPixels }
 
-                    Text("계약서", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("계약서", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = cs.onSurfaceVariant)
                     Spacer(Modifier.height(8.dp))
 
                     HorizontalPager(
@@ -196,11 +198,12 @@ fun ContractBottomSheet(
 
 @Composable
 private fun SummaryCard(summary: ContractSummaryUi) {
+    val cs = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
-            .background(Color(0xFFF7F8FA))
+            .background(cs.backgroundColor)
             .padding(vertical = 12.dp)
     ) {
 
@@ -214,13 +217,16 @@ private fun SummaryCard(summary: ContractSummaryUi) {
 
 @Composable
 private fun SummaryRow(label: String, value: String) {
+    val cs = MaterialTheme.colorScheme
     Row(
         Modifier
             .fillMaxWidth()
+            .background(cs.backgroundColor)
             .padding(horizontal = 16.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween
+
     ) {
         Text(label, color = Color(0xFF9AA3AE))
-        Text(value, fontWeight = FontWeight.SemiBold)
+        Text(value, fontWeight = FontWeight.SemiBold, color = cs.onSurfaceVariant)
     }
 }
