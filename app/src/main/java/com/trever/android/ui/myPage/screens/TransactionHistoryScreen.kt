@@ -83,7 +83,7 @@ fun TransactionHistoryScreen(
         Column(modifier = Modifier.padding(paddingValues)) {
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.cardBackgroundColor,
+                containerColor = MaterialTheme.colorScheme.backgroundColor,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
                 tabs.forEachIndexed { index, title ->
