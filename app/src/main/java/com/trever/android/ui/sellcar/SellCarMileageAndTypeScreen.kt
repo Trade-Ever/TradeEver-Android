@@ -24,13 +24,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.common.math.LinearTransformation.horizontal
+// import com.google.common.math.LinearTransformation.horizontal // 사용 안함 제거
 import com.trever.android.ui.sellcar.util.NumberCommaTransformation
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
-import com.trever.android.ui.theme.AppTheme
+import com.trever.android.ui.theme.AppTheme // Preview에서 사용될 수 있음
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
-import com.trever.android.ui.theme.textPrimaryColor
+// import com.trever.android.ui.theme.backgroundColor // MaterialTheme.colorScheme 사용
+// import com.trever.android.ui.theme.cardBackgroundColor // MaterialTheme.colorScheme 사용
+// import com.trever.android.ui.theme.textPrimaryColor // MaterialTheme.colorScheme 사용
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -54,12 +56,11 @@ fun SellCarMileageAndTypeScreen(
     
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val purpleColor = Color(0xFF6A11CB)
+    val purpleColor = Color(0xFF6A11CB) // TODO: 테마 색상으로 교체 고려
+    val currentColorScheme = MaterialTheme.colorScheme
 
-    // 상세 모델명까지 포함하여 차량 정보 조합
     val selectedCarModelDisplay = listOf(
         uiState.selectedManufacturer,
-//        uiState.selectedModel,
         uiState.selectedModelName
     ).filter { it.isNotBlank() }.joinToString(" ")
      .ifBlank { "(모델 정보 없음)" }
@@ -67,7 +68,7 @@ fun SellCarMileageAndTypeScreen(
     val isCarModelInfoComplete = uiState.selectedManufacturer.isNotBlank() && uiState.selectedModel.isNotBlank()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.backgroundColor,
+        containerColor = currentColorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -76,10 +77,11 @@ fun SellCarMileageAndTypeScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로 가기"
+                            // 기본 tint가 onSurface이므로 명시적 지정 불필요할 수 있음
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = currentColorScheme.backgroundColor)
             )
         }
     ) { paddingValues ->
@@ -98,10 +100,12 @@ fun SellCarMileageAndTypeScreen(
                 CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep)
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // "선택된 차량 모델" 텍스트 박스
                 DisplayInfoField(
                     label = "선택된 차량 모델",
                     value = selectedCarModelDisplay,
-                    isComplete = isCarModelInfoComplete
+                    isComplete = isCarModelInfoComplete,
+                    activeBorderColor = purpleColor // 활성 시 테두리 색상 전달
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -120,10 +124,10 @@ fun SellCarMileageAndTypeScreen(
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = purpleColor,
-                        unfocusedBorderColor = if (yearInput.isNotEmpty()) purpleColor else Color.LightGray,
-                        focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                        disabledContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
+                        unfocusedBorderColor = if (yearInput.isNotEmpty()) purpleColor else currentColorScheme.outline,
+                        focusedContainerColor = currentColorScheme.cardBackgroundColor,
+                        unfocusedContainerColor = currentColorScheme.cardBackgroundColor,
+                        disabledContainerColor = currentColorScheme.cardBackgroundColor
                     )
                 )
 
@@ -136,11 +140,12 @@ fun SellCarMileageAndTypeScreen(
                         Spacer(modifier = Modifier.height(24.dp))
                         Text("차종을 선택해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
                         Spacer(modifier = Modifier.height(8.dp))
+                        // "차종을 선택해주세요" 텍스트 박스
                         Surface(
                             modifier = Modifier.fillMaxWidth().clickable { showBottomSheet = true },
                             shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.textPrimaryColor,
-                            border = BorderStroke(1.dp, if (uiState.selectedCarType.isNotEmpty()) purpleColor else Color.LightGray)
+                            color = currentColorScheme.cardBackgroundColor, // 배경색 변경
+                            border = BorderStroke(1.dp, if (uiState.selectedCarType.isNotEmpty()) purpleColor else currentColorScheme.outline) // 테두리색 변경
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
@@ -149,10 +154,10 @@ fun SellCarMileageAndTypeScreen(
                             ) {
                                 Text(
                                     text = uiState.selectedCarType.ifEmpty { "차종 선택" },
-                                    color = if (uiState.selectedCarType.isEmpty()) Color.Gray else Color.Black,
+                                    color = if (uiState.selectedCarType.isEmpty()) currentColorScheme.onSurfaceVariant else currentColorScheme.onSurface, // 텍스트색 변경
                                     fontSize = 16.sp
                                 )
-                                Icon(Icons.Filled.KeyboardArrowDown, "차종 선택", tint = Color.Gray)
+                                Icon(Icons.Filled.KeyboardArrowDown, "차종 선택", tint = currentColorScheme.onSurfaceVariant) // 아이콘색 변경
                             }
                         }
                     }
@@ -160,6 +165,7 @@ fun SellCarMileageAndTypeScreen(
 
                 AnimatedVisibility(
                     visible = uiState.selectedCarType.isNotEmpty(),
+                    // ... (이하 동일)
                     enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
                     exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut()
                 ) {
@@ -178,10 +184,10 @@ fun SellCarMileageAndTypeScreen(
                             shape = RoundedCornerShape(8.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
-                                unfocusedBorderColor = if (mileage.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                                disabledContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
+                                unfocusedBorderColor = if (mileage.isNotEmpty()) purpleColor else currentColorScheme.outline,
+                                focusedContainerColor = currentColorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = currentColorScheme.cardBackgroundColor,
+                                disabledContainerColor = currentColorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -199,10 +205,10 @@ fun SellCarMileageAndTypeScreen(
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.backgroundColor,
-                        contentColor = Color.Black
+                        containerColor = currentColorScheme.surface, // 이전 backgroundColor에서 surface로 변경
+                        contentColor = currentColorScheme.onSurface // 이전 Black에서 onSurface로 변경
                     ),
-                    border = BorderStroke(1.dp, Color.LightGray)
+                    border = BorderStroke(1.dp, currentColorScheme.outline) // 이전 LightGray에서 outline으로 변경
                 ) {
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
@@ -216,12 +222,14 @@ fun SellCarMileageAndTypeScreen(
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = purpleColor,
-                        disabledContainerColor = Color.LightGray
+                        contentColor = Color.White, // textPrimaryColor에서 White로 변경 (purpleColor 대비)
+                        disabledContainerColor = currentColorScheme.onSurface.copy(alpha = 0.12f), // LightGray에서 변경
+                        disabledContentColor = currentColorScheme.onSurface.copy(alpha = 0.38f) // 추가
                     ),
                     enabled = yearInput.length == 4 && uiState.selectedCarType.isNotBlank() && mileage.isNotBlank(),
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
+                    Text("다음", fontSize = 18.sp, fontWeight = FontWeight.Bold) // 색상은 ButtonDefaults에서 자동 처리
                 }
             }
         }
@@ -250,20 +258,21 @@ fun CarTypeBottomSheet(
     var tempSelectedType by remember { mutableStateOf(initialSelectedType) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    val purpleColor = Color(0xFF6A11CB)
-    val selectedColor = Color(0xFF9F72FF)
+    val purpleColor = Color(0xFF6A11CB) // TODO: 테마 색상으로 교체 고려
+    val selectedColor = Color(0xFF9F72FF) // TODO: 테마 색상으로 교체 고려
+    val currentColorScheme = MaterialTheme.colorScheme
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.backgroundColor,
+        containerColor = currentColorScheme.surface, // backgroundColor에서 surface로 변경
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp).navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("차종을 선택해주세요", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+            Text("차종을 선택해주세요", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp), color = currentColorScheme.onSurface)
 
             val rows = carTypes.chunked(4)
             rows.forEach { rowItems ->
@@ -279,10 +288,10 @@ fun CarTypeBottomSheet(
                                 .height(48.dp),
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.cardBackgroundColor,
-                                contentColor = if (isSelected) MaterialTheme.colorScheme.textPrimaryColor else MaterialTheme.colorScheme.textPrimaryColor
+                                containerColor = if (isSelected) selectedColor else currentColorScheme.surfaceVariant, // cardBackgroundColor에서 surfaceVariant로 변경
+                                contentColor = if (isSelected) Color.White else currentColorScheme.onSurfaceVariant // textPrimaryColor에서 변경
                             ),
-                            border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null,
+                            border = if (!isSelected) BorderStroke(1.dp, currentColorScheme.outline) else null, // LightGray에서 변경
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
                             Text(
@@ -310,9 +319,10 @@ fun CarTypeBottomSheet(
                     },
                     modifier = Modifier.weight(1f).height(52.dp),
                     shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, purpleColor)
+                    border = BorderStroke(1.dp, purpleColor),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = purpleColor) // Text 색상 명시
                 ) {
-                    Text("취소", color = purpleColor)
+                    Text("취소")
                 }
                 Button(
                     onClick = {
@@ -322,9 +332,12 @@ fun CarTypeBottomSheet(
                     },
                     modifier = Modifier.weight(1f).height(52.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = purpleColor)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = purpleColor,
+                        contentColor = Color.White // textPrimaryColor에서 White로 변경
+                        )
                 ) {
-                    Text("확인", color = MaterialTheme.colorScheme.textPrimaryColor)
+                    Text("확인")
                 }
             }
         }
@@ -332,20 +345,21 @@ fun CarTypeBottomSheet(
 }
 
 @Composable
-fun DisplayInfoField(label: String, value: String, isComplete: Boolean) {
-    Text(label, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth())
+fun DisplayInfoField(label: String, value: String, isComplete: Boolean, activeBorderColor: Color) {
+    val currentColorScheme = MaterialTheme.colorScheme
+    Text(label, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth(), color = currentColorScheme.onBackground)
     Spacer(modifier = Modifier.height(8.dp))
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.textPrimaryColor,
-        border = BorderStroke(1.dp, if (isComplete) Color(0xFF6A11CB) else Color.LightGray)
+        color = currentColorScheme.cardBackgroundColor, // textPrimaryColor에서 변경
+        border = BorderStroke(1.dp, if (isComplete) activeBorderColor else currentColorScheme.outline) // LightGray에서 변경 및 activeBorderColor 사용
     ) {
         Text(
             text = value,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             fontSize = 16.sp,
-            color = if (value == "(모델 정보 없음)" && !isComplete) Color.Gray else Color.Black
+            color = if (value == "(모델 정보 없음)" && !isComplete) currentColorScheme.onSurfaceVariant else currentColorScheme.onSurface // Gray, Black에서 변경
         )
     }
 }

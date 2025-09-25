@@ -38,6 +38,9 @@ import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
+// import com.trever.android.ui.theme.backgroundColor // MaterialTheme.colorScheme 사용
+// import com.trever.android.ui.theme.cardBackgroundColor // MaterialTheme.colorScheme 사용
+// import com.trever.android.ui.theme.textPrimaryColor // MaterialTheme.colorScheme 사용
 //import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -58,6 +61,7 @@ fun SellCarPriceScreen(
     var price by remember { mutableStateOf(uiState.price) }
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
+    val currentColorScheme = MaterialTheme.colorScheme
 
     val todayMillis = remember {
         Calendar.getInstance().apply {
@@ -91,11 +95,10 @@ fun SellCarPriceScreen(
         }
     )
 
-    val purpleColor = Color(0xFF6A11CB)
-    val lightPurpleColor = Color(0xFF9F72FF)
+    val purpleColor = Color(0xFF6A11CB) // TODO: 테마 색상으로 교체 고려
+    val lightPurpleColor = Color(0xFF9F72FF) // TODO: 테마 색상으로 교체 고려
     val isLoading by sellCarViewModel.isLoading.collectAsState()
 
-    // ViewModel의 price가 변경되면 로컬 상태도 업데이트
     LaunchedEffect(uiState.price) {
         if (price != uiState.price) {
             price = uiState.price
@@ -103,16 +106,16 @@ fun SellCarPriceScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.backgroundColor,
+        containerColor = currentColorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onSystemBack) { // onSystemBack 사용
+                    IconButton(onClick = onSystemBack) { 
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = currentColorScheme.backgroundColor)
             )
         }
     ) { paddingValues ->
@@ -123,10 +126,7 @@ fun SellCarPriceScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // CustomProgressBar는 uiState.currentStep 또는 고정값 중 원래 의도대로 사용
-            // 여기서는 원본처럼 7로 두겠습니다.
-            // ViewModel 연동 시에는 uiState.currentStep 사용 권장.
-            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) // ViewModel 값 사용 권장
+            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep)
 
             Column(
                 modifier = Modifier
@@ -146,10 +146,10 @@ fun SellCarPriceScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) lightPurpleColor else MaterialTheme.colorScheme.cardBackgroundColor,
-                                contentColor = if (isSelected) MaterialTheme.colorScheme.textPrimaryColor else MaterialTheme.colorScheme.textPrimaryColor
+                                containerColor = if (isSelected) lightPurpleColor else currentColorScheme.cardBackgroundColor,
+                                contentColor = if (isSelected) Color.White else currentColorScheme.onSurface // textPrimaryColor에서 변경
                             ),
-                            border = BorderStroke(1.dp, if(isSelected) lightPurpleColor else Color.LightGray)
+                            border = BorderStroke(1.dp, if(isSelected) lightPurpleColor else Color.LightGray) // 요청 범위 밖
                         ) {
                             Text(option)
                         }
@@ -157,7 +157,7 @@ fun SellCarPriceScreen(
                 }
 
                 AnimatedVisibility(
-                    visible = uiState.transactionType == "경매", // 경매인 경우에만 표시
+                    visible = uiState.transactionType == "경매", 
                     enter = slideInVertically { it / 2 } + fadeIn(),
                     exit = slideOutVertically { -it / 2 } + fadeOut()
                 ) {
@@ -172,13 +172,15 @@ fun SellCarPriceScreen(
                             DateBox(
                                 dateMillis = startDatePickerState.selectedDateMillis,
                                 onClick = { showStartDatePicker = true },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                activeBorderColor = purpleColor // DateBox에 purpleColor 전달
                             )
                             Text("  ~  ", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             DateBox(
                                 dateMillis = endDatePickerState.selectedDateMillis,
                                 onClick = { showEndDatePicker = true },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                activeBorderColor = purpleColor // DateBox에 purpleColor 전달
                             )
                         }
                     }
@@ -205,39 +207,35 @@ fun SellCarPriceScreen(
                             shape = RoundedCornerShape(8.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
-                                unfocusedBorderColor = if(price.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
+                                unfocusedBorderColor = if(price.isNotEmpty()) purpleColor else Color.LightGray, // 요청 범위 밖
+                                focusedContainerColor = currentColorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = currentColorScheme.cardBackgroundColor
                             )
                         )
                     }
                 }
-            } // 스크롤 Column 끝
-
+            } 
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ▼▼▼ 이전/등록하기 버튼으로 수정 ▼▼▼
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 이전 버튼
                 OutlinedButton(
-                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    onClick = onStepBack, 
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.backgroundColor,
-                        contentColor = Color.Black
+                        containerColor = currentColorScheme.backgroundColor,
+                        contentColor = Color.Black // 요청 범위 밖
                     ),
-                    border = BorderStroke(1.dp, Color.LightGray),
+                    border = BorderStroke(1.dp, Color.LightGray), // 요청 범위 밖
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
 
-                // 등록하기 버튼
                 Button(
                     onClick = {
                         sellCarViewModel.updatePrice(price)
@@ -247,16 +245,14 @@ fun SellCarPriceScreen(
                         )
                         sellCarViewModel.registerCar(
                             onSuccess = { onRegisterClicked() },
-                            onError = { errorMessage ->
-
-                            }
+                            onError = { /* errorMessage -> */ }
                         )
                     },
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = purpleColor,
-                        disabledContainerColor = Color.LightGray
+                        disabledContainerColor = Color.LightGray // 요청 범위 밖
                     ),
                     enabled = when(uiState.transactionType) {
                         "경매" -> startDatePickerState.selectedDateMillis != null &&
@@ -267,10 +263,9 @@ fun SellCarPriceScreen(
                     },
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text("등록하기", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
+                    Text("등록하기", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold) // 요청 범위 밖
                 }
             }
-            // ▲▲▲ 이전/등록하기 버튼으로 수정 ▲▲▲
         }
 
         if (showStartDatePicker) {
@@ -310,31 +305,29 @@ fun SellCarPriceScreen(
 
 }
 
-// DateBox, formatDate 함수는 변경 없이 그대로 사용
-// ... (DateBox, formatDate 함수 코드는 여기에 위치)
 @Composable
-private fun DateBox(dateMillis: Long?, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val purpleColor = Color(0xFF6A11CB)
+private fun DateBox(dateMillis: Long?, onClick: () -> Unit, modifier: Modifier = Modifier, activeBorderColor: Color) {
+    val currentColorScheme = MaterialTheme.colorScheme
     val isComplete = dateMillis != null
     val (dateText, textColor) = if (isComplete) {
-        formatDate(dateMillis!!, "yyyy/MM/dd") to Color.Black
+        formatDate(dateMillis!!, "yyyy/MM/dd") to currentColorScheme.onSurface // 텍스트 색상 변경
     } else {
-        "YYYY/MM/DD" to Color.Gray
+        "YYYY/MM/DD" to currentColorScheme.onSurfaceVariant // 텍스트 색상 변경 (플레이스홀더)
     }
 
     Surface(
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, if (isComplete) purpleColor else Color.LightGray),
-        color = MaterialTheme.colorScheme.textPrimaryColor
+        border = BorderStroke(1.dp, if (isComplete) activeBorderColor else currentColorScheme.outline), // 테두리 색상 변경
+        color = currentColorScheme.cardBackgroundColor // 배경색 변경
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween // 아이콘을 오른쪽으로 밀기 위해
+            horizontalArrangement = Arrangement.SpaceBetween 
         ) {
             Text(dateText, color = textColor, fontSize = 16.sp)
-            Icon(Icons.Default.DateRange, contentDescription = "Select Date", tint = Color.Gray)
+            Icon(Icons.Default.DateRange, contentDescription = "Select Date", tint = currentColorScheme.onSurfaceVariant) // 아이콘 색상 변경
         }
     }
 }
@@ -353,18 +346,14 @@ fun SellCarPriceScreenPreview() {
         val previewViewModel: SellCarViewModel = viewModel(
 //            factory = SellCarViewModelFactory(context)
         )
-        // previewViewModel.updateCurrentStep(7) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
         previewViewModel.updateTransactionType("경매")
-        // previewViewModel.updatePrice("3000") // 예시 가격
 
         SellCarPriceScreen(
             sellCarViewModel = previewViewModel,
-            onSystemBack = {},    // onNavigateBack 대신 onSystemBack
-            onStepBack = {},      // onStepBack 추가
+            onSystemBack = {},
+            onStepBack = {},
             onRegisterClicked = {}
         )
     }
 }
-
-
 

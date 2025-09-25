@@ -24,6 +24,9 @@ import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
+// import com.trever.android.ui.theme.backgroundColor // MaterialTheme.colorScheme 사용
+// import com.trever.android.ui.theme.cardBackgroundColor // MaterialTheme.colorScheme 사용
+// import com.trever.android.ui.theme.textPrimaryColor // MaterialTheme.colorScheme 사용
 //import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
 import kotlinx.coroutines.launch
 
@@ -39,10 +42,11 @@ fun SellCarOptionsScreen(
     var description by remember { mutableStateOf(uiState.description) }
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val purpleColor = Color(0xFF6A11CB)
+    val purpleColor = Color(0xFF6A11CB) // TODO: 테마 색상으로 교체 고려
+    val currentColorScheme = MaterialTheme.colorScheme
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.backgroundColor,
+        containerColor = currentColorScheme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -51,7 +55,7 @@ fun SellCarOptionsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = currentColorScheme.backgroundColor)
             )
         }
     ) { paddingValues ->
@@ -62,7 +66,7 @@ fun SellCarOptionsScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomProgressBar(totalSteps = 7, currentStep = 5) // 전체 7단계, 현재 5단계로 가정
+            CustomProgressBar(totalSteps = 7, currentStep = 5)
 
             Column(
                 modifier = Modifier
@@ -71,26 +75,25 @@ fun SellCarOptionsScreen(
             ) {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 차량 옵션 선택
                 Text("차량 옵션을 선택해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
+                // "차량 옵션을 선택해주세요" 텍스트 박스
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 120.dp) // 최소 높이 지정
+                        .heightIn(min = 120.dp)
                         .clickable { showBottomSheet = true },
                     shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, if (uiState.selectedOptions.isNotEmpty()) purpleColor else Color.LightGray),
-                    color = MaterialTheme.colorScheme.textPrimaryColor
+                    border = BorderStroke(1.dp, if (uiState.selectedOptions.isNotEmpty()) purpleColor else currentColorScheme.outline), // 테두리색 변경
+                    color = currentColorScheme.cardBackgroundColor // 배경색 변경
                 ) {
                     Text(
                         text = if (uiState.selectedOptions.isEmpty()) "옵션을 선택해주세요." else uiState.selectedOptions.joinToString(),
                         modifier = Modifier.padding(16.dp),
-                        color = if (uiState.selectedOptions.isEmpty()) Color.Gray else Color.Black
+                        color = if (uiState.selectedOptions.isEmpty()) currentColorScheme.onSurfaceVariant else currentColorScheme.onSurface // 텍스트색 변경
                     )
                 }
 
-                // 상세 설명 입력 (애니메이션)
                 AnimatedVisibility(
                     visible = uiState.selectedOptions.isNotEmpty(),
                     enter = slideInVertically { it / 2 } + fadeIn(),
@@ -110,9 +113,9 @@ fun SellCarOptionsScreen(
                             shape = RoundedCornerShape(8.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = purpleColor,
-                                unfocusedBorderColor = if (description.isNotEmpty()) purpleColor else Color.LightGray,
-                                focusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.cardBackgroundColor
+                                unfocusedBorderColor = if (description.isNotEmpty()) purpleColor else Color.LightGray, // 이 부분은 요청 범위 밖이므로 유지
+                                focusedContainerColor = currentColorScheme.cardBackgroundColor,
+                                unfocusedContainerColor = currentColorScheme.cardBackgroundColor
                             )
                         )
                     }
@@ -121,27 +124,23 @@ fun SellCarOptionsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ▼▼▼ 이전/다음 버튼 부분 수정 ▼▼▼
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp) // 버튼 사이 간격
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 이전 버튼
                 OutlinedButton(
-                    onClick = onStepBack, // 파라미터로 받은 onNavigateBack 사용
+                    onClick = onStepBack,
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.backgroundColor,
-                        contentColor = Color.Black
+                        containerColor = currentColorScheme.backgroundColor,
+                        contentColor = Color.Black // 이 부분은 요청 범위 밖이므로 유지
                     ),
-                    border = BorderStroke(1.dp, Color.LightGray),
-                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩은 필요에 따라 조절
+                    border = BorderStroke(1.dp, Color.LightGray), // 이 부분은 요청 범위 밖이므로 유지
+                    contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-
-                // 다음 버튼
                 Button(
                     onClick = {
                         sellCarViewModel.updateDescription(description)
@@ -151,19 +150,17 @@ fun SellCarOptionsScreen(
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = purpleColor,
-                        disabledContainerColor = Color.LightGray
+                        disabledContainerColor = Color.LightGray // 이 부분은 요청 범위 밖이므로 유지
                     ),
                     enabled = uiState.selectedOptions.isNotEmpty() && description.isNotBlank(),
-                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩은 필요에 따라 조절
+                    contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
+                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold) // 이 부분은 요청 범위 밖이므로 유지
                 }
             }
-            // ▲▲▲ 이전/다음 버튼 부분 수정 ▲▲▲
         }
         }
 
-        // 옵션 선택 바텀 시트
     if (showBottomSheet) {
         OptionsBottomSheet(
             allOptions = listOf("열선시트", "통풍시트", "썬루프", "열선핸들", "내비게이션", "전동시트", "어라운드뷰", "전동트렁크"),
@@ -188,13 +185,14 @@ fun OptionsBottomSheet(
     val tempSelectedOptions = remember { mutableStateListOf<String>().also { it.addAll(selectedOptions) } }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    val purpleColor = Color(0xFF6A11CB)
-    val lightPurpleColor = Color(0xFF9F72FF) // 연보라색
+    val purpleColor = Color(0xFF6A11CB) // TODO: 테마 색상으로 교체 고려
+    val lightPurpleColor = Color(0xFF9F72FF) // TODO: 테마 색상으로 교체 고려
+    val currentColorScheme = MaterialTheme.colorScheme
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.backgroundColor,
+        containerColor = currentColorScheme.backgroundColor,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         Column(
@@ -204,7 +202,6 @@ fun OptionsBottomSheet(
         ) {
             Text("옵션을 선택해주세요", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp))
 
-            // 2x5 그리드 옵션
             allOptions.chunked(2).forEach { rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     rowItems.forEach { option ->
@@ -214,12 +211,12 @@ fun OptionsBottomSheet(
                                 if (isSelected) tempSelectedOptions.remove(option) else tempSelectedOptions.add(option)
                             },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(50), // 알약 모양
+                            shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isSelected) lightPurpleColor else MaterialTheme.colorScheme.cardBackgroundColor, // 연보라색으로 수정
-                                contentColor = if (isSelected) MaterialTheme.colorScheme.textPrimaryColor else MaterialTheme.colorScheme.textPrimaryColor
+                                containerColor = if (isSelected) lightPurpleColor else currentColorScheme.cardBackgroundColor,
+                                contentColor = if (isSelected) currentColorScheme.textPrimaryColor else currentColorScheme.textPrimaryColor // 이 부분은 요청 범위 밖이므로 유지
                             ),
-                            border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null
+                            border = if (!isSelected) BorderStroke(1.dp, Color.LightGray) else null // 이 부분은 요청 범위 밖이므로 유지
                         ) {
                             Text(option, fontSize = 14.sp)
                         }
@@ -230,7 +227,6 @@ fun OptionsBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 취소/확인 버튼
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -240,7 +236,7 @@ fun OptionsBottomSheet(
                         scope.launch { sheetState.hide() }.invokeOnCompletion { if (!sheetState.isVisible) onDismiss() }
                     },
                     modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(50), // 알약 모양
+                    shape = RoundedCornerShape(50),
                     border = BorderStroke(1.dp, purpleColor)
                 ) {
                     Text("취소", color = purpleColor)
@@ -250,10 +246,10 @@ fun OptionsBottomSheet(
                         scope.launch { sheetState.hide() }.invokeOnCompletion { if (!sheetState.isVisible) onConfirm(tempSelectedOptions.toList()) }
                     },
                     modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(50), // 알약 모양
+                    shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = purpleColor)
                 ) {
-                    Text("확인", color = MaterialTheme.colorScheme.textPrimaryColor)
+                    Text("확인", color = currentColorScheme.textPrimaryColor) // 이 부분은 요청 범위 밖이므로 유지
                 }
             }
         }
