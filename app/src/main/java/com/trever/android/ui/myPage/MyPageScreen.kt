@@ -205,22 +205,26 @@ fun MyPageScreen(
         }
     }
 
-    Scaffold(
-        topBar = { MyPageTopAppBar(navController = navController) },
-        containerColor = MaterialTheme.colorScheme.backgroundColor,
-    ) { paddingValues ->
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.backgroundColor)
+    ) {
+        MyPageTopAppBar(navController = navController)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 0.dp),
+                .padding(top = 0.dp, bottom = 0.dp),
             contentPadding = PaddingValues(
+                top = 0.dp,
                 bottom = 0.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(8.dp)) }
+            item { Spacer(modifier = Modifier.height(0.dp)) }
 
             item {
                 ProfileSection(

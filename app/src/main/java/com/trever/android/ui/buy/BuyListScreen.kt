@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -104,20 +105,19 @@ fun BuyListScreen(
     var searchBarH by remember { mutableStateOf(0) }
     val searchBarHdp = with(LocalDensity.current) { searchBarH.toDp() }
 
-    Scaffold(
-        // MainScreen에서 contentWindowInsets=WindowInsets(0) 이라서
-        // topBar가 상태바 아래로 깔리지 않도록 여기서 처리
-        topBar = {
-            BuyTopBar(
-                onSearchClick = onSearchClick
-            )
-        },
-        containerColor = cs.backgroundColor
-    ) { padding ->
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
+            .background(cs.backgroundColor)
+    ) {
+        BuyTopBar(
+            onSearchClick = onSearchClick
+        )
+
+        Box(
+        modifier = Modifier
+            .fillMaxSize()
+
             .background(cs.backgroundColor)
     ) {
         // 목록 부분
@@ -143,7 +143,7 @@ fun BuyListScreen(
                             contentPadding = PaddingValues(
                                 start = 10.dp,
                                 end = 10.dp,
-                                top = searchBarHdp + 30.dp,
+                                top = searchBarHdp + 10.dp,
                                 bottom = 10.dp
                             ),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
