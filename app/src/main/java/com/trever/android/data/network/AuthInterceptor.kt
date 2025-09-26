@@ -3,6 +3,7 @@ package com.trever.android.data.network
 
 import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuthApi
+import com.trever.android.data.remote.ProfileApi
 import com.trever.android.data.remote.RefreshRequest
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -10,6 +11,7 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import kotlin.text.clear
 
 /**
  * 매 요청에 Authorization 헤더를 붙여주는 Interceptor
@@ -37,30 +39,49 @@ class AuthInterceptor(
  */
 class TokenAuthenticator(
     private val tokenStore: TokenStore,
-    private val authApi: AuthApi
+    private val authApi: AuthApi,
+    private val onTokenExpired: () -> Unit
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        // 동일 요청 재시도 무한루프 방지
         if (responseCount(response) >= 2) return null
 
-        val refreshToken = runBlocking { tokenStore.getRefreshToken() } ?: return null
-
-        val newTokens = runCatching {
-            runBlocking {
-                authApi.refresh(RefreshRequest(refreshToken))
-            }
-        }.getOrNull() ?: return null
-
-        // 저장
-        runBlocking {
-            tokenStore.saveTokens(newTokens.accessToken, newTokens.refreshToken)
+        val currentRefreshToken = runBlocking { tokenStore.getRefreshToken() }
+        if (currentRefreshToken.isNullOrBlank()) {
+            runBlocking { tokenStore.clear() }
+            onTokenExpired() // 로그인 화면 이동 등 처리
+            return null
         }
 
-        // 새로운 액세스 토큰으로 헤더 교체하여 재요청
-        return response.request.newBuilder()
-            .header("Authorization", "Bearer ${newTokens.accessToken}")
-            .build()
+        synchronized(this) {
+            val newAccessToken = runBlocking { tokenStore.getAccessToken() }
+            val originalRequestAccessToken = response.request.header("Authorization")?.substringAfter("Bearer ")
+            if (newAccessToken != null && originalRequestAccessToken != newAccessToken) {
+                return response.request.newBuilder()
+                    .header("Authorization", "Bearer $newAccessToken")
+                    .build()
+            }
+
+            val newTokens = runCatching {
+                runBlocking {
+                    authApi.refresh(RefreshRequest(currentRefreshToken))
+                }
+            }.getOrNull()?.data
+
+            if (newTokens == null) {
+                runBlocking { tokenStore.clear() }
+                onTokenExpired() // 로그인 화면 이동 등 처리
+                return null
+            }
+
+            runBlocking {
+                tokenStore.saveTokens(newTokens.accessToken, newTokens.refreshToken)
+            }
+
+            return response.request.newBuilder()
+                .header("Authorization", "Bearer ${newTokens.accessToken}")
+                .build()
+        }
     }
 
     private fun responseCount(response: Response): Int {

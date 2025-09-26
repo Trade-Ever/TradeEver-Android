@@ -1,5 +1,7 @@
 package com.trever.android.ui.navigation
 
+
+
 import SearchResultScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -10,6 +12,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.trever.android.data.network.ApiClient.tokenStore
 import com.trever.android.data.remote.toSearchCarItem
 import com.trever.android.domain.model.SearchCarItem
 import com.trever.android.ui.auction.AuctionDetailScreen
@@ -17,6 +20,7 @@ import com.trever.android.ui.auction.BidHistoryScreen
 import com.trever.android.ui.auth.AuthViewModel
 import com.trever.android.ui.auth.LoginScreen
 import com.trever.android.ui.auth.ProfileInputScreen
+import com.trever.android.ui.auth.SplashScreen
 import com.trever.android.ui.buy.BuyDetailScreen
 import com.trever.android.ui.buy.ContractScreen
 //import com.trever.android.ui.main.MainScreen
@@ -42,7 +46,7 @@ const val ROUTE_BUY_DETAIL = "buy/detail/{carId}"
 
 // MyPage Sub-Screen Routes
 const val ROUTE_MYPAGE_ACCOUNT = "myPage/account"
-const val ROUTE_MYPAGE_RECENTLY_VIEWED = "myPage/recentlyViewed/{initialTabIndex}" // 탭 인덱스 인자 추가
+const val ROUTE_MYPAGE_RECENTLY_VIEWED = "myPage/recentlyViewed/{initialTabIndex}"
 const val ROUTE_MYPAGE_SALES_HISTORY = "myPage/salesHistory"
 const val ROUTE_MYPAGE_PURCHASE_HISTORY = "myPage/purchaseHistory"
 const val ROUTE_MYPAGE_TERMS = "myPage/terms"
@@ -51,13 +55,17 @@ const val ROUTE_MYPAGE_PRIVACY_POLICY = "myPage/privacyPolicy"
 const val ROUTE_AUCTION_DETAIL = "auction/detail/{carId}/{auctionId}"
 const val ROUTE_BID_HISTORY = "auction/bid-history/{auctionId}"
 const val ROUTE_LOGIN = "login"
-
 const val PROFILE_INPUT = "profile_input"
-
 const val ROUTE_SEARCH = "search"
+const val ROUTE_MAIN = "main"
+const val ROUTE_SEARCH_RESULTS = "search/results"
 
-const val ROUTE_CONTRACT = "contract/{contractPdfUrl}"
+const val ROUTE_SEARCH_WITH_ARGS = "search?manufacturer={manufacturer}&carName={carName}&carModel={carModel}"
+const val ROUTE_SELECT_MANUFACTURER = "search/selectManufacturer"
+const val ROUTE_SELECT_CAR_NAME = "search/selectCarName"
+const val ROUTE_SELECT_CAR_MODEL = "search/selectCarModel"
 
+const val ROUTE_SPLASH = "splash"
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -67,13 +75,19 @@ fun AppNavHost(
     val searchViewModel: SearchViewModel = koinViewModel()
     NavHost(
         navController = navController,
-        startDestination = ROUTE_LOGIN,
+        startDestination = ROUTE_SPLASH,
         modifier = modifier
     ) {
-        composable("main") {
+
+
+        composable(ROUTE_MAIN) {
             MainScreen(
                 parentNavController = navController
             )
+        }
+
+        composable(ROUTE_SPLASH) {
+            SplashScreen(navController, tokenStore)
         }
 
         composable(ROUTE_SEARCH) {
@@ -93,7 +107,7 @@ fun AppNavHost(
         }
 
         composable(
-            route = "search?manufacturer={manufacturer}&carName={carName}&carModel={carModel}",
+            route = ROUTE_SEARCH_WITH_ARGS,
             arguments = listOf(
                 navArgument("manufacturer") { nullable = true; defaultValue = "" },
                 navArgument("carName") { nullable = true; defaultValue = "" },
@@ -102,17 +116,17 @@ fun AppNavHost(
         ) { backStackEntry ->
             SearchScreen(
                 viewModel = searchViewModel,
-                onShowResults = { navController.navigate("search/results") },
+                onShowResults = { navController.navigate(ROUTE_SEARCH_RESULTS) },
                 onFilterClick = { filterType ->
                     if (filterType == "model") {
-                        navController.navigate("search/selectManufacturer")
+                        navController.navigate(ROUTE_SELECT_MANUFACTURER)
                     }
                 },
-                onBack = { navController.popBackStack() } // 추가
+                onBack = { navController.popBackStack() }
             )
         }
 
-        composable("search/selectManufacturer") {
+        composable(ROUTE_SELECT_MANUFACTURER) {
             SearchSelectManufacturerScreen(
                 viewModel = searchViewModel,
                 onSystemBack = { navController.popBackStack() },
@@ -120,12 +134,12 @@ fun AppNavHost(
                     searchViewModel.selectedManufacturer.value = manufacturer
                     searchViewModel.selectedCarName.value = null
                     searchViewModel.selectedCarModel.value = null
-                    navController.navigate("search/selectCarName/$manufacturer")
+                    navController.navigate("$ROUTE_SELECT_CAR_NAME/$manufacturer")
                 }
             )
         }
 
-        composable("search/selectCarModel/{manufacturer}/{carName}") { backStackEntry ->
+        composable("$ROUTE_SELECT_CAR_MODEL/{manufacturer}/{carName}") { backStackEntry ->
             val manufacturer = backStackEntry.arguments?.getString("manufacturer") ?: ""
             val carName = backStackEntry.arguments?.getString("carName") ?: ""
 
@@ -136,8 +150,8 @@ fun AppNavHost(
                 onSystemBack = { navController.popBackStack() },
                 onCarModelSelected = { carModel ->
                     searchViewModel.selectedCarModel.value = carModel
-                    navController.navigate("search") {
-                        popUpTo("search") { inclusive = true }
+                    navController.navigate(ROUTE_SEARCH) {
+                        popUpTo(ROUTE_SEARCH) { inclusive = true }
                     }
                 }
             )
@@ -161,7 +175,7 @@ fun AppNavHost(
             )
         }
 
-        composable("search/selectCarName/{manufacturer}") { backStackEntry ->
+        composable("$ROUTE_SELECT_CAR_NAME/{manufacturer}") { backStackEntry ->
             val manufacturer = backStackEntry.arguments?.getString("manufacturer") ?: ""
 
             SearchSelectCarNameScreen(
@@ -175,13 +189,8 @@ fun AppNavHost(
                 }
             )
         }
-        composable("search/results") {
-            val searchResult by searchViewModel.searchResult.collectAsState()
+        composable(ROUTE_SEARCH_RESULTS) {
             val cars = searchViewModel.searchCarItems.collectAsState().value
-            val yearRange by searchViewModel.yearRange.collectAsState()
-            val distanceRange by searchViewModel.distanceRange.collectAsState()
-            val priceRange by searchViewModel.priceRange.collectAsState()
-            val selectedType by searchViewModel.selectedType.collectAsState()
 
             SearchResultScreen(
                 viewModel = searchViewModel,
@@ -194,18 +203,6 @@ fun AppNavHost(
                     }
                 },
                 onToggleLike = { /* 찜 처리 */ },
-                selectedPriceRange = "",
-                onPriceRangeClick = { /* 바텀시트 등 구현 */ },
-                selectedDistance = "",
-                onDistanceClick = { /* 바텀시트 등 구현 */ },
-                selectedSort = "",
-                onSortClick = { /* 정렬 바텀시트 등 구현 */ },
-                yearRange = yearRange,
-                distanceRange = distanceRange,
-                priceRange = priceRange,
-                selectedType = selectedType,
-                onYearRangeClick = { /* 바텀시트 등 구현 */ },
-                onTypeClick = { /* 바텀시트 등 구현 */ }
             )
         }
 
@@ -254,13 +251,7 @@ fun AppNavHost(
             )
         }
 
-        composable("contracts/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull() ?: return@composable
-            ContractScreen(
-                navController = navController,
-                contractId = id
-            )
-        }
+
 
         composable(ROUTE_SELL_FLOW) {
             SellListingScreen(

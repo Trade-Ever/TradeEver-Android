@@ -10,8 +10,8 @@ interface AuthApi {
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): LoginResponse
 
-    @POST("auth/refresh")
-    suspend fun refresh(@Body body: RefreshRequest): RefreshResponse
+    @POST("api/v1/users/reissue")
+    suspend fun refresh(@Body request: RefreshRequest): ApiResponse<ProfileCompleteData>
 
     @POST("api/v1/users/auth/google/login")
     suspend fun googleLogin(@Body request: GoogleLoginRequest): ApiResponse<TokenResponse>
@@ -22,6 +22,14 @@ interface AuthApi {
 //    @POST("auth/google/login")
 //    suspend fun googleLogin(@Body request: GoogleAuthCodeRequest): TokenResponse
 }
+
+@Serializable
+data class ProfileCompleteData(
+    val accessToken: String,
+    val refreshToken: String,
+    val profileComplete: Boolean
+)
+
 
 
 
@@ -46,7 +54,7 @@ data class LoginResponse(
 
 @Serializable
 data class RefreshRequest(
-    @SerialName("refresh_token") val refreshToken: String
+    val refreshToken: String
 )
 
 @Serializable
