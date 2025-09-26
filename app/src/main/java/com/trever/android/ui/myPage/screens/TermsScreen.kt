@@ -22,7 +22,6 @@ import com.trever.android.ui.theme.AppTheme
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 
-// 제공된 약관 텍스트
 private val termsAndConditionsText = """
 제 1 장 총칙
 제 1 조 (목적)
@@ -155,14 +154,14 @@ fun TermsScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Scaffold로부터 제공된 padding 적용
-                .padding(16.dp) // 컨텐츠 자체의 추가적인 padding
-                .verticalScroll(rememberScrollState()) // 스크롤 가능하도록
+                .padding(paddingValues) 
+                .padding(16.dp) 
+                .verticalScroll(rememberScrollState()) 
         ) {
             Text(
                 text = termsAndConditionsText,
-                fontSize = 14.sp, // 적절한 폰트 크기 설정
-                lineHeight = 20.sp, // 줄 간격 설정
+                fontSize = 14.sp, 
+                lineHeight = 20.sp, 
                 color = MaterialTheme.colorScheme.textPrimaryColor
             )
         }

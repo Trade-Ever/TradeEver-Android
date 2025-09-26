@@ -10,11 +10,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.trever.android.data.network.ApiClient
-import com.trever.android.data.remote.VehicleSummaryDto // 기존 DTO 유지
-import com.trever.android.data.remote.toAuctionCar // toAuctionCar 확장 함수 사용
+import com.trever.android.data.remote.VehicleSummaryDto
+import com.trever.android.data.remote.toAuctionCar
 import com.trever.android.data.repository.AuctionRepository
 import com.trever.android.data.repository.VehicleRepository
-import com.trever.android.domain.model.AuctionCar // AuctionCar 모델 사용
+import com.trever.android.domain.model.AuctionCar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,11 +39,11 @@ class SellEntryViewModel(application: Application) : AndroidViewModel(applicatio
         "https://trever-ec541-default-rtdb.asia-southeast1.firebasedatabase.app/auctions"
     )
     private var valueEventListener: ValueEventListener? = null
-    private var isInitialApiFetchDone = false // 첫 API 호출 완료 여부 플래그
+    private var isInitialApiFetchDone = false
 
     init {
         Log.d("SellEntryVM_LifeCycle", "ViewModel init called")
-        fetchMyVehicles() // 초기 데이터 로드 시작
+        fetchMyVehicles()
     }
 
     fun fetchMyVehicles(isRefresh: Boolean = true) {
@@ -70,7 +70,6 @@ class SellEntryViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                     Log.d("SellEntryVM_Fetch", "UI state updated with myVehicles.size: ${updatedCars.size}, isLoading: false")
 
-                    // 첫 성공적인 API 호출 후 Firebase 리스너 설정
                     if (!isInitialApiFetchDone) {
                         setupFirebaseListener()
                         isInitialApiFetchDone = true
@@ -84,17 +83,11 @@ class SellEntryViewModel(application: Application) : AndroidViewModel(applicatio
                             error = exception.message ?: "차량 목록을 불러오는 데 실패했습니다."
                         )
                     }
-                    // API 실패 시에도 리스너는 설정할 수 있으나, 초기 데이터가 없을 수 있음을 유의
-                    // if (!isInitialApiFetchDone) {
-                    //     setupFirebaseListener()
-                    //     isInitialApiFetchDone = true
-                    // }
                 }
         }
     }
 
     private fun setupFirebaseListener() {
-        // 이미 리스너가 설정되어 있으면 중복 설정 방지
         if (valueEventListener != null) {
             Log.d("SellEntryVM_Firebase", "Firebase listener already set up. Skipping.")
             return
@@ -107,13 +100,12 @@ class SellEntryViewModel(application: Application) : AndroidViewModel(applicatio
                 val isLoading = _uiState.value.isLoading
                 Log.d("SellEntryVM_Firebase", "onDataChange triggered. Current cars: ${currentCars.size}, isLoading: $isLoading")
 
-                // 현재 로딩 중이 아닐 때만 Firebase 데이터 병합 실행
                 if (!isLoading) {
                     viewModelScope.launch {
                         Log.d("SellEntryVM_Firebase", "Merging Firebase data with current cars list (count: ${currentCars.size})")
                         val updatedCars = auctionRepository.updateAuctionsWithFirebaseData(currentCars)
                         _uiState.update {
-                            it.copy(myVehicles = updatedCars) // isLoading 상태는 변경하지 않음
+                            it.copy(myVehicles = updatedCars)
                         }
                         Log.d("SellEntryVM_Firebase", "Firebase merge complete. New list count: ${updatedCars.size}")
                     }
@@ -137,7 +129,7 @@ class SellEntryViewModel(application: Application) : AndroidViewModel(applicatio
         Log.d("SellEntryVM_LifeCycle", "ViewModel onCleared. Removing Firebase listener.")
         valueEventListener?.let {
             database.removeEventListener(it)
-            valueEventListener = null // 리스너 참조 제거
+            valueEventListener = null
         }
     }
 }

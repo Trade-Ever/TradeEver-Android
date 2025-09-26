@@ -33,7 +33,7 @@ fun SelectModelScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedManufacturer = uiState.selectedManufacturer
-    val carNameList = uiState.carNameList // List<String>
+    val carNameList = uiState.carNameList 
 
     Scaffold(
         topBar = {
@@ -101,7 +101,7 @@ fun SelectModelScreen(
             ) {
                 items(carNameList) { carName ->
                     ModelRow(carName = carName) {
-                        viewModel.updateSelectedModel(carName) // updateSelectedCarName -> updateSelectedModel
+                        viewModel.updateSelectedModel(carName) 
                         onModelSelected()
                     }
                     HorizontalDivider(
@@ -131,39 +131,3 @@ fun ModelRow(carName: String, onClick: () -> Unit) {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SelectModelScreenPreview() {
-//    AppTheme {
-//        val dummyManufacturer = "현대"
-//        val dummyCarNames = listOf("쏘나타", "그랜저", "아반떼", "투싼")
-//
-//        Scaffold(
-//            topBar = {
-//                TopAppBar(
-//                    title = { Text("$dummyManufacturer 모델 선택", fontWeight = FontWeight.Bold) },
-//                    navigationIcon = {
-//                        IconButton(onClick = {}) {
-//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
-//                        }
-//                    },
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
-//                )
-//            }
-//        ) { paddingValues ->
-//            LazyColumn(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .padding(paddingValues)
-//            ) {
-//                items(dummyCarNames) { carName ->
-//                    ModelRow(carName = carName) {}
-//                    HorizontalDivider(
-//                        color = MaterialTheme.colorScheme.G_100,
-//                        modifier = Modifier.padding(horizontal = 16.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}

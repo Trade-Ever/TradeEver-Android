@@ -59,7 +59,6 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
         viewModel.handleGoogleSignInResult(task)
     }
 
-    // 로그인 성공 시 profileComplete 값에 따라 분기
     LaunchedEffect(loginState, profileComplete) {
         if (loginState is AuthViewModel.LoginState.Success) {
             onLoginSuccess()
@@ -79,7 +78,6 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
                 .padding(innerPadding)
                 .statusBarsPadding()
         ) {
-            // 로고: 정중앙
             Image(
                 painter = painterResource(id = R.drawable.trever_purple),
                 contentDescription = "Trever Logo",
@@ -89,7 +87,6 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
                     .align(Alignment.Center)
             )
 
-            // 버튼: 하단에서 120dp 위
             Button(
                 border = BorderStroke(1.dp, cs.G_100),
                 onClick = { launcher.launch(viewModel.getGoogleSignInIntent()) },
@@ -116,7 +113,6 @@ fun LoginScreen(viewModel: AuthViewModel, onLoginSuccess: () -> Unit) {
                 )
             }
 
-            // 상태 처리
             when (val state = loginState) {
                 is AuthViewModel.LoginState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))

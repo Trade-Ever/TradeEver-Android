@@ -45,7 +45,6 @@ fun SellCarPlateNumberScreen(
         }
     }
 
-    // 차량 번호 중복 시 알림창
     if (uiState.plateNumberExists == true) {
         Dialog(onDismissRequest = { sellCarViewModel.resetPlateNumberCheck() }) {
             Surface(
@@ -137,7 +136,7 @@ fun SellCarPlateNumberScreen(
                     .height(80.dp),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, cs.outline),
-                color = cs.backgroundColor // 배경색을 cs.backgroundColor로 변경 (원복)
+                color = cs.backgroundColor 
             ) {
                 Row(
                     modifier = Modifier
@@ -198,7 +197,6 @@ fun SellCarPlateNumberScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 이전 버튼
                 OutlinedButton(
                     onClick = onStepBack,
                     modifier = Modifier.weight(1f),
@@ -213,7 +211,6 @@ fun SellCarPlateNumberScreen(
                     Text(text = "이전", fontWeight = FontWeight.Bold)
                 }
 
-                // 다음 버튼
                 Button(
                     onClick = {
                         sellCarViewModel.updatePlateNumber(plateNumber)
@@ -249,8 +246,8 @@ fun CustomProgressBar(
     modifier: Modifier = Modifier,
     totalSteps: Int,
     currentStep: Int,
-    activeColor: Color = Color(0xFF6A11CB), // 활성화된 스텝의 색상
-    inactiveColor: Color = Color(0xFFD0D0D0), // 비활성화된 스텝의 색상
+    activeColor: Color = Color(0xFF6A11CB), 
+    inactiveColor: Color = Color(0xFFD0D0D0), 
 ) {
     Row(
         modifier = modifier

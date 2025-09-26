@@ -26,14 +26,12 @@ import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 
-//import com.trever.android.ui.sellcar.viewmodel.SellCarViewModelFactory
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellCarAccidentHistoryScreen(
     sellCarViewModel: SellCarViewModel,
-    onSystemBack: () -> Unit,    // ArrowBack 아이콘용
-    onStepBack: () -> Unit,      // 하단 "이전" 버튼용
+    onSystemBack: () -> Unit,    
+    onStepBack: () -> Unit,      
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
@@ -47,7 +45,6 @@ fun SellCarAccidentHistoryScreen(
         }
     }
 
-    // ViewModel의 accidentDetails가 변경되면 로컬 상태도 업데이트
     LaunchedEffect(uiState.accidentDetails) {
         if (accidentDetails != uiState.accidentDetails) {
             accidentDetails = uiState.accidentDetails
@@ -60,7 +57,7 @@ fun SellCarAccidentHistoryScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onSystemBack) { // onSystemBack 사용
+                    IconButton(onClick = onSystemBack) { 
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
                     }
                 },
@@ -75,10 +72,7 @@ fun SellCarAccidentHistoryScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // CustomProgressBar는 uiState.currentStep 또는 고정값 중 원래 의도대로 사용
-            // 여기서는 원본처럼 6으로 두겠습니다.
-            // ViewModel 연동 시에는 uiState.currentStep 사용 권장.
-            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) // ViewModel 값 사용 권장
+            CustomProgressBar(totalSteps = 7, currentStep = uiState.currentStep) 
 
             Column(
                 modifier = Modifier
@@ -131,18 +125,16 @@ fun SellCarAccidentHistoryScreen(
                         )
                     }
                 }
-            } // 스크롤 Column 끝
+            } 
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ▼▼▼ 이전/다음 버튼으로 수정 ▼▼▼
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 이전 버튼
                 OutlinedButton(
-                    onClick = onStepBack, // 하단 "이전" 버튼 클릭 시 실행
+                    onClick = onStepBack, 
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -155,7 +147,6 @@ fun SellCarAccidentHistoryScreen(
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
 
-                // 다음 버튼
                 Button(
                     onClick = {
                         if (uiState.hasAccidentHistory == true) {
@@ -177,7 +168,6 @@ fun SellCarAccidentHistoryScreen(
                     Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
             }
-            // ▲▲▲ 이전/다음 버튼으로 수정 ▲▲▲
         }
     }
 }
@@ -188,16 +178,13 @@ fun SellCarAccidentHistoryScreenPreview() {
     MaterialTheme {
         val context = LocalContext.current
         val previewViewModel: SellCarViewModel = viewModel(
-//            factory = SellCarViewModelFactory(context)
         )
-        // previewViewModel.updateCurrentStep(6) // Preview에서는 ViewModel 값에 따라 결정되도록 주석 처리하거나 실제 값으로 설정
         previewViewModel.updateHasAccidentHistory(true)
-        // previewViewModel.updateAccidentDetails("사고 상세 내용 미리보기")
 
         SellCarAccidentHistoryScreen(
             sellCarViewModel = previewViewModel,
-            onSystemBack = {},    // onNavigateBack 대신 onSystemBack
-            onStepBack = {},      // onStepBack 추가
+            onSystemBack = {},    
+            onStepBack = {},      
             onNextClicked = {}
         )
     }
@@ -209,9 +196,7 @@ fun SellCarAccidentHistoryScreenNoAccidentPreview() {
     MaterialTheme {
         val context = LocalContext.current
         val previewViewModel: SellCarViewModel = viewModel(
-//            factory = SellCarViewModelFactory(context)
         )
-        // previewViewModel.updateCurrentStep(6)
         previewViewModel.updateHasAccidentHistory(false)
 
         SellCarAccidentHistoryScreen(

@@ -32,16 +32,15 @@ fun SellCarModelPromptScreen(
     sellCarViewModel: SellCarViewModel,
     onSystemBack: () -> Unit,
     onStepBack: () -> Unit,
-    onSelectModelPathClicked: () -> Unit, // 모델 선택 플로우 시작 (Surface 클릭)
-    onConfirmAndProceedClicked: () -> Unit, // 선택 완료 후 다음 단계로 ("다음" 버튼)
-//    onSkipAndProceedClicked: () -> Unit // 건너뛰고 다음 단계로 ("건너뛰고 직접 입력" 버튼)
+    onSelectModelPathClicked: () -> Unit, 
+    onConfirmAndProceedClicked: () -> Unit, 
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     val purpleColor = Color(0xFF6A11CB)
 
     val isModelSelected = uiState.selectedManufacturer.isNotBlank() && 
                           uiState.selectedModel.isNotBlank() && 
-                          uiState.selectedYear != Calendar.getInstance().get(Calendar.YEAR) // 초기값이 아닌지 확인
+                          uiState.selectedYear != Calendar.getInstance().get(Calendar.YEAR) 
 
     val displayText = if (isModelSelected) {
         "${uiState.selectedManufacturer} ${uiState.selectedModel} ${uiState.selectedYear}"
@@ -87,12 +86,11 @@ fun SellCarModelPromptScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 모델 선택 영역 (클릭 시 제조사 선택부터 시작)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable { onSelectModelPathClicked() }, // 제조사 선택 플로우 시작
+                    .clickable { onSelectModelPathClicked() }, 
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
                 color = MaterialTheme.colorScheme.cardBackgroundColor
@@ -111,19 +109,6 @@ fun SellCarModelPromptScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-//            // 건너뛰기 버튼
-//            OutlinedButton(
-//                onClick = onSkipAndProceedClicked,
-//                modifier = Modifier.fillMaxWidth().height(56.dp),
-//                shape = RoundedCornerShape(8.dp),
-//                colors = ButtonDefaults.outlinedButtonColors(
-//                    contentColor = purpleColor
-//                ),
-//                border = BorderStroke(1.dp, purpleColor)
-//            ) {
-//                Text("건너뛰고 직접 입력", fontSize = 16.sp)
-//            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -144,14 +129,14 @@ fun SellCarModelPromptScreen(
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
                 Button(
-                    onClick = onConfirmAndProceedClicked, // 선택 완료 후 다음으로
+                    onClick = onConfirmAndProceedClicked, 
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = purpleColor,
                         disabledContainerColor = Color.LightGray
                     ),
-                    enabled = isModelSelected, // 모델 정보가 모두 선택되었을 때만 활성화
+                    enabled = isModelSelected, 
                 ) {
                     Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold)
                 }
@@ -160,23 +145,3 @@ fun SellCarModelPromptScreen(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SellCarModelPromptScreenPreview() {
-//    AppTheme {
-//        val previewViewModel = SellCarViewModel()
-//        previewViewModel.updateCurrentStep(2)
-//        // previewViewModel.updateSelectedManufacturer("현대")
-//        // previewViewModel.updateSelectedModel("아반떼")
-//        // previewViewModel.updateSelectedYear(2023)
-//
-//        SellCarModelPromptScreen(
-//            sellCarViewModel = previewViewModel,
-//            onSystemBack = {},
-//            onStepBack = {},
-//            onSelectModelPathClicked = {},
-//            onConfirmAndProceedClicked = {},
-//            onSkipAndProceedClicked = {}
-//        )
-//    }
-//}

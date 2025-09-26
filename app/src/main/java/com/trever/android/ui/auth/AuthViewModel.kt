@@ -22,7 +22,6 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     private val _profileComplete = MutableStateFlow<Boolean?>(null)
     val profileComplete = _profileComplete.asStateFlow()
 
-    // 추가 정보 입력값 상태
     var name by mutableStateOf("")
     var phone by mutableStateOf("")
     var birth by mutableStateOf("")

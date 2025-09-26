@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Assignment // PDF 아이콘으로 사용
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.trever.android.domain.model.Transaction // Transaction 모델 import
-import com.trever.android.ui.buy.ContractBottomSheet // ContractBottomSheet import
+import com.trever.android.domain.model.Transaction
+import com.trever.android.ui.buy.ContractBottomSheet
 import com.trever.android.ui.myPage.TransactionType
 import com.trever.android.ui.myPage.TransactionViewModel
 import com.trever.android.ui.theme.AppTheme
@@ -150,7 +150,6 @@ private fun TransactionList(
     }
 }
 
-// 가격 포맷 함수
 fun formatPriceToManwon(price: Long?): String {
     if (price == null) return "-"
     val manwon = price / 10000
@@ -158,7 +157,6 @@ fun formatPriceToManwon(price: Long?): String {
     return "${formatter.format(manwon)}만원"
 }
 
-// 날짜 포맷 함수
 fun formatDateToMMdd(dateString: String?): String {
     if (dateString.isNullOrBlank()) return "-"
     return try {
@@ -196,13 +194,13 @@ private fun TransactionListItem(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 
-                val counterpartyDisplayName = if (selectedTabIndex == 0) { // 판매 탭
+                val counterpartyDisplayName = if (selectedTabIndex == 0) { 
                     transaction.buyerName ?: "-"
-                } else { // 구매 탭
+                } else { 
                     transaction.sellerName ?: "-"
                 }
                 Text(
-                    text = "거래 상대: ${transaction.buyerName ?: "-"}", // counterpartyName 대신 userName 사용
+                    text = "거래 상대: ${transaction.buyerName ?: "-"}", 
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
                     color = MaterialTheme.colorScheme.textSecondaryColor
                 )
@@ -232,15 +230,9 @@ private fun TransactionListItem(
                 Spacer(modifier = Modifier.height(8.dp)) 
                 OutlinedButton(
                     onClick = {
-                        // contractId가 Long 타입이고 non-null이라고 가정 (Transaction DTO/모델에 맞게)
-                        // 만약 Transaction 모델에서 contractId가 nullable (Long?)이라면,
-                        // transaction.contractId?.let { id -> onPdfViewClick(id) } 와 같이 호출합니다.
-                        // 현재 Transaction 모델에 contractId가 Long (non-null)으로 되어있다고 가정합니다.
-                        if (transaction.contractId != 0L) { // contractId가 유효한 경우 (0이 아니라고 가정)
+                        if (transaction.contractId != 0L) { 
                            onPdfViewClick(transaction.contractId)
                         } else {
-                            // contractId가 없는 경우 또는 유효하지 않은 경우 처리 (예: Toast 메시지)
-                            // 이 부분은 필요시 ViewModel을 통해 Toast를 표시하거나 다른 방식으로 처리하는 것이 좋음
                         }
                     },
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -311,13 +303,13 @@ fun TransactionListItemPreview() {
         Column {
             TransactionListItem(
                 transaction = sampleTransactionForSale, 
-                selectedTabIndex = 0, // 판매 탭
+                selectedTabIndex = 0, 
                 onPdfViewClick = { contractId -> println("Preview: PDF View Clicked for $contractId") }
             )
             Spacer(Modifier.height(10.dp))
             TransactionListItem(
                 transaction = sampleTransactionForPurchase, 
-                selectedTabIndex = 1, // 구매 탭
+                selectedTabIndex = 1, 
                 onPdfViewClick = { contractId -> println("Preview: PDF View Clicked for $contractId") }
             )
         }

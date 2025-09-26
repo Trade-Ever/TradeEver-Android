@@ -29,11 +29,11 @@ import com.trever.android.ui.theme.textPrimaryColor
 fun SelectModelNameScreen(
     viewModel: SellCarViewModel,
     onSystemBack: () -> Unit,
-    onModelNameSelected: () -> Unit // 상세 모델명 선택 완료 콜백
+    onModelNameSelected: () -> Unit 
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val selectedCarName = uiState.selectedModel // 차명 (예: 쏘나타)
-    val modelNameList = uiState.modelNameList // 상세 모델명 리스트
+    val selectedCarName = uiState.selectedModel 
+    val modelNameList = uiState.modelNameList 
 
     Scaffold(
         topBar = {
@@ -110,40 +110,3 @@ fun ModelNameRow(modelName: String, onClick: () -> Unit) {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SelectModelNameScreenPreview() {
-//    AppTheme {
-//        // This is a simplified preview and won't reflect real ViewModel state
-//        val dummyCarName = "투싼"
-//        val dummyModelNames = listOf("뉴투싼", "뉴투싼iX", "신형투싼", "올뉴투싼", "투싼", "투싼iX")
-//
-//        Scaffold(
-//            topBar = {
-//                TopAppBar(
-//                    title = { Text("$dummyCarName 상세 모델", fontWeight = FontWeight.Bold) },
-//                    navigationIcon = {
-//                        IconButton(onClick = {}) {
-//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
-//                        }
-//                    },
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
-//                )
-//            }
-//        ) { paddingValues ->
-//            LazyColumn(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .padding(paddingValues)
-//            ) {
-//                items(dummyModelNames) { modelName ->
-//                    ModelNameRow(modelName = modelName) {}
-//                    HorizontalDivider(
-//                        color = MaterialTheme.colorScheme.G_100,
-//                        modifier = Modifier.padding(horizontal = 16.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}

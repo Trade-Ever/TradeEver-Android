@@ -30,7 +30,7 @@ fun MyAccountScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("계좌 관리", fontWeight = FontWeight.SemiBold) }, // 화면 제목 설정
+                title = { Text("계좌 관리", fontWeight = FontWeight.SemiBold) }, 
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -39,7 +39,7 @@ fun MyAccountScreen(navController: NavController) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        containerColor = Color(0xFFF0F0F0) // 배경색 이미지와 유사하게
+        containerColor = Color(0xFFF0F0F0) 
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             TabRow(
@@ -55,7 +55,6 @@ fun MyAccountScreen(navController: NavController) {
                     )
                 }
             }
-            // 탭 콘텐츠
             Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                 when (selectedTabIndex) {
                     0 -> Text("계좌 관리 - text 1 내용", textAlign = TextAlign.Center)

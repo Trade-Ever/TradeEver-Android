@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ImagePickerComponent(
     modifier: Modifier = Modifier,
-    onImageSelected: () -> Unit // 실제로는 선택된 이미지 URI 등을 전달해야 함
+    onImageSelected: () -> Unit
 ) {
     Button(
         onClick = onImageSelected, 

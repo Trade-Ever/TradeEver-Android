@@ -6,7 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items // items 임포트 확인
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -17,8 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-// import androidx.compose.runtime.remember // 사용하지 않으면 제거 가능
-// import androidx.compose.runtime.setValue // 사용하지 않으면 제거 가능
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,22 +25,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-// import androidx.compose.ui.tooling.preview.Preview // 프리뷰 관련 코드가 없다면 제거 가능
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.trever.android.R
-// import com.trever.android.data.remote.toAuctionCar // ViewModel에서 처리하므로 여기선 불필요
-import com.trever.android.domain.model.AuctionCar // AuctionCar 직접 사용
+import com.trever.android.domain.model.AuctionCar
 import com.trever.android.ui.components.ListingItem
 import com.trever.android.ui.navigation.ROUTE_SELL_FLOW
 import com.trever.android.ui.sellcar.viewmodel.SellEntryViewModel
-// import com.trever.android.ui.theme.AppTheme // 프리뷰 관련 코드가 없다면 제거 가능
-// import com.trever.android.ui.theme.AppTheme // AppTheme 사용시 필요
 import com.trever.android.ui.theme.G_100
 import com.trever.android.ui.theme.Red_1
 import com.trever.android.ui.theme.backgroundColor
-// import com.trever.android.ui.theme.backgroundColor // 직접 Color.White 사용
 import com.trever.android.ui.theme.cardBackgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 import com.trever.android.ui.theme.textSecondaryColor
@@ -83,9 +76,7 @@ fun SellEntryScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-            // .background(Color.White) // LazyColumn 자체의 배경보다 Scaffold 배경색 사용
         ) {
-            // 1. 상단 UI
             item {
                 Box(
                     modifier = Modifier
@@ -105,7 +96,7 @@ fun SellEntryScreen(
                             .align(Alignment.BottomCenter)
                             .offset(y = (-40).dp)
                             .border(
-                                width = 4.dp, // 테두리 두께 조정 (기존 4dp에서 변경된 경우 참고)
+                                width = 4.dp, 
                                 color = MaterialTheme.colorScheme.G_100,
                                 shape = RoundedCornerShape(8.dp)
                             ),
@@ -126,8 +117,7 @@ fun SellEntryScreen(
                 }
             }
 
-            // 2. "내가 등록한 차량" 타이틀 또는 상태 메시지
-            if (!isRefreshing || registeredCars.isNotEmpty()) { // 로딩 중이 아닐 때 또는 차가 있을 때
+            if (!isRefreshing || registeredCars.isNotEmpty()) { 
                 item {
                     when {
                         uiState.error != null -> {
@@ -165,7 +155,6 @@ fun SellEntryScreen(
                 }
             }
 
-            // 3. 등록된 차량 목록
             if (registeredCars.isNotEmpty()) {
                 items(registeredCars, key = { it.id }) { car ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -179,7 +168,7 @@ fun SellEntryScreen(
                                     parentNavController.navigate("buy/detail/${car.id}")
                                 }
                             },
-                            onToggleLike = { /* 찜하기 로직 */ },
+                            onToggleLike = { },
                             tags = car.mainOptions ?: emptyList(),
                             showBadge = isRealAuction,
                             showAuctionMeta = isRealAuction,
@@ -190,7 +179,7 @@ fun SellEntryScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(80.dp)) // 바텀 네비게이션 고려
+                Spacer(modifier = Modifier.height(80.dp)) 
             }
         }
 

@@ -48,21 +48,21 @@ val ColorScheme.cardBackgroundColor: Color
 
 val ColorScheme.noticeContainer: Color
     @Composable get() = if (isSystemInDarkTheme())
-        Color(0xFF201A2E)  // 다크: 퍼플톤 딥 배경
+        Color(0xFF201A2E)
     else
-        Color(0xFFF7F3FF)  // 라이트: 지금 쓰던 배경
+        Color(0xFFF7F3FF)
 
 val ColorScheme.noticeOutline: Color
     @Composable get() = if (isSystemInDarkTheme())
-        Color(0xFF3A3152)  // 다크: 보더
+        Color(0xFF3A3152)
     else
-        Color(0xFFE7DFFF)  // 라이트: 지금 쓰던 보더
+        Color(0xFFE7DFFF)
 
 val ColorScheme.G_100: Color
     @Composable get() = if (isSystemInDarkTheme())
-        Grey_100_Dark // 다크: 보더
+        Grey_100_Dark
     else
-        Grey_100 // 라이트: 지금 쓰던 보더
+        Grey_100
 
 val ColorScheme.textPrimaryColor: Color
     @Composable get() = if (isSystemInDarkTheme())
@@ -317,7 +317,6 @@ val unspecified_scheme = ColorFamily(
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable() () -> Unit
 ) {

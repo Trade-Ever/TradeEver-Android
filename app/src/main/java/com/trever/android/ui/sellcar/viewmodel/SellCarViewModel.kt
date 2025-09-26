@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit
 data class SellCarUiState(
     val currentStep: Int = 1,
     val plateNumber: String = "",
-    val isPlateNumberChecking: Boolean = false, // 번호판 중복 확인 중 상태
-    val plateNumberExists: Boolean? = null, // 중복 확인 결과 (true: 중복, false: 사용 가능, null: 확인 전)
+    val isPlateNumberChecking: Boolean = false,
+    val plateNumberExists: Boolean? = null,
     val selectedManufacturer: String = "",
     val selectedModel: String = "",
     val selectedModelName: String = "",
@@ -79,7 +79,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
                 }
                 .onFailure {
                     _uiState.update { it.copy(isPlateNumberChecking = false, plateNumberExists = null) }
-                    onResult(false) // API 실패 시 중복이 아닌 것으로 간주하여 일단 플로우는 진행
+                    onResult(false)
                     Log.e("SellCarViewModel", "Failed to check plate number duplication", it)
                 }
         }
@@ -89,7 +89,6 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(plateNumberExists = null) }
     }
 
-    // --- 상태 업데이트 함수들 ---
     fun updateCurrentStep(step: Int) {
         _uiState.update { it.copy(currentStep = step) }
     }
@@ -242,8 +241,6 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         loadManufacturers()
     }
 
-    // --- 데이터 로드 함수들 ---
-
     private fun loadManufacturers() {
         if (_uiState.value.isLoadingManufacturers) return
         _uiState.update { it.copy(isLoadingManufacturers = true) }
@@ -324,8 +321,6 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
         return _uiState.value.manufacturerDataMap.entries.find { it.value.contains(manufacturer) }?.key
     }
 
-    // --- 차량 등록 함수 ---
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -343,10 +338,10 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
 
                 val request = CarRegistrationRequest(
                     carNumber = currentState.plateNumber,
-                    carName = currentState.selectedModel, // 차명 (예: 쏘나타)
+                    carName = currentState.selectedModel,
                     description = currentState.description,
                     manufacturer = currentState.selectedManufacturer,
-                    model = currentState.selectedModelName, // 상세 모델명 (예: DN8)
+                    model = currentState.selectedModelName,
                     year_value = currentState.selectedYear,
                     mileage = currentState.mileage.toIntOrNull() ?: 0,
                     fuelType = currentState.fuelType,
@@ -362,7 +357,7 @@ class SellCarViewModel(application: Application) : AndroidViewModel(application)
                     startPrice = if (isAuction) (currentState.price.toIntOrNull() ?: 0) * 10000 else null,
                     startAt = if (isAuction) convertMillisToDateString(currentState.transactionStartDateMillis) else null,
                     endAt = if (isAuction) convertMillisToDateString(currentState.transactionEndDateMillis) else null,
-                    locationAddress = "서울특별시 강남구 테헤란로 152", // TODO: 실제 주소 입력 UI 필요
+                    locationAddress = "서울특별시 강남구 테헤란로 152", 
                     photoOrders = currentState.imageUris.indices.toList(),
                     vehicleType = convertToVehicleType(currentState.selectedCarType),
                     options = currentState.selectedOptions
