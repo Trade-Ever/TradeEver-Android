@@ -40,49 +40,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
-//@Composable
-//fun AuctionListScreen(
-//    items: List<AuctionCar> = sampleAuctions(),
-//    onItemClick: (String) -> Unit = {},
-//    onToggleLike: (String) -> Unit = {}
-//) {
-//    val cs = MaterialTheme.colorScheme
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(cs.backgroundColor)
-//    ) {
-//        Text(
-//            text = "경매",
-//            style = MaterialTheme.typography.headlineMedium,
-//            color = cs.onBackground,
-//            fontSize = 20.sp,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(start = 16.dp, top = 10.dp, bottom = 4.dp)
-//        )
-//
-//        LazyColumn(
-//            modifier = Modifier.fillMaxWidth(),
-//            contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
-//            verticalArrangement = Arrangement.spacedBy(8.dp),
-//        ) {
-//            items(items, key = { it.id }) { car ->
-//                ListingItem(
-//                    car = car,
-//                    onClick = { onItemClick(car.id) },
-//                    onToggleLike = { onToggleLike(car.id) },
-//                    tags = listOf("비흡연자", "무사고", "정비완료"),
-//                    priceLabel = "최고 입찰가",
-//                    showBadge = true,
-//                    showAuctionMeta = true
-//                )
-//            }
-//        }
-//    }
-//}
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AuctionListScreen(

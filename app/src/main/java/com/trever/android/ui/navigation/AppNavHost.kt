@@ -246,8 +246,7 @@ fun AppNavHost(
             BuyDetailScreen(
                 carId = carId,
                 onBack = { navController.popBackStack() },
-                onBuy = { /* 구매 처리 로직 */ },
-                navController = navController
+
             )
         }
 

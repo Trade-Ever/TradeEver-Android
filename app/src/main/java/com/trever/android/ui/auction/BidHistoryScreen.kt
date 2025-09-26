@@ -133,7 +133,9 @@ private fun BidHistoryRow(
                     model = bid.avatarUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(28.dp).clip(CircleShape)
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
                 )
             } else {
                 Surface(
@@ -170,30 +172,3 @@ private fun BidHistoryRow(
     }
 }
 
-/* ----------------- 더미/유틸 ----------------- */
-
-private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA)
-
-private fun won(amount: Long): String {
-    val eok = amount / 100_000_000
-    val man = (amount % 100_000_000) / 10_000
-    return buildString {
-        if (eok > 0) append("${eok}억 ")
-        if (man > 0) append("${man}만원")
-        if (isEmpty()) append("0원")
-    }.trim()
-}
-
-private fun demoBids(count: Int = 20): List<BidUi> {
-    val base = System.currentTimeMillis()
-    val step = 5 * 60 * 1000L
-    return (0 until count).map { i ->
-        val ts = base - i * step
-        BidUi(
-            name = "입찰자 ${i + 1}",
-            amountText = won(120_000_000L + i * 500_000L),
-            timeText = sdf.format(Date(ts)),
-            avatarUrl = null
-        )
-    }
-}

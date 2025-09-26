@@ -143,7 +143,7 @@ class ContractSheetViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun confirm(contractId: Long, onResult: (Boolean) -> Unit) = viewModelScope.launch {
-        // TODO: 확인 API 연결
+
         onResult(true)
     }
 

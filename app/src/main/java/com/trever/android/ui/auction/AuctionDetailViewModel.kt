@@ -103,29 +103,6 @@ class AuctionDetailViewModel(
         _bidResult.value = null
     }
 
-    // 입찰 함수 추가
-//    fun placeBid(auctionId: Int, bidPrice: Long) {
-//        viewModelScope.launch {
-//            _bidResult.value = null // 초기화
-//            Log.d("AuctionDetailViewModel", "입찰 요청: auctionId=$auctionId, bidPrice=$bidPrice")
-//            try {
-//                auctionRepository.placeBid(auctionId, bidPrice)
-//                    .collect { result ->
-//                        _bidResult.value = result
-//
-//                        // 입찰 성공 시 실시간 데이터 업데이트 (Firebase 리스너가 자동으로 갱신)
-//                        if (result.isSuccess) {
-//                            Log.d("AuctionDetailViewModel", "입찰 성공: ${result.getOrNull()}")
-//                        } else {
-//                            Log.e("AuctionDetailViewModel", "입찰 실패: ${result.exceptionOrNull()?.message}")
-//                        }
-//                    }
-//            } catch (e: Exception) {
-//                Log.e("AuctionDetailViewModel", "입찰 중 오류 발생", e)
-//                _bidResult.value = Result.failure(e)
-//            }
-//        }
-//    }
 
     fun placeBid(auctionId: Int, bidPrice: Long) {
         viewModelScope.launch {

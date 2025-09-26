@@ -3,6 +3,8 @@ package com.trever.android.data.network
 import android.content.Context
 import androidx.navigation.NavHostController
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.trever.android.data.auth.AuthInterceptor
+import com.trever.android.data.auth.TokenAuthenticator
 import com.trever.android.data.auth.TokenStore
 import com.trever.android.data.remote.AuctionApi
 import com.trever.android.data.remote.AuthApi
@@ -20,7 +22,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import okhttp3.MediaType.Companion.toMediaType
 import kotlin.jvm.java
-import kotlin.text.clear
 
 object ApiClient {
 
@@ -51,8 +52,6 @@ object ApiClient {
     lateinit var searchApi: SearchApi
         private set
 
-//    lateinit var profileApi: ProfileApi
-//        private set
 
     fun init(context: Context,navController: NavHostController,baseUrl: String = BASE_URL) {
         tokenStore = TokenStore(context)
@@ -96,7 +95,8 @@ object ApiClient {
         // (2) 인증 인터셉터/리프레시 인증자 부착한 클라이언트 & Retrofit (CarApi 등)
         val authedClient = baseClient.newBuilder()
             .addInterceptor(AuthInterceptor(tokenStore))
-            .authenticator(TokenAuthenticator(
+            .authenticator(
+                TokenAuthenticator(
                 tokenStore,
                 authApi,
                 {

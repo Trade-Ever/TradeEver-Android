@@ -18,81 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.compareTo
 
-
-//class AuctionListViewModel : ViewModel() {
-//    private val repository = VehicleRepository(ApiClient.vehicleApi)
-//    private val auctionRepository = AuctionRepository(ApiClient.vehicleApi)
-//
-//    private val _uiState = MutableStateFlow<AuctionListUiState>(AuctionListUiState.Loading)
-//    val uiState: StateFlow<AuctionListUiState> = _uiState
-//
-//    init {
-//        loadAuctions()
-//    }
-//
-//    fun loadAuctions(page: Int = 0) {
-//        _uiState.value = AuctionListUiState.Loading
-//        viewModelScope.launch {
-//            repository.getAuctions(page)
-//                .onSuccess { auctions ->
-//                    _uiState.value = AuctionListUiState.Success(
-//                        auctions = auctions,
-//                        currentPage = page,
-//                        hasMorePages = auctions.isNotEmpty() // 정확한 페이징 정보는 응답에서 추출 필요
-//                    )
-//                }
-//                .onFailure { error ->
-//                    Log.e("AuctionListViewModel", "Error loading auctions", error)
-//                    _uiState.value = AuctionListUiState.Error(error.message ?: "알 수 없는 오류")
-//                }
-//        }
-//    }
-//
-//    fun loadAuctionsWithFirebaseData() {
-//        _uiState.value = AuctionListUiState.Loading
-//        viewModelScope.launch {
-//            repository.getAuctions(0)
-//                .onSuccess { initialAuctions ->
-//                    // Firebase에서 최신 가격과 마감일 정보 가져와서 업데이트
-//                    val updatedAuctions = auctionRepository.updateAuctionsWithFirebaseData(initialAuctions)
-//                    _uiState.value = AuctionListUiState.Success(
-//                        auctions = updatedAuctions,
-//                        currentPage = 0,
-//                        hasMorePages = updatedAuctions.isNotEmpty()
-//                    )
-//                }
-//                .onFailure { error ->
-//                    _uiState.value = AuctionListUiState.Error(error.message ?: "알 수 없는 오류")
-//                }
-//        }
-//    }
-//
-//    fun setupFirebaseListener() {
-//        Firebase.database.getReferenceFromUrl(
-//            "https://trever-ec541-default-rtdb.asia-southeast1.firebasedatabase.app/"
-//        ).addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                // Firebase 데이터 변경 시 목록 업데이트
-//                loadAuctionsWithFirebaseData()
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // 오류 처리
-//            }
-//        })
-//    }
-//}
-//
-//sealed class AuctionListUiState {
-//    object Loading : AuctionListUiState()
-//    data class Success(
-//        val auctions: List<AuctionCar>,
-//        val currentPage: Int,
-//        val hasMorePages: Boolean
-//    ) : AuctionListUiState()
-//    data class Error(val message: String) : AuctionListUiState()
-//}
-
 class AuctionListViewModel : ViewModel() {
     private val repository = VehicleRepository(ApiClient.vehicleApi)
     private val auctionRepository = AuctionRepository(ApiClient.vehicleApi)
@@ -110,23 +35,6 @@ class AuctionListViewModel : ViewModel() {
         loadAuctions()
     }
 
-//    fun loadAuctions(page: Int = 0) {
-//        _uiState.value = AuctionListUiState.Loading
-//        viewModelScope.launch {
-//            repository.getAuctions(page)
-//                .onSuccess { auctions ->
-//                    _uiState.value = AuctionListUiState.Success(
-//                        auctions = auctions,
-//                        currentPage = page,
-//                        hasMorePages = auctions.isNotEmpty() // 정확한 페이징 정보는 응답에서 추출 필요
-//                    )
-//                }
-//                .onFailure { error ->
-//                    Log.e("AuctionListViewModel", "Error loading auctions", error)
-//                    _uiState.value = AuctionListUiState.Error(error.message ?: "알 수 없는 오류")
-//                }
-//        }
-//    }
 
     fun loadAuctions(page: Int = 0, isRefresh: Boolean = true) {
         if (isLoading) return

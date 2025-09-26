@@ -37,7 +37,7 @@ fun StatusBadge(
     }
 }
 
-/** 프리셋 */
+
 @Composable
 fun AuctionBadge(modifier: Modifier = Modifier) =
     StatusBadge(text = "경매", background = com.trever.android.ui.theme.Red_2, modifier = modifier)

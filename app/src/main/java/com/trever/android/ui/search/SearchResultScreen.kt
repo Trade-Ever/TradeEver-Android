@@ -49,22 +49,12 @@ fun SearchResultScreen(
 ) {
     val cs = MaterialTheme.colorScheme
     var showBottomSheet by remember { mutableStateOf<String?>(null) }
-//    val cars = viewModel.searchResult.collectAsState().value?.vehicles?.map { it.toSearchCarItem() } ?: emptyList()
-////    val cars = viewModel.searchCarItems.collectAsState().value
     val yearRange = viewModel.yearRange.collectAsState().value
     val distanceRange = viewModel.distanceRange.collectAsState().value
     val priceRange = viewModel.priceRange.collectAsState().value
     val selectedType = viewModel.selectedType.collectAsState().value
 
-//    val cars = viewModel.searchCarItems.collectAsState().value
 
-    fun formatDistance(range: ClosedFloatingPointRange<Float>?): String =
-        if (range == null) "주행거리"
-        else "${range.start.toInt()}km ~ ${range.endInclusive.toInt()}km"
-
-    fun formatRange(range: ClosedFloatingPointRange<Float>?, unit: String): String {
-        return if (range == null) unit else "${range.start.toInt()}$unit ~ ${range.endInclusive.toInt()}$unit"
-    }
     val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(Unit) {

@@ -65,21 +65,7 @@ class BuyListViewModel : ViewModel() {
         }
     }
 
-    fun applyLikeResult(result: LikeResult) {
-        val state = _uiState.value
-        if (state is BuyListUiState.Success) {
-            val carIdLong = result.carId.toLongOrNull()
-            val updated = state.vehicles.map { v ->
-                if (v.id == carIdLong) {
-                    v.copy(
-                        liked = result.liked,
-                        favoriteCount = result.favoriteCount  // Summary에 필드가 있으면 반영
-                    )
-                } else v
-            }
-            _uiState.value = state.copy(vehicles = updated)
-        }
-    }
+
 
     fun toggleLike(carId: String) {
         Log.d("BuyListViewModel", "toggleLike 호출됨: $carId")

@@ -34,7 +34,7 @@ import com.trever.android.ui.theme.cardBackgroundColor
 
 @Composable
 fun MainScreen(
-    parentNavController: NavHostController   // 상세로 갈 때 이걸 사용!
+    parentNavController: NavHostController
 ) {
     val innerNav = rememberNavController()
     val systemUiController = rememberSystemUiController()
@@ -42,10 +42,10 @@ fun MainScreen(
     val statusBarColor = cs.backgroundColor
 
     SideEffect {
-        // 상태바 색상 변경
+
         systemUiController.setStatusBarColor(
-            color = statusBarColor, // 원하는 색상
-            darkIcons = true   // 글씨(아이콘) 색상 흰색으로
+            color = statusBarColor,
+            darkIcons = true
         )
     }
 

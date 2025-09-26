@@ -50,6 +50,7 @@ import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.Red_1
 // import com.trever.android.ui.theme.backgroundColor // Not used, can be removed
 import com.trever.android.ui.theme.cardBackgroundColor
+import com.trever.android.ui.utils.formatKoreanWon
 import com.trever.android.ui.utils.formatMileage
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
@@ -188,18 +189,8 @@ fun ListingItem(
     }
 }
 
-private fun formatKoreanWon(amount: Long): String {
-    val 억 = amount / 100_000_000
-    val 만 = (amount % 100_000_000) / 10_000
 
-    return buildString {
-        if (억 > 0) append("${dec.format(억)}억 ")
-        if (만 > 0) append("${dec.format(만)}만원")
-        if (억 == 0L && 만 == 0L) append("0원") // 금액이 0원일 경우 처리
-    }.trim().ifEmpty { "0원" } // 만약 모든 조건에 해당하지 않아 비어있다면 "0원" 반환
-}
 
-private val dec = DecimalFormat("#,###")
 
 // private fun formatKm(km: Int) = dec.format(km) // Not used, can be removed
 

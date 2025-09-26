@@ -7,8 +7,6 @@ import retrofit2.http.POST
 
 interface AuthApi {
 
-    @POST("auth/login")
-    suspend fun login(@Body body: LoginRequest): LoginResponse
 
     @POST("api/v1/users/reissue")
     suspend fun refresh(@Body request: RefreshRequest): ApiResponse<ProfileCompleteData>
@@ -17,10 +15,9 @@ interface AuthApi {
     suspend fun googleLogin(@Body request: GoogleLoginRequest): ApiResponse<TokenResponse>
 
     @POST("api/v1/users/logout")
-    suspend fun logout(): ApiResponse<Unit> // 로그아웃 API 추가
+    suspend fun logout(): ApiResponse<Unit>
 
-//    @POST("auth/google/login")
-//    suspend fun googleLogin(@Body request: GoogleAuthCodeRequest): TokenResponse
+
 }
 
 @Serializable

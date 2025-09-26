@@ -82,12 +82,9 @@ import kotlin.text.toInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-
-    viewModel: SearchViewModel, // 기본값 제거
-    onSearch: (String) -> Unit = {},
+    viewModel: SearchViewModel,
     onClearRecent: (String) -> Unit = {},
     onFilterClick: (String) -> Unit = {},
-    onReset: () -> Unit = {},
     onShowResults: () -> Unit = {},
             onBack: () -> Unit = {}
 ) {
