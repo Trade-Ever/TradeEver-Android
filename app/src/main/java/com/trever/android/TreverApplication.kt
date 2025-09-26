@@ -4,8 +4,8 @@ import android.app.Application
 import com.google.gson.Gson
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.trever.android.data.auth.TokenStore
-import com.trever.android.data.network.AuthInterceptor
-import com.trever.android.data.network.TokenAuthenticator
+import com.trever.android.data.auth.AuthInterceptor
+import com.trever.android.data.auth.TokenAuthenticator
 import com.trever.android.data.remote.AuthApi
 import com.trever.android.data.remote.MyPageApi
 import com.trever.android.data.remote.ProfileApi
@@ -34,7 +34,6 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
-import kotlin.text.clear
 
 class TreverApplication : Application() {
     override fun onCreate() {

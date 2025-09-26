@@ -200,17 +200,7 @@ fun BuyListScreen(
             }
         }
 
-        // 떠있는 "검색으로 이동" 버튼 (가짜 검색바)
-//        FloatingSearchButton(
-//            text = "원하는 차량을 검색해보세요",
-//            onClick = onSearchClick,
-//            modifier = Modifier
-//                .align(Alignment.TopCenter)
-//                .padding(horizontal = 20.dp, vertical = 16.dp)
-//                .zIndex(1f)
-//                .onSizeChanged { searchBarH = it.height }
-//                .statusBarsPadding()
-//        )
+
     }}
 }
 
@@ -249,43 +239,3 @@ private fun BuyTopBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FloatingSearchButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val cs = MaterialTheme.colorScheme
-    val pillBg = if (isSystemInDarkTheme()) Color(0x33FFFFFF) else Color(0xFFF3F8FF)
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .clickable(onClick = onClick),    // ← 클릭 시 검색 화면으로 이동
-        color = pillBg,
-        tonalElevation = 0.dp,
-        shadowElevation = 6.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.search),
-                contentDescription = null,
-                tint = cs.onSurfaceVariant
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = text,
-                color = cs.G_300,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}

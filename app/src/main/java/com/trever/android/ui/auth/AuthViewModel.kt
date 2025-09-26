@@ -23,9 +23,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     val profileComplete = _profileComplete.asStateFlow()
 
     var name by mutableStateOf("")
-    var phone by mutableStateOf("")
-    var birth by mutableStateOf("")
-    var region by mutableStateOf("")
+
 
     fun saveProfile(
         name: String,
@@ -49,30 +47,12 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun setProfileComplete(value: Boolean) {
-        _profileComplete.value = value
-    }
+
 
     fun getGoogleSignInIntent(): Intent {
         return authRepository.getGoogleSignInIntent()
     }
 
-//    fun handleGoogleSignInResult(task: Task<GoogleSignInAccount>) {
-//        try {
-//            val account = task.getResult(ApiException::class.java)
-//            viewModelScope.launch {
-//                _loginState.value = LoginState.Loading
-//                account.idToken?.let {
-//                    authRepository.handleGoogleSignInResult(it)
-//                        .onSuccess { _loginState.value = LoginState.Success }
-//                        .onFailure { _loginState.value = LoginState.Error("로그인 실패22: ${it.message}") }
-//                }
-//            }
-//        } catch (e: ApiException) {
-//            Log.e("AuthViewModel", "Google sign in failed", e)
-//            _loginState.value = LoginState.Error("구글 로그인 실패: ${e.statusCode}")
-//        }
-//    }
 // 로그인 결과 처리에서 profileComplete 값 저장
 fun handleGoogleSignInResult(task: Task<GoogleSignInAccount>) {
     try {

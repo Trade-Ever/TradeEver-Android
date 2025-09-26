@@ -45,6 +45,7 @@ import com.trever.android.ui.theme.Grey_400
 import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.textPrimaryColor
 import com.trever.android.ui.theme.textSecondaryColor
+import com.trever.android.ui.utils.formatKoreanWon
 import kotlinx.coroutines.launch
 
 
@@ -67,8 +68,6 @@ fun AuctionDetailScreen(
     navController: NavHostController,
     viewModel: AuctionDetailViewModel = viewModel(),
     onBack: () -> Unit = {},
-    onLike: () -> Unit = {},
-    onBid: () -> Unit = {},
     onShowBidHistory: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -172,59 +171,6 @@ fun AuctionDetailScreen(
                 // 시작가 텍스트
                 val startPrice = auction?.startPrice ?: detailUi.priceWon
                 val startPriceText = "시작가 ${formatKoreanWon(startPrice)}"
-
-//                val endAtMillis = auction?.endAt?.let { endAt ->
-//                    try {
-//                        Log.d("AuctionDetail", "원본 종료 시간: $endAt")
-//
-//                        // 시간 문자열에서 나노초 부분 처리 (가변적인 길이 처리)
-//                        val simplified = if (endAt.contains(".")) {
-//                            val parts = endAt.split(".")
-//                            val base = parts[0]
-//                            val decimal = parts[1].replace("Z", "") // Z 제거
-//                                .take(3) // 밀리초 3자리만 사용
-//                            "$base.$decimal${if (endAt.endsWith("Z")) "Z" else ""}"
-//                        } else {
-//                            endAt
-//                        }
-//
-//                        Log.d("AuctionDetail", "단순화된 종료 시간: $simplified")
-//
-//                        // 여러 날짜 포맷을 시도
-//                        val formats = listOf(
-//                            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-//                            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-//                            "yyyy-MM-dd'T'HH:mm:ss'Z'",
-//                            "yyyy-MM-dd'T'HH:mm:ss"
-//                        )
-//
-//                        var parsedTime: Long? = null
-//                        for (pattern in formats) {
-//                            try {
-//                                val inputFormat = SimpleDateFormat(pattern, Locale.getDefault())
-//                                // 서버에서 오는 시간이 이미 로컬 시간이므로 UTC 설정 제거
-//                                // inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-//
-//                                val date = inputFormat.parse(simplified)
-//                                if (date != null) {
-//                                    parsedTime = date.time
-//                                    Log.d("AuctionDetail", "성공적으로 파싱됨: $pattern, 결과: ${Date(parsedTime)}")
-//                                    break
-//                                }
-//                            } catch (e: Exception) {
-//                                Log.e("AuctionDetail", "패턴 실패: $pattern - ${e.message}")
-//                            }
-//                        }
-//
-//                        parsedTime ?: run {
-//                            Log.e("AuctionDetail", "모든 날짜 패턴으로 파싱 실패")
-//                            System.currentTimeMillis() + 24 * 60 * 60 * 1000 // 기본값
-//                        }
-//                    } catch (e: Exception) {
-//                        Log.e("AuctionDetail", "날짜 파싱 오류: ${e.message}")
-//                        System.currentTimeMillis() + 24 * 60 * 60 * 1000
-//                    }
-//                } ?: (System.currentTimeMillis() + 24 * 60 * 60 * 1000)
 
                 DetailContent(
                     item = detailUi.copy(bids = bidUiList, seller = sellerUi, priceWon = currentPrice, priceWonText = currentPriceText),
@@ -559,44 +505,6 @@ private fun IconStepButton(
                 )
         }
     }
-}
-
-
-
-@Composable
-private fun SmallCircleButton(
-    onClick: () -> Unit,
-    icon: Int
-) {
-    val cs = MaterialTheme.colorScheme
-    Surface(
-        onClick = onClick,
-        shape = CircleShape,
-        color = cs.G_100,
-        tonalElevation = 1.dp,
-        shadowElevation = 2.dp
-    ) {
-        Box(
-            modifier = Modifier.size(36.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = null,
-                tint = cs.onSurfaceVariant
-            )
-        }
-    }
-}
-private fun formatKoreanWon(amount: Long): String {
-    val 억 = amount / 100_000_000
-    val 만 = (amount % 100_000_000) / 10_000
-
-    return buildString {
-        if (억 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(억)}억 ")
-        if (만 > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(만)}만원")
-        if (억 == 0L && 만 == 0L) append("0원")
-    }.trim()
 }
 
 

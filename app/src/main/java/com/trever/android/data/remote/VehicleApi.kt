@@ -249,12 +249,3 @@ data class PhotoResponse(
     val photoUrl: String
 )
 
-private fun createTagsFromOptions(options: List<String>): List<Tag> {
-    val tags = mutableListOf<Tag>()
-
-    if (options.contains("내비게이션")) {
-        tags.add(Tag.CERTIFIED)
-    }
-
-    return tags
-}

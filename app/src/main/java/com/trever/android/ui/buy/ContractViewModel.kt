@@ -76,8 +76,7 @@ class ContractViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun confirmContract(contractId: Long, onResult: (Boolean) -> Unit) = viewModelScope.launch {
-        // TODO: api 호출(예: POST api/v1/contracts/{id}/confirm)
-        // val ok = runCatching { api.confirm(contractId) }.isSuccess
+
         val ok = true // 데모
         onResult(ok)
     }

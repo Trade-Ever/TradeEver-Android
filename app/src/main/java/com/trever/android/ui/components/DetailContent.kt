@@ -80,6 +80,7 @@ import com.trever.android.ui.theme.backgroundColor
 import com.trever.android.ui.theme.noticeContainer
 import com.trever.android.ui.theme.noticeOutline
 import com.trever.android.ui.theme.textPrimaryColor
+import com.trever.android.ui.utils.formatKoreanWon
 import kotlinx.coroutines.launch
 import kotlin.collections.forEach
 import java.text.NumberFormat
@@ -242,7 +243,7 @@ private fun SpecColumnOrdered(
     specs: List<Pair<String, String>>,
     modifier: Modifier = Modifier
 ) {
-//    val order = listOf("연료", "변속기", "배기량(cc)", "마력", "색상", "기타정보", "사고이력", "사고설명")
+
     val order = listOf("연료", "변속기", "배기량(cc)", "마력", "색상", "차종", "사고이력", "사고설명", "기타정보")
     val map = remember(specs) { specs.toMap() }
 
@@ -330,39 +331,6 @@ private fun NoticeCard(text: String) {
     }
 }
 
-//@Composable
-//private fun BidSection(
-//    bids: List<BidUi>,
-//    onMore: () -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    val cs = MaterialTheme.colorScheme
-//
-//    val sectionBg = cs.G_100
-//
-//    Box(
-//        modifier = modifier
-//            .fillMaxWidth()
-//            .background(sectionBg)
-//            .padding(vertical = 12.dp)
-//    ) {
-//        Column {
-//            SectionHeader(
-//                title = "입찰 내역",
-//                actionText = "더보기",
-//                onAction = onMore,
-//                actionIconRes = com.trever.android.R.drawable.arrow_right_1  // ⬅️ 네 리소스 이름에 맞춰 변경
-//            )
-//            Spacer(Modifier.height(8.dp))
-//            bids.forEach { bid ->
-//                BidRowPill(
-//                    bid = bid,
-//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-//                )
-//            }
-//        }
-//    }
-//}
 
 @Composable
 private fun BidSection(
@@ -494,15 +462,6 @@ private fun SellerSection(
     }
 }
 
-private fun formatKoreanWon(amount: Long): String {
-    val eok = amount / 100_000_000
-    val man = (amount % 100_000_000) / 10_000
-    return buildString {
-        if (eok > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(eok)}억 ")
-        if (man > 0) append("${NumberFormat.getNumberInstance(Locale.KOREA).format(man)}만원")
-        if (eok == 0L && man == 0L) append("0원")
-    }.trim()
-}
 
 @Composable
 private fun KeyValueLine(

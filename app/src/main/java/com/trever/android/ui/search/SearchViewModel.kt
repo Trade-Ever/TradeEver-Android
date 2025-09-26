@@ -87,31 +87,6 @@ class SearchViewModel(
     val hasMorePages: Boolean
         get() = !isLastPage
 
-//    fun updateSearchResultWithFirebase() {
-//        viewModelScope.launch {
-//            val result = _searchResult.value ?: return@launch
-//            // 1. 경매 차량만 추출
-//            val auctionItems = result.vehicles.filterIsInstance<SearchCarItem.Auction>()
-//            val auctionIds = auctionItems.map { it.auctionId.toString() }
-//            // 2. Firebase에서 경매 정보 받아오기
-//            val firebaseAuctions = auctionRepository.getFirebaseAuctionsByIds(auctionIds)
-//            // 3. 전체 차량 리스트를 순회하며 경매 차량만 Firebase 정보로 갱신
-//            val updatedList = result.vehicles.map { item ->
-//                if (item is SearchCarItem.Auction) {
-//                    val fb = firebaseAuctions[item.auctionId.toString()]
-//                    if (fb != null) {
-//                        item.copy(
-//                            currentPriceWon = fb.currentBidPrice.takeIf { it > 0 } ?: fb.startPrice,
-//                            endsAtMillis = auctionRepository.parseFirebaseDateToMillis(fb.endAt)
-//                            // 필요한 필드만 갱신, 나머지는 서버 데이터 유지
-//                        )
-//                    } else item
-//                } else item // 일반 차량은 서버 데이터 그대로
-//            }.filterIsInstance<SearchCarItem>()
-//
-//            _searchCarItems.value = updatedList
-//        }
-//    }
 
     fun setupFirebaseListenerForSearchResults() {
         Firebase.database.getReferenceFromUrl(

@@ -88,8 +88,7 @@ class AuctionRepository(
         })
     }
 
-    // 이 함수는 FirebaseAuction의 endAt을 처리하는 데 직접 사용되지 않을 수 있지만,
-    // 다른 곳에서 문자열 날짜 파싱이 필요할 수 있으므로 유지합니다.
+
     public fun parseFirebaseDateToMillis(dateStr: String?): Long {
         if (dateStr.isNullOrBlank()) return 0L
         val patterns = listOf(
@@ -121,25 +120,6 @@ class AuctionRepository(
         })
     }
 
-//    suspend fun placeBid(auctionId: Int, bidPrice: Long): Flow<Result<BidData>> = flow {
-//        try {
-//            Log.d("AuctionRepository", "placeBid 호출됨. auctionId: $auctionId, bidPrice: $bidPrice")
-//            val request = BidRequest(auctionId, bidPrice)
-//            val response = auctionApi.placeBid(request)
-//
-//            if (response.success) {
-//                response.data?.let {
-//                    emit(Result.success(it))
-//                } ?: emit(Result.failure(Exception("입찰 데이터가 null입니다")))
-//            } else {
-//                Log.e("AuctionRepository", "입찰 실패 response: $response")
-//                emit(Result.failure(Exception(response.message)))
-//            }
-//        } catch (e: Exception) {
-//            Log.e("AuctionRepository", "입찰 요청 중 예외 발생", e)
-//            emit(Result.failure(e))
-//        }
-//    }
 
     suspend fun placeBid(auctionId: Int, bidPrice: Long): Flow<Result<BidData>> = flow {
         try {
@@ -171,34 +151,5 @@ class AuctionRepository(
         return all.filterKeys { it in ids }
     }
 
-    suspend fun getBidHistory(auctionId: String): List<BidResponse> = suspendCoroutine { continuation ->
-        val bidsRef = firebaseDatabase.getReferenceFromUrl(
-            "https://trever-ec541-default-rtdb.asia-southeast1.firebasedatabase.app/bids/$auctionId"
-        )
 
-        bidsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val bidList = mutableListOf<BidResponse>()
-
-                // Firebase에서 가져온 배열 데이터 순회
-                snapshot.children.forEach { childSnapshot ->
-                    // null이 아닌 항목만 처리
-                    childSnapshot.getValue(BidResponse::class.java)?.let { bid ->
-                        bidList.add(bid)
-                    }
-                }
-
-                // 입찰 ID 기준 내림차순 정렬 (최신순)
-                bidList.sortByDescending { it.id }
-
-                Log.d("AuctionRepository", "입찰 내역 ${bidList.size}개 로드됨")
-                continuation.resume(bidList)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("AuctionRepository", "입찰 내역 로드 실패: ${error.message}")
-                continuation.resume(emptyList())
-            }
-        })
-    }
 }
