@@ -17,13 +17,12 @@ import androidx.navigation.NavHostController
 import com.trever.android.ui.sellcar.viewmodel.SellCarViewModel
 import java.util.Calendar
 
-// 화면 상태를 정의하는 enum 수정
 enum class CurrentScreen {
     PlateNumber,
     ModelPrompt,
     SelectManufacturer,
     SelectModel,
-    SelectModelName, // 상세 모델명 선택 화면 추가
+    SelectModelName, 
     SelectYear,
     MileageAndType,
     Details,
@@ -85,18 +84,15 @@ fun SellListingScreen(
                         viewModel = sellCarViewModel,
                         onSystemBack = { currentScreen = CurrentScreen.SelectManufacturer },
                         onModelSelected = {
-                            // 차명 선택 후, 상세 모델명 선택 화면으로 이동
                             currentScreen = CurrentScreen.SelectModelName
                         }
                     )
                 }
-                // 신규: 상세 모델명 선택 화면 로직 추가
                 CurrentScreen.SelectModelName -> {
                     SelectModelNameScreen(
                         viewModel = sellCarViewModel,
                         onSystemBack = { currentScreen = CurrentScreen.SelectModel },
                         onModelNameSelected = {
-                            // 상세 모델명 선택 후, 연식 선택 화면으로 이동
                             currentScreen = CurrentScreen.SelectYear
                         }
                     )
@@ -104,7 +100,6 @@ fun SellListingScreen(
                 CurrentScreen.SelectYear -> {
                     SelectYearScreen(
                         viewModel = sellCarViewModel,
-                        // 뒤로가기 목적지를 SelectModel -> SelectModelName으로 수정
                         onSystemBack = { currentScreen = CurrentScreen.SelectModelName },
                         onYearSelected = {
                             sellCarViewModel.updateCurrentStep(2)
@@ -209,8 +204,8 @@ fun SellListingScreen(
                         },
                         onRegisterClicked = {
                             Log.d("SellListingScreen", "Register button clicked. Final data: ${sellCarViewModel.uiState.value}")
-                            sellCarViewModel.completeRegistrationAndAddCar() // 차량 등록 로직 호출
-                            appNavController?.popBackStack() // 이전 화면으로 돌아감 (SellEntryScreen이 있는 MainScreen으로)
+                            sellCarViewModel.completeRegistrationAndAddCar() 
+                            appNavController?.popBackStack() 
                         }
                     )
                 }

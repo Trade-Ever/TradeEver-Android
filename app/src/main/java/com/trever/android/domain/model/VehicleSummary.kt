@@ -1,7 +1,5 @@
 package com.trever.android.domain.model
 
-
-
 data class VehicleSummary(
 
     val id: Long,
@@ -12,7 +10,7 @@ data class VehicleSummary(
     val mileageKm: Int,
     val transmission: String,
     val fuelType: String,
-    val priceWon: Long?,             // 경매일 수 있어 null 허용
+    val priceWon: Long?,
     val isAuction: Boolean,
     val auctionId: Long?,
     val imageUrl: String?,

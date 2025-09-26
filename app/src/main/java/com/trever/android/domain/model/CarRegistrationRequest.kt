@@ -26,7 +26,7 @@ data class CarRegistrationRequest(
     val photoOrders: List<Int>,
     val vehicleType: String,
     val options: List<String>,
-    val startPrice: Int? = null,  // 경매 시작가
-    val startAt: String? = null,  // 경매 시작일
-    val endAt: String? = null     // 경매 종료일
+    val startPrice: Int? = null,
+    val startAt: String? = null,
+    val endAt: String? = null
 )

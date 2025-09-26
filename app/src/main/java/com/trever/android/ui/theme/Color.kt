@@ -12,10 +12,10 @@ val Grey_300 = Color(0xFF7C7C7C)
 val Grey_400 = Color(0xFF444444)
 
 // Dark Theme 대응
-val Grey_100_Dark = Color(0xFF2A2C2F) // 가장 어두운 배경쪽 톤
+val Grey_100_Dark = Color(0xFF2A2C2F)
 val Grey_200_Dark = Color(0xFF4A4D52)
 val Grey_300_Dark = Color(0xFFA2A7B0)
-val Grey_400_Dark = Color(0xFFD9D9D9) // 가장 밝은 텍스트쪽 톤
+val Grey_400_Dark = Color(0xFFD9D9D9)
 
 val Red_1 = Color(0xFFEA3323)
 val Red_2 = Color(0xFFFF6C6C)
@@ -238,10 +238,3 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF201F24)
 val surfaceContainerDarkHighContrast = Color(0xFF312F35)
 val surfaceContainerHighDarkHighContrast = Color(0xFF3D3A41)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF48464C)
-
-
-
-
-
-
-

@@ -47,7 +47,7 @@ fun ProfileInputScreen(viewModel: AuthViewModel, onComplete: () -> Unit) {
 
     val textFieldShape = RoundedCornerShape(14.dp)
     val borderColor = cs.G_200
-    val activeBorderColor = cs.primary // 값이 있을 때 테두리 색
+    val activeBorderColor = cs.primary
     val placeholderColor = cs.G_200
     val isButtonEnabled = name.isNotBlank() && phone.isNotBlank() && birth.isNotBlank() && region.isNotBlank()
 
@@ -98,7 +98,6 @@ fun ProfileInputScreen(viewModel: AuthViewModel, onComplete: () -> Unit) {
             )
         )
 
-        // 생년월일: 텍스트필드 + 투명 오버레이 박스(탭 가로채기)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -109,7 +108,7 @@ fun ProfileInputScreen(viewModel: AuthViewModel, onComplete: () -> Unit) {
                 onValueChange = { /* readOnly */ },
                 placeholder = { Text("생년월일", color = placeholderColor) },
                 modifier = Modifier.fillMaxWidth(),
-                readOnly = true, // 키보드 방지
+                readOnly = true,
                 shape = textFieldShape,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = if (birth.isNotBlank()) activeBorderColor else borderColor,
@@ -117,7 +116,6 @@ fun ProfileInputScreen(viewModel: AuthViewModel, onComplete: () -> Unit) {
                 )
             )
 
-            // 👇 이 레이어가 모든 탭을 받아서 달력 띄움
             Box(
                 modifier = Modifier
                     .matchParentSize()

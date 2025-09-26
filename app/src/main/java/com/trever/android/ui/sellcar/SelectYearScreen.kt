@@ -107,36 +107,4 @@ fun YearRow(year: String, onClick: () -> Unit) {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SelectYearScreenPreview() {
-//    AppTheme {
-//        val dummyYears = (2024 downTo 2010).toList()
-//
-//        Scaffold(
-//            topBar = {
-//                TopAppBar(
-//                    title = { Text("현대 쏘나타 연식 선택", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
-//                    navigationIcon = {
-//                        IconButton(onClick = {}) {
-//                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
-//                        }
-//                    },
-//                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.backgroundColor)
-//                )
-//            }
-//        ) { paddingValues ->
-//            LazyColumn(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .padding(paddingValues)
-//                    .padding(horizontal = 16.dp)
-//            ) {
-//                items(dummyYears) { year ->
-//                    YearRow(year = year.toString()) {}
-//                    HorizontalDivider(color = MaterialTheme.colorScheme.G_100)
-//                }
-//            }
-//        }
-//    }
-//}
+

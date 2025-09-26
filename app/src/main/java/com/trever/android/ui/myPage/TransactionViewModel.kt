@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * 표시할 거래 내역의 종류를 정의합니다.
- */
 enum class TransactionType {
     SALES, PURCHASES
 }
@@ -25,9 +22,6 @@ class TransactionViewModel(private val transactionRepository: TransactionReposit
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    /**
-     * 타입에 맞는 거래 내역을 로드하는 함수
-     */
     fun loadTransactions(type: TransactionType) {
         viewModelScope.launch {
             _isLoading.value = true

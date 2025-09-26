@@ -42,14 +42,13 @@ import com.trever.android.ui.theme.textPrimaryColor
 @Composable
 fun SellCarVisualsScreen(
     sellCarViewModel: SellCarViewModel,
-    onSystemBack: () -> Unit, // 시스템 뒤로가기 (ArrowBack 아이콘용)
-    onStepBack: () -> Unit,   // 단계별 이전 (하단 "이전" 버튼용)
+    onSystemBack: () -> Unit, 
+    onStepBack: () -> Unit,   
     onNextClicked: () -> Unit
 ) {
     val uiState by sellCarViewModel.uiState.collectAsState()
     var color by remember { mutableStateOf(uiState.color) }
 
-    // 이미지 선택 요청을 명시적으로 정의
     val pickImagesRequest = remember {
         PickVisualMediaRequest.Builder()
             .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -59,7 +58,6 @@ fun SellCarVisualsScreen(
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(5),
         onResult = { uris ->
-            // 사용자가 이미지를 선택한 경우에만 상태 업데이트
             if (uris.isNotEmpty()) {
                 sellCarViewModel.addImageUris(uris)
             }
@@ -71,7 +69,7 @@ fun SellCarVisualsScreen(
         containerColor = MaterialTheme.colorScheme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { }, // 제목 추가
+                title = { }, 
                 navigationIcon = {
                     IconButton(onClick = onSystemBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "뒤로 가기")
@@ -100,12 +98,10 @@ fun SellCarVisualsScreen(
                 Text("실물 이미지를 업로드 해주세요", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 이미지 업로드 영역
                 ImageUploadBox {
                     imagePickerLauncher.launch(pickImagesRequest)
                 }
 
-                // 선택된 이미지 리스트
                 if (uiState.imageUris.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -133,7 +129,6 @@ fun SellCarVisualsScreen(
                     }
                 }
 
-                // 색상 입력 (애니메이션)
                 AnimatedVisibility(
                     visible = uiState.imageUris.isNotEmpty(),
                     enter = slideInVertically { it / 2 } + fadeIn(),
@@ -165,39 +160,37 @@ fun SellCarVisualsScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp) // 버튼 사이 간격
+                horizontalArrangement = Arrangement.spacedBy(16.dp) 
             ) {
-                // 이전 버튼
                 OutlinedButton(
-                    onClick = onStepBack, // 파라미터로 받은 onNavigateBack 사용
-                    modifier = Modifier.weight(1f).height(56.dp), // 높이 추가
-                    shape = RoundedCornerShape(8.dp), // 기존 "다음" 버튼과 동일한 모양
+                    onClick = onStepBack, 
+                    modifier = Modifier.weight(1f).height(56.dp), 
+                    shape = RoundedCornerShape(8.dp), 
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = MaterialTheme.colorScheme.backgroundColor,
-                        contentColor = Color.Black // 텍스트 색상
+                        contentColor = Color.Black 
                     ),
-                    border = BorderStroke(1.dp, Color.LightGray), // 테두리
-                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
+                    border = BorderStroke(1.dp, Color.LightGray), 
+                    contentPadding = PaddingValues(vertical = 16.dp) 
                 ) {
                     Text(text = "이전", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
 
-                // 다음 버튼
                 Button(
                     onClick = {
                         sellCarViewModel.updateColor(color)
                         onNextClicked()
                     },
-                    modifier = Modifier.weight(1f).height(56.dp), // 기존 modifier에서 fillMaxWidth() 제거, weight 사용
+                    modifier = Modifier.weight(1f).height(56.dp), 
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = purpleColor,
                         disabledContainerColor = Color.LightGray
                     ),
                     enabled = uiState.imageUris.isNotEmpty() && color.isNotBlank(),
-                    contentPadding = PaddingValues(vertical = 16.dp) // 패딩 일관성 유지
+                    contentPadding = PaddingValues(vertical = 16.dp) 
                 ) {
-                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold) // fontWeight 추가
+                    Text("다음", fontSize = 18.sp, color = MaterialTheme.colorScheme.textPrimaryColor, fontWeight = FontWeight.Bold) 
                 }
             }
         }
@@ -256,17 +249,3 @@ fun ImageUploadBox(onClick: () -> Unit) {
         }
     }
 }
-//
-//@Preview(showBackground = true, device = "spec:width=360dp,height=800dp,dpi=480")
-//@Composable
-//fun SellCarVisualsScreenPreview() {
-//    MaterialTheme {
-//        val previewViewModel = SellCarViewModel()
-//        previewViewModel.updateCurrentStep(4)
-//        SellCarVisualsScreen(
-//            sellCarViewModel = previewViewModel,
-//            onNavigateBack = {},
-//            onNextClicked = {}
-//        )
-//    }
-//}

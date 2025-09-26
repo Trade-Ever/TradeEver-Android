@@ -9,11 +9,10 @@ data class AuctionCar(
     val tags: List<Tag> = emptyList(),
     val mainOptions: List<String>,
     val currentPriceWon: Long,
-    val endsAtMillis: Long,      // 마감 시간 (epoch millis)
+    val endsAtMillis: Long,
     val startAtMillis: Long,
     val liked: Boolean?,
     val auctionId: Long?= null,
-    // 아래 3개 프로퍼티 추가
     val manufacturer: String? = null,
     val model: String? = null,
     val transactionType: String? = null
